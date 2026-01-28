@@ -1052,19 +1052,156 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
     });
 
-    // Preview
+    // Preview — gather all form data and render rich preview
     document.getElementById('previewModal').addEventListener('show.bs.modal', function() {
-        const previewContent = document.getElementById('previewContent');
+        const pc = document.getElementById('previewContent');
+        const esc = function(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+
+        // Basic fields
         const title = document.getElementById('tourTitle').value || '{% trans "Untitled Tour" %}';
         const shortDesc = document.getElementById('shortDesc').value || '';
         const fullDesc = document.getElementById('fullDesc').value || '';
+        const tripType = document.querySelector('input[name="trip_type"]:checked');
+        const tripTypeLabel = tripType ? tripType.closest('.form-check').querySelector('.form-check-label').textContent.trim() : '';
+        const durationHours = form.querySelector('input[name="duration_hours"]').value;
+        const durationDays = form.querySelector('input[name="duration_days"]').value;
+        const departure = form.querySelector('input[name="departure_location"]').value;
+        const destinations = form.querySelector('input[name="destinations"]').value;
+        const currency = form.querySelector('select[name="currency"]').value;
+        const pricePerPerson = form.querySelector('input[name="price_per_person"]').value;
+        const childPrice = form.querySelector('input[name="child_price"]').value;
+        const minTravelers = form.querySelector('input[name="min_participants"]').value;
+        const maxTravelers = form.querySelector('input[name="max_participants"]').value;
 
-        previewContent.innerHTML = `
-            <h2>${title}</h2>
-            <p class="lead">${shortDesc}</p>
-            <hr>
-            <div>${fullDesc.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>
-        `;
+        // Duration text
+        let durationText = '';
+        if (parseInt(durationDays) > 1) durationText = durationDays + ' {% trans "days" %}';
+        else if (durationHours) durationText = durationHours + ' {% trans "hours" %}';
+
+        // Featured image
+        const featuredImg = document.getElementById('featuredImagePreview').querySelector('img');
+        const featuredSrc = featuredImg ? featuredImg.src : '';
+
+        // Highlights
+        const highlightTexts = form.querySelectorAll('input[name="highlight_text[]"]');
+        const highlightIconInputs = form.querySelectorAll('input[name="highlight_icon[]"]');
+        let highlightsHtml = '';
+        highlightTexts.forEach(function(input, i) {
+            if (input.value.trim()) {
+                const icon = highlightIconInputs[i] ? highlightIconInputs[i].value : 'bi-check-circle';
+                highlightsHtml += '<div class="col-md-4 col-sm-6 mb-2"><div class="d-flex align-items-center gap-2"><div style="width:36px;height:36px;border-radius:50%;background:#e7f1ff;color:#0d6efd;display:flex;align-items:center;justify-content:center;"><i class="bi ' + esc(icon) + '"></i></div><span>' + esc(input.value) + '</span></div></div>';
+            }
+        });
+
+        // Itinerary stops
+        const stopNames = form.querySelectorAll('input[name="stop_name[]"]');
+        const stopTypes = form.querySelectorAll('input[name="stop_type[]"]');
+        const stopDescriptions = form.querySelectorAll('textarea[name="stop_description[]"]');
+        let itineraryHtml = '';
+        stopNames.forEach(function(input, i) {
+            if (input.value.trim()) {
+                const type = stopTypes[i] ? stopTypes[i].value : 'stop';
+                const badgeClass = type === 'start' ? 'bg-success' : type === 'end' ? 'bg-danger' : 'bg-primary';
+                const badgeLabel = type === 'start' ? '{% trans "Start" %}' : type === 'end' ? '{% trans "End" %}' : '{% trans "Stop" %}';
+                const desc = stopDescriptions[i] ? stopDescriptions[i].value : '';
+                itineraryHtml += '<div class="d-flex mb-3"><div class="me-3"><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></div><div><strong>' + esc(input.value) + '</strong>' + (desc ? '<br><small class="text-muted">' + esc(desc) + '</small>' : '') + '</div></div>';
+            }
+        });
+
+        // Inclusions / Exclusions
+        const inclusionsText = form.querySelector('textarea[name="inclusions"]').value;
+        const exclusionsText = form.querySelector('textarea[name="exclusions"]').value;
+        const inclusions = inclusionsText.split('\n').filter(function(i) { return i.trim(); });
+        const exclusions = exclusionsText.split('\n').filter(function(e) { return e.trim(); });
+
+        // FAQs
+        const faqQuestions = form.querySelectorAll('input[name="faq_question[]"]');
+        const faqAnswers = form.querySelectorAll('textarea[name="faq_answer[]"]');
+        let faqsHtml = '';
+        faqQuestions.forEach(function(input, i) {
+            if (input.value.trim()) {
+                const answer = faqAnswers[i] ? faqAnswers[i].value : '';
+                faqsHtml += '<div class="mb-3"><h6 class="mb-1">' + esc(input.value) + '</h6><p class="text-muted mb-0">' + esc(answer).replace(/\n/g, '<br>') + '</p></div>';
+            }
+        });
+
+        // Content blocks
+        const blockTitles = form.querySelectorAll('input[name="block_title[]"]');
+        const blockContents = form.querySelectorAll('textarea[name="block_content[]"]');
+        let blocksHtml = '';
+        blockTitles.forEach(function(input, i) {
+            if (input.value.trim()) {
+                const content = blockContents[i] ? blockContents[i].value : '';
+                blocksHtml += '<div class="mb-3"><h6>' + esc(input.value) + '</h6><p class="text-muted">' + esc(content).replace(/\n/g, '<br>') + '</p></div>';
+            }
+        });
+
+        // Build preview HTML
+        let html = '';
+
+        // Hero-like header
+        html += '<div class="p-4 rounded-3 mb-4 text-white" style="background:' + (featuredSrc ? 'linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.6)),url(' + featuredSrc + ') center/cover' : 'linear-gradient(135deg, #1a1a2e, #0f3460)') + '; min-height: 200px; display:flex; align-items:flex-end;">';
+        html += '<div>';
+        if (tripTypeLabel) html += '<span class="badge bg-primary mb-2">' + esc(tripTypeLabel) + '</span>';
+        html += '<h2 class="fw-bold mb-1">' + esc(title) + '</h2>';
+        if (shortDesc) html += '<p class="mb-2 opacity-75">' + esc(shortDesc) + '</p>';
+        html += '<div class="d-flex flex-wrap gap-3 small opacity-75">';
+        if (durationText) html += '<span><i class="bi bi-clock me-1"></i>' + esc(durationText) + '</span>';
+        if (minTravelers && maxTravelers) html += '<span><i class="bi bi-people me-1"></i>' + esc(minTravelers) + '-' + esc(maxTravelers) + ' {% trans "travelers" %}</span>';
+        if (departure) html += '<span><i class="bi bi-geo-alt me-1"></i>' + esc(departure) + '</span>';
+        html += '</div>';
+        if (pricePerPerson) html += '<div class="mt-2 fs-5 fw-bold">{% trans "From" %} ' + parseFloat(pricePerPerson).toFixed(2) + ' ' + esc(currency) + ' / {% trans "person" %}</div>';
+        html += '</div></div>';
+
+        // Highlights
+        if (highlightsHtml) {
+            html += '<div class="mb-4"><h5 class="fw-bold mb-3">{% trans "Highlights" %}</h5><div class="row">' + highlightsHtml + '</div></div>';
+        }
+
+        // Description
+        if (fullDesc) {
+            html += '<div class="mb-4"><h5 class="fw-bold mb-3">{% trans "About This Tour" %}</h5><div class="text-muted">' + esc(fullDesc).replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>') + '</div></div>';
+        }
+
+        // Itinerary
+        if (itineraryHtml) {
+            html += '<div class="mb-4"><h5 class="fw-bold mb-3">{% trans "Itinerary" %}</h5>' + itineraryHtml + '</div>';
+        }
+
+        // Content blocks
+        if (blocksHtml) {
+            html += '<div class="mb-4"><h5 class="fw-bold mb-3">{% trans "What to Expect" %}</h5>' + blocksHtml + '</div>';
+        }
+
+        // Inclusions / Exclusions
+        if (inclusions.length || exclusions.length) {
+            html += '<div class="mb-4"><h5 class="fw-bold mb-3">{% trans "Included & Excluded" %}</h5><div class="row"><div class="col-md-6">';
+            if (inclusions.length) {
+                html += '<h6 class="text-success mb-2"><i class="bi bi-check-circle me-1"></i>{% trans "Included" %}</h6>';
+                inclusions.forEach(function(item) { html += '<div class="d-flex align-items-start gap-2 mb-1"><i class="bi bi-check-lg text-success" style="margin-top:2px"></i><span>' + esc(item) + '</span></div>'; });
+            }
+            html += '</div><div class="col-md-6">';
+            if (exclusions.length) {
+                html += '<h6 class="text-danger mb-2"><i class="bi bi-x-circle me-1"></i>{% trans "Not Included" %}</h6>';
+                exclusions.forEach(function(item) { html += '<div class="d-flex align-items-start gap-2 mb-1"><i class="bi bi-x-lg text-danger" style="margin-top:2px"></i><span>' + esc(item) + '</span></div>'; });
+            }
+            html += '</div></div></div>';
+        }
+
+        // Pricing
+        if (pricePerPerson || childPrice) {
+            html += '<div class="mb-4"><h5 class="fw-bold mb-3">{% trans "Pricing" %}</h5><div class="card"><div class="card-body">';
+            if (pricePerPerson) html += '<div class="d-flex justify-content-between mb-2"><span>{% trans "Adult" %}</span><strong>' + parseFloat(pricePerPerson).toFixed(2) + ' ' + esc(currency) + '</strong></div>';
+            if (childPrice) html += '<div class="d-flex justify-content-between"><span>{% trans "Child" %}</span><strong>' + parseFloat(childPrice).toFixed(2) + ' ' + esc(currency) + '</strong></div>';
+            html += '</div></div></div>';
+        }
+
+        // FAQs
+        if (faqsHtml) {
+            html += '<div class="mb-4"><h5 class="fw-bold mb-3">{% trans "FAQ" %}</h5>' + faqsHtml + '</div>';
+        }
+
+        pc.innerHTML = html;
     });
 
     // Form validation

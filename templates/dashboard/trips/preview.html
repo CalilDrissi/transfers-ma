@@ -1,0 +1,710 @@
+{% load i18n dashboard_tags %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ trip.name }} - {% trans "Preview" %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding-top: 48px;
+        }
+
+        /* Preview Banner */
+        .preview-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #fff3cd;
+            border-bottom: 1px solid #ffc107;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .preview-banner-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #664d03;
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 60vh;
+            display: flex;
+            align-items: flex-end;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.3) 100%);
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            padding: 3rem 0;
+            color: #fff;
+        }
+        .hero-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .hero-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        .hero-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 1rem;
+        }
+
+        /* Highlights */
+        .highlight-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+        }
+        .highlight-icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #e7f1ff;
+            color: #0d6efd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        /* Gallery */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+        .gallery-item {
+            overflow: hidden;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            aspect-ratio: 4/3;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+        .gallery-item-large {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        /* Lightbox */
+        .lightbox-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .lightbox-content {
+            max-width: 90vw;
+            max-height: 90vh;
+            position: relative;
+        }
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 0.5rem;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: -2rem;
+            right: 0;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        .lightbox-caption {
+            color: #ccc;
+            text-align: center;
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 36px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: #dee2e6;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -28px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #0d6efd;
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 2px #0d6efd;
+        }
+        .timeline-item.stop-start .timeline-dot {
+            background: #198754;
+            box-shadow: 0 0 0 2px #198754;
+        }
+        .timeline-item.stop-end .timeline-dot {
+            background: #dc3545;
+            box-shadow: 0 0 0 2px #dc3545;
+        }
+
+        /* Sidebar booking card */
+        .booking-card {
+            position: sticky;
+            top: 80px;
+        }
+
+        /* Inclusions / Exclusions */
+        .inclusion-item, .exclusion-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.35rem 0;
+        }
+        .inclusion-item i { color: #198754; margin-top: 2px; }
+        .exclusion-item i { color: #dc3545; margin-top: 2px; }
+
+        /* Related tours */
+        .related-card img {
+            height: 180px;
+            object-fit: cover;
+        }
+
+        /* Section spacing */
+        .content-section {
+            padding: 2.5rem 0;
+        }
+        .content-section + .content-section {
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero { min-height: 50vh; }
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+            .gallery-item-large { grid-column: span 2; grid-row: span 1; }
+            .hero-stats { gap: 1rem; }
+        }
+        @media (max-width: 576px) {
+            .gallery-grid { grid-template-columns: 1fr; }
+            .gallery-item-large { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Preview Banner -->
+<div class="preview-banner">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-eye-fill text-warning"></i>
+        <span class="preview-banner-label">{% trans "PREVIEW MODE" %}</span>
+        <span class="text-muted small d-none d-md-inline">{% trans "This is how customers will see this tour" %}</span>
+        {% if trip.status == 'draft' %}
+        <span class="badge bg-warning text-dark ms-2">{% trans "Draft" %}</span>
+        {% elif trip.status == 'published' %}
+        <span class="badge bg-success ms-2">{% trans "Published" %}</span>
+        {% elif trip.status == 'archived' %}
+        <span class="badge bg-secondary ms-2">{% trans "Archived" %}</span>
+        {% endif %}
+    </div>
+    <a href="{% url 'dashboard:trip_detail' trip.pk %}" class="btn btn-sm btn-outline-dark">
+        <i class="bi bi-pencil me-1"></i>{% trans "Back to Editor" %}
+    </a>
+</div>
+
+<!-- Hero Section -->
+<section class="hero" style="{% if trip.featured_image %}background-image: url('{{ trip.featured_image.url }}');{% else %}background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);{% endif %}">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="container">
+            <span class="badge bg-primary bg-opacity-75 mb-3 fs-6">{{ trip.get_trip_type_display }}</span>
+            <h1 class="display-4 fw-bold mb-3">{{ trip.name }}</h1>
+            {% if trip.short_description %}
+            <p class="lead mb-0" style="max-width: 700px; opacity: 0.9;">{{ trip.short_description }}</p>
+            {% endif %}
+
+            <div class="hero-stats">
+                {% if trip.duration_hours or trip.duration_days > 1 %}
+                <div class="hero-stat">
+                    <i class="bi bi-clock"></i>
+                    {% if trip.duration_days > 1 %}
+                        {{ trip.duration_days }} {% trans "days" %}
+                    {% elif trip.duration_hours %}
+                        {{ trip.duration_hours }} {% trans "hours" %}
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="hero-stat">
+                    <i class="bi bi-people"></i>
+                    {{ trip.min_participants }}-{{ trip.max_participants }} {% trans "travelers" %}
+                </div>
+                {% if trip.departure_location %}
+                <div class="hero-stat">
+                    <i class="bi bi-geo-alt"></i>
+                    {{ trip.departure_location }}
+                </div>
+                {% endif %}
+                {% if trip.service_type %}
+                <div class="hero-stat">
+                    <i class="bi bi-tag"></i>
+                    {{ trip.get_service_type_display }}
+                </div>
+                {% endif %}
+                {% if trip.driver_languages %}
+                <div class="hero-stat">
+                    <i class="bi bi-translate"></i>
+                    {{ trip.driver_languages }}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if trip.price_per_person %}
+            <div class="hero-price">
+                {% trans "From" %} {{ trip.price_per_person|currency }} / {% trans "person" %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Highlights -->
+{% if trip.highlights.all %}
+<section class="bg-light py-5">
+    <div class="container">
+        <h2 class="h4 fw-bold mb-4">{% trans "Highlights" %}</h2>
+        <div class="row g-3">
+            {% for highlight in trip.highlights.all %}
+            <div class="col-md-4 col-sm-6">
+                <div class="highlight-item">
+                    <div class="highlight-icon-circle">
+                        <i class="bi {{ highlight.icon }}"></i>
+                    </div>
+                    <span>{{ highlight.text }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Main Content + Sidebar -->
+<div class="container py-5">
+    <div class="row g-5">
+        <!-- Main Column -->
+        <div class="col-lg-8">
+
+            <!-- Description -->
+            {% if trip.description %}
+            <div class="content-section" id="description">
+                <h2 class="h4 fw-bold mb-3">{% trans "About This Tour" %}</h2>
+                <div class="text-muted" style="line-height: 1.8;">
+                    {{ trip.description|linebreaksbr }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Gallery -->
+            {% if trip.images.all %}
+            <div class="content-section" id="gallery">
+                <h2 class="h4 fw-bold mb-3">{% trans "Gallery" %}</h2>
+                <div class="gallery-grid">
+                    {% for image in trip.images.all %}
+                    <div class="gallery-item {% if forloop.first %}gallery-item-large{% endif %}" onclick="openLightbox('{{ image.image.url }}', '{{ image.caption|default:image.alt_text|escapejs }}')">
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:trip.name }}" loading="lazy">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Itinerary -->
+            {% if trip.itinerary_stops.all %}
+            <div class="content-section" id="itinerary">
+                <h2 class="h4 fw-bold mb-4">{% trans "Itinerary" %}</h2>
+                <div class="timeline">
+                    {% for stop in trip.itinerary_stops.all %}
+                    <div class="timeline-item stop-{{ stop.stop_type }}">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                {% if stop.stop_type == 'start' %}
+                                <span class="badge bg-success">{% trans "Start" %}</span>
+                                {% elif stop.stop_type == 'end' %}
+                                <span class="badge bg-danger">{% trans "End" %}</span>
+                                {% endif %}
+                                <h5 class="mb-0">{{ stop.name }}</h5>
+                                {% if stop.duration_minutes %}
+                                <span class="badge bg-light text-dark border"><i class="bi bi-clock me-1"></i>{{ stop.duration_minutes }} {% trans "min" %}</span>
+                                {% endif %}
+                                {% if stop.has_admission %}
+                                <span class="badge bg-info text-dark"><i class="bi bi-ticket-perforated me-1"></i>{% trans "Admission included" %}</span>
+                                {% endif %}
+                            </div>
+                            {% if stop.location %}
+                            <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i>{{ stop.location }}</p>
+                            {% endif %}
+                            {% if stop.description %}
+                            <p class="mb-0 text-muted">{{ stop.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- What to Expect -->
+            {% if trip.content_blocks.all %}
+            <div class="content-section" id="what-to-expect">
+                <h2 class="h4 fw-bold mb-4">{% trans "What to Expect" %}</h2>
+                {% for block in trip.content_blocks.all %}
+                <div class="mb-4">
+                    <h5>{{ block.title }}</h5>
+                    <div class="text-muted" style="line-height: 1.8;">{{ block.content|linebreaksbr }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Inclusions & Exclusions -->
+            {% if trip.inclusions or trip.exclusions %}
+            <div class="content-section" id="inclusions">
+                <h2 class="h4 fw-bold mb-4">{% trans "Included & Excluded" %}</h2>
+                <div class="row g-4">
+                    {% if trip.inclusions %}
+                    <div class="col-md-6">
+                        <h6 class="text-success fw-bold mb-3"><i class="bi bi-check-circle me-1"></i>{% trans "Included" %}</h6>
+                        {% for item in trip.inclusions_list %}
+                        <div class="inclusion-item">
+                            <i class="bi bi-check-lg"></i>
+                            <span>{{ item }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if trip.exclusions %}
+                    <div class="col-md-6">
+                        <h6 class="text-danger fw-bold mb-3"><i class="bi bi-x-circle me-1"></i>{% trans "Not Included" %}</h6>
+                        {% for item in trip.exclusions_list %}
+                        <div class="exclusion-item">
+                            <i class="bi bi-x-lg"></i>
+                            <span>{{ item }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tiered Pricing Table -->
+            {% if trip.pricing_model == 'tiered' and trip.price_tiers.all %}
+            <div class="content-section" id="pricing">
+                <h2 class="h4 fw-bold mb-4">{% trans "Pricing" %}</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>{% trans "Group Size" %}</th>
+                                <th>{% trans "Travelers" %}</th>
+                                <th>{% trans "Price per Person" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tier in trip.price_tiers.all %}
+                            <tr>
+                                <td class="fw-bold">{{ tier.name }}</td>
+                                <td>{{ tier.min_travelers }}-{{ tier.max_travelers }}</td>
+                                <td class="fw-bold text-primary">{{ tier.price_per_person|currency }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- FAQs -->
+            {% if trip.faqs.all %}
+            <div class="content-section" id="faqs">
+                <h2 class="h4 fw-bold mb-4">{% trans "Frequently Asked Questions" %}</h2>
+                <div class="accordion" id="faqAccordion">
+                    {% for faq in trip.faqs.all %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ faq.pk }}">
+                                {{ faq.question }}
+                            </button>
+                        </h2>
+                        <div id="faq{{ faq.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted">
+                                {{ faq.answer|linebreaksbr }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Policies -->
+            <div class="content-section" id="policies">
+                <h2 class="h4 fw-bold mb-4">{% trans "Policies & Info" %}</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold"><i class="bi bi-shield-check me-2 text-primary"></i>{% trans "Cancellation" %}</h6>
+                                <p class="text-muted mb-0">{{ trip.get_cancellation_policy_display }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>{% trans "Booking Notice" %}</h6>
+                                <p class="text-muted mb-0">{{ trip.booking_notice_hours }} {% trans "hours in advance" %}</p>
+                            </div>
+                            {% if trip.child_policy %}
+                            <div class="col-md-6">
+                                <h6 class="fw-bold"><i class="bi bi-people me-2 text-primary"></i>{% trans "Child Policy" %}</h6>
+                                <p class="text-muted mb-0">{{ trip.child_policy }}</p>
+                            </div>
+                            {% endif %}
+                            {% if trip.accessibility_info %}
+                            <div class="col-md-6">
+                                <h6 class="fw-bold"><i class="bi bi-universal-access me-2 text-primary"></i>{% trans "Accessibility" %}</h6>
+                                <p class="text-muted mb-0">{{ trip.accessibility_info }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="booking-card">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            {% if trip.pricing_model == 'per_person' and trip.price_per_person %}
+                            <div class="display-6 fw-bold text-primary">{{ trip.price_per_person|currency }}</div>
+                            <small class="text-muted">{% trans "per person" %}</small>
+                            {% elif trip.pricing_model == 'per_group' and trip.private_tour_price %}
+                            <div class="display-6 fw-bold text-primary">{{ trip.private_tour_price|currency }}</div>
+                            <small class="text-muted">{% trans "per group" %}</small>
+                            {% elif trip.pricing_model == 'tiered' and trip.price_tiers.all %}
+                            {% with first_tier=trip.price_tiers.first %}
+                            {% if first_tier %}
+                            <div class="display-6 fw-bold text-primary">{% trans "From" %} {{ first_tier.price_per_person|currency }}</div>
+                            <small class="text-muted">{% trans "per person" %}</small>
+                            {% endif %}
+                            {% endwith %}
+                            {% else %}
+                            <div class="display-6 fw-bold text-muted">--</div>
+                            <small class="text-muted">{% trans "Price not set" %}</small>
+                            {% endif %}
+                        </div>
+
+                        {% if trip.child_price %}
+                        <p class="text-center text-muted small mb-3">
+                            {% trans "Children" %}: {{ trip.child_price|currency }}
+                        </p>
+                        {% endif %}
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">{% trans "Date" %}</label>
+                            <input type="date" class="form-control" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">{% trans "Travelers" %}</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <select class="form-select form-select-sm" disabled>
+                                        <option>2 {% trans "Adults" %}</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <select class="form-select form-select-sm" disabled>
+                                        <option>0 {% trans "Children" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary btn-lg w-100 mb-3" disabled title="{% trans 'Preview only - booking disabled' %}">
+                            <i class="bi bi-cart-check me-2"></i>{% trans "Book Now" %}
+                        </button>
+
+                        <div class="text-center small text-muted">
+                            {% if trip.instant_confirmation %}
+                            <div class="mb-1"><i class="bi bi-lightning-fill text-success"></i> {% trans "Instant confirmation" %}</div>
+                            {% endif %}
+                            {% if trip.cancellation_policy == 'flexible' %}
+                            <div><i class="bi bi-shield-check text-success"></i> {% trans "Free cancellation up to 24h before" %}</div>
+                            {% elif trip.cancellation_policy == 'moderate' %}
+                            <div><i class="bi bi-shield-check text-info"></i> {% trans "Free cancellation up to 48h before" %}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Info Card -->
+                <div class="card mt-3">
+                    <div class="card-body small">
+                        <h6 class="fw-bold mb-3">{% trans "Tour Details" %}</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% trans "Type" %}</span>
+                            <span class="fw-bold">{{ trip.get_trip_type_display }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% trans "Service" %}</span>
+                            <span class="fw-bold">{{ trip.get_service_type_display }}</span>
+                        </div>
+                        {% if trip.duration_hours or trip.duration_days > 1 %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% trans "Duration" %}</span>
+                            <span class="fw-bold">
+                                {% if trip.duration_days > 1 %}{{ trip.duration_days }} {% trans "days" %}
+                                {% elif trip.duration_hours %}{{ trip.duration_hours }} {% trans "hours" %}{% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% trans "Group Size" %}</span>
+                            <span class="fw-bold">{{ trip.min_participants }}-{{ trip.max_participants }}</span>
+                        </div>
+                        {% if trip.departure_location %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% trans "Departure" %}</span>
+                            <span class="fw-bold">{{ trip.departure_location }}</span>
+                        </div>
+                        {% endif %}
+                        {% if trip.destinations %}
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Destinations" %}</span>
+                            <span class="fw-bold">{{ trip.destinations }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related Tours -->
+{% if related_trips %}
+<section class="bg-light py-5">
+    <div class="container">
+        <h2 class="h4 fw-bold mb-4">{% trans "You Might Also Like" %}</h2>
+        <div class="row g-4">
+            {% for t in related_trips %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 related-card">
+                    {% if t.featured_image %}
+                    <img src="{{ t.featured_image.url }}" class="card-img-top" alt="{{ t.name }}">
+                    {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 180px;">
+                        <i class="bi bi-image text-white" style="font-size: 2rem;"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h6 class="card-title mb-1">{{ t.name }}</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>
+                                {% if t.duration_days > 1 %}{{ t.duration_days }} {% trans "days" %}{% elif t.duration_hours %}{{ t.duration_hours }}h{% endif %}
+                            </small>
+                            {% if t.price_per_person %}
+                            <span class="fw-bold text-primary small">{{ t.price_per_person|currency }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4 mt-auto">
+    <div class="container text-center">
+        <p class="mb-0 text-muted small">{% trans "This is a preview. Content may change before publishing." %}</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function openLightbox(src, caption) {
+    var overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    overlay.innerHTML =
+        '<div class="lightbox-content">' +
+        '<button class="lightbox-close" onclick="this.parentElement.parentElement.remove()">&times;</button>' +
+        '<img src="' + src + '" alt="' + (caption || '') + '">' +
+        (caption ? '<p class="lightbox-caption">' + caption + '</p>' : '') +
+        '</div>';
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+    });
+    document.body.appendChild(overlay);
+}
+</script>
+</body>
+</html>

@@ -18,6 +18,7 @@ urlpatterns = [
     # Trips/Tours
     path('trips/', views.trip_list, name='trip_list'),
     path('trips/create/', views.trip_create, name='trip_create'),
+    path('trips/<int:pk>/preview/', views.trip_preview, name='trip_preview'),
     path('trips/<int:pk>/', views.trip_detail, name='trip_detail'),
     path('trips/bookings/', views.trip_booking_list, name='trip_booking_list'),
 

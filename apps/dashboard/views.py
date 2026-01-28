@@ -1590,3 +1590,25 @@ def trip_detail(request, pk):
         'all_trips': all_trips,
     }
     return render(request, 'dashboard/trips/detail.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def trip_preview(request, pk):
+    """Standalone customer-facing preview of a trip/tour."""
+    trip = get_object_or_404(
+        Trip.objects.prefetch_related(
+            'images', 'highlights', 'itinerary_stops', 'price_tiers',
+            'content_blocks', 'faqs', 'schedules', 'related_trips',
+        ),
+        pk=pk
+    )
+    related = trip.related_trips.filter(is_active=True)[:4]
+    if not related.exists():
+        related = Trip.objects.filter(
+            is_active=True, status='published'
+        ).exclude(pk=pk)[:4]
+    return render(request, 'dashboard/trips/preview.html', {
+        'trip': trip,
+        'related_trips': related,
+    })
