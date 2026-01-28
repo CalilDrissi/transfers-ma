@@ -38,6 +38,7 @@ SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=False, cast=bool)
 
 # CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
+    'https://api.transfers.ma',
     'https://backoffice.transfers.ma',
     'https://www.transfers.ma',
     'https://transfers.ma',
