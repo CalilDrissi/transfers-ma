@@ -1,0 +1,28 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 34.38.157.244
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/transfers
+            git pull origin main
+            docker compose -f docker-compose.prod.yml build --no-cache web celery celery-beat
+            docker compose -f docker-compose.prod.yml up -d --force-recreate web celery celery-beat
+            docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate --noinput
+            docker compose -f docker-compose.prod.yml exec -T web python manage.py collectstatic --noinput
+            docker image prune -f
+            echo "Deployment complete!"

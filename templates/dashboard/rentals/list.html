@@ -1,0 +1,112 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Car Rentals" %}{% endblock %}
+{% block page_title %}{% trans "Car Rental Bookings" %}{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Status" %}</label>
+                <select name="status" class="form-select">
+                    <option value="">{% trans "All Statuses" %}</option>
+                    {% for value, label in statuses %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">{% trans "Search" %}</label>
+                <input type="text" name="search" class="form-control" placeholder="{% trans 'Booking ref, name, email...' %}" value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>{% trans "Filter" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Booking Ref" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Vehicle" %}</th>
+                        <th>{% trans "Period" %}</th>
+                        <th>{% trans "Pickup" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Total" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rental in rentals %}
+                    <tr>
+                        <td><strong>{{ rental.booking_ref }}</strong></td>
+                        <td>
+                            {{ rental.customer_name }}<br>
+                            <small class="text-muted">{{ rental.customer_email }}</small>
+                        </td>
+                        <td>{{ rental.vehicle.name }}</td>
+                        <td>
+                            {{ rental.pickup_datetime|date:"M d" }} - {{ rental.return_datetime|date:"M d, Y" }}<br>
+                            <small class="text-muted">{{ rental.total_days }} {% trans "days" %}</small>
+                        </td>
+                        <td>{{ rental.pickup_location.name }}</td>
+                        <td>{{ rental.status|status_badge }}</td>
+                        <td>{{ rental.total_price|currency }}</td>
+                        <td>
+                            <a href="{% url 'dashboard:rental_detail' rental.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            {% trans "No rentals found" %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if rentals.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if rentals.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ rentals.previous_page_number }}">&laquo;</a>
+        </li>
+        {% endif %}
+
+        {% for num in rentals.paginator.page_range %}
+            {% if rentals.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > rentals.number|add:'-3' and num < rentals.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if rentals.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ rentals.next_page_number }}">&raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

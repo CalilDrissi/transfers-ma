@@ -1,0 +1,54 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Zone" %}{% endblock %}
+{% block page_title %}{% trans "Create New Zone" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{% trans "Zone Information" %}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">{% trans "Zone Name" %} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="{% trans 'e.g., Casablanca, Marrakech Airport' %}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">{% trans "Description" %}</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="{% trans 'Optional description for this zone' %}"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="color" class="form-label">{% trans "Color" %}</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" class="form-control form-control-color" id="color" name="color" value="#3498db">
+                            <span class="text-muted small">{% trans "Used for visual identification" %}</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Create Zone" %}
+                        </button>
+                        <a href="{% url 'dashboard:zone_list' %}" class="btn btn-outline-secondary">
+                            {% trans "Cancel" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4">
+            <i class="bi bi-info-circle"></i>
+            {% trans "After creating the zone, you can add price ranges for different distances." %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1107 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Tour" %}{% endblock %}
+{% block page_title %}{% trans "Create Tour" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #fff;
+        padding: 1rem;
+        margin: -1rem -1rem 1rem -1rem;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .section-card {
+        margin-bottom: 1rem;
+    }
+    .section-card .card-header {
+        cursor: pointer;
+        user-select: none;
+    }
+    .section-card .card-header:hover {
+        background-color: #f8f9fa;
+    }
+    .section-card .collapse-icon {
+        transition: transform 0.2s;
+    }
+    .section-card .collapsed .collapse-icon {
+        transform: rotate(-90deg);
+    }
+    .repeatable-item {
+        position: relative;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+    }
+    .repeatable-item.dragging {
+        opacity: 0.5;
+    }
+    .drag-handle {
+        cursor: grab;
+        color: #6c757d;
+    }
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+    .remove-item {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+    .icon-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        max-height: 150px;
+        overflow-y: auto;
+        padding: 0.5rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+    .icon-option {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        font-size: 1.25rem;
+    }
+    .icon-option:hover {
+        background-color: #e9ecef;
+    }
+    .icon-option.selected {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+    .preview-modal .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    .floating-preview {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 99;
+    }
+    .char-count {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    .char-count.warning {
+        color: #ffc107;
+    }
+    .char-count.danger {
+        color: #dc3545;
+    }
+    .validation-error {
+        border-color: #dc3545 !important;
+    }
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    .image-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    .image-preview-item {
+        position: relative;
+        aspect-ratio: 4/3;
+        border: 2px dashed #dee2e6;
+        border-radius: 0.375rem;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .image-preview-item.is-thumbnail {
+        border-color: #0d6efd;
+        border-style: solid;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" id="tourForm" novalidate>
+    {% csrf_token %}
+
+    <!-- Sticky Header -->
+    <div class="sticky-header d-flex justify-content-between align-items-center">
+        <div>
+            <span class="text-muted" id="autoSaveStatus">
+                <i class="bi bi-cloud-check me-1"></i>{% trans "Auto-save enabled" %}
+            </span>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" id="saveDraftBtn">
+                <i class="bi bi-file-earmark me-1"></i>{% trans "Save Draft" %}
+            </button>
+            <button type="submit" name="status" value="published" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>{% trans "Publish" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Basic Info Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#basicInfoSection">
+            <span><i class="bi bi-info-circle me-2"></i>{% trans "Basic Info" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse show" id="basicInfoSection">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label">{% trans "Title" %} *</label>
+                        <input type="text" name="name" class="form-control" required id="tourTitle">
+                        <div class="error-message" data-for="name"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">{% trans "Slug" %}</label>
+                        <input type="text" name="slug" class="form-control" id="tourSlug" placeholder="{% trans 'Auto-generated from title' %}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Origin City" %}</label>
+                        <input type="text" name="departure_location" class="form-control" id="departureLocation" list="citySuggestions" placeholder="{% trans 'Search city...' %}">
+                        <datalist id="citySuggestions">
+                            <option value="Marrakech">
+                            <option value="Casablanca">
+                            <option value="Fes">
+                            <option value="Rabat">
+                            <option value="Tangier">
+                            <option value="Agadir">
+                            <option value="Essaouira">
+                            <option value="Chefchaouen">
+                            <option value="Ouarzazate">
+                            <option value="Merzouga">
+                        </datalist>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Destination Name" %}</label>
+                        <input type="text" name="destinations" class="form-control" placeholder="{% trans 'e.g., Ouzoud Waterfalls' %}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Trip Type" %}</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for value, label in trip_types %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="trip_type" value="{{ value }}" id="tripType{{ value }}" {% if forloop.first %}checked{% endif %}>
+                                <label class="form-check-label" for="tripType{{ value }}">{{ label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Service Type" %}</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for value, label in service_types %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="service_type" value="{{ value }}" id="serviceType{{ value }}" {% if forloop.first %}checked{% endif %}>
+                                <label class="form-check-label" for="serviceType{{ value }}">{{ label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">{% trans "Duration" %}</label>
+                        <div class="input-group">
+                            <input type="number" name="duration_hours" class="form-control" min="0" max="24" placeholder="{% trans 'Hours' %}">
+                            <span class="input-group-text">{% trans "hrs" %}</span>
+                            <input type="number" name="duration_days" class="form-control" min="1" value="1" placeholder="{% trans 'Days' %}">
+                            <span class="input-group-text">{% trans "days" %}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">{% trans "Driver Languages" %}</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for code, label in languages %}
+                            <div class="form-check">
+                                <input class="form-check-input language-checkbox" type="checkbox" value="{{ code }}" id="lang{{ code }}">
+                                <label class="form-check-label" for="lang{{ code }}">{{ label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="driver_languages" id="driverLanguages">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#mediaSection">
+            <span><i class="bi bi-images me-2"></i>{% trans "Media" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse show" id="mediaSection">
+            <div class="card-body">
+                <div class="mb-4">
+                    <label class="form-label">{% trans "Featured Image" %}</label>
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div id="featuredImagePreview" class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 200px; height: 150px;">
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <input type="file" name="featured_image" class="form-control" accept="image/*" id="featuredImageInput">
+                            <small class="text-muted">{% trans "Main image shown in listings" %}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label">{% trans "Gallery Images" %}</label>
+                    <div class="border rounded p-3 mb-2" id="galleryDropZone">
+                        <div class="text-center text-muted py-4" id="galleryPlaceholder">
+                            <i class="bi bi-cloud-upload display-4"></i>
+                            <p class="mb-0">{% trans "Drag & drop images here or click to browse" %}</p>
+                        </div>
+                        <div class="image-preview-grid" id="galleryPreview"></div>
+                        <input type="file" name="gallery_images" multiple class="d-none" accept="image/*" id="galleryInput">
+                    </div>
+                    <small class="text-muted">{% trans "Click on an image to set as thumbnail. Drag to reorder." %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#descriptionSection">
+            <span><i class="bi bi-text-paragraph me-2"></i>{% trans "Description" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse show" id="descriptionSection">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Short Description" %} *</label>
+                    <textarea name="short_description" class="form-control" rows="2" maxlength="300" required id="shortDesc"></textarea>
+                    <div class="d-flex justify-content-between">
+                        <div class="error-message" data-for="short_description"></div>
+                        <span class="char-count"><span id="shortDescCount">0</span>/300</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Full Description" %}</label>
+                    <textarea name="description" class="form-control" rows="6" id="fullDesc"></textarea>
+                    <small class="text-muted">{% trans "Supports basic formatting. Use blank lines for paragraphs." %}</small>
+                </div>
+                <div>
+                    <label class="form-label">{% trans "Highlights" %}</label>
+                    <div id="highlightsContainer">
+                        <!-- Highlights will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addHighlight">
+                        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Highlight" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Itinerary Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#itinerarySection">
+            <span><i class="bi bi-map me-2"></i>{% trans "Itinerary" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse show" id="itinerarySection">
+            <div class="card-body">
+                <div id="itineraryContainer">
+                    <!-- Start Point -->
+                    <div class="repeatable-item" data-type="start">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success me-2">{% trans "Start" %}</span>
+                            <strong>{% trans "Start Point" %}</strong>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <input type="text" name="stop_name[]" class="form-control" placeholder="{% trans 'Location name' %}">
+                                <input type="hidden" name="stop_type[]" value="start">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="stop_location[]" class="form-control" placeholder="{% trans 'Address or area' %}">
+                            </div>
+                            <div class="col-12">
+                                <textarea name="stop_description[]" class="form-control" rows="2" placeholder="{% trans 'Description (pickup instructions, meeting point, etc.)' %}"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="stop_flexibility_0" id="startFlexibility">
+                                    <label class="form-check-label" for="startFlexibility">{% trans "Flexible pickup (customer can specify location)" %}</label>
+                                </div>
+                            </div>
+                            <input type="hidden" name="stop_duration[]" value="">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="stopsContainer">
+                    <!-- Stops will be added here -->
+                </div>
+
+                <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="addStop">
+                    <i class="bi bi-plus-lg me-1"></i>{% trans "Add Stop" %}
+                </button>
+
+                <!-- End Point -->
+                <div class="repeatable-item" data-type="end" id="endPointContainer">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div>
+                            <span class="badge bg-danger me-2">{% trans "End" %}</span>
+                            <strong>{% trans "End Point" %}</strong>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sameAsStart">
+                            <label class="form-check-label" for="sameAsStart">{% trans "Same as start point" %}</label>
+                        </div>
+                    </div>
+                    <div class="row g-2" id="endPointFields">
+                        <div class="col-md-6">
+                            <input type="text" name="end_stop_name" class="form-control" placeholder="{% trans 'Location name' %}">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="end_stop_location" class="form-control" placeholder="{% trans 'Address or area' %}">
+                        </div>
+                        <div class="col-12">
+                            <textarea name="end_stop_description" class="form-control" rows="2" placeholder="{% trans 'Description' %}"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#pricingSection">
+            <span><i class="bi bi-currency-dollar me-2"></i>{% trans "Pricing" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse show" id="pricingSection">
+            <div class="card-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">{% trans "Currency" %}</label>
+                        <select name="currency" class="form-select">
+                            <option value="MAD">MAD - Moroccan Dirham</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="GBP">GBP - British Pound</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">{% trans "Pricing Model" %}</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for value, label in pricing_models %}
+                            <div class="form-check">
+                                <input class="form-check-input pricing-model-radio" type="radio" name="pricing_model" value="{{ value }}" id="pricingModel{{ value }}" {% if forloop.first %}checked{% endif %}>
+                                <label class="form-check-label" for="pricingModel{{ value }}">{{ label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label">{% trans "Min Travelers" %}</label>
+                        <input type="number" name="min_participants" class="form-control" value="1" min="1">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">{% trans "Max Travelers" %}</label>
+                        <input type="number" name="max_participants" class="form-control" value="20" min="1">
+                    </div>
+                </div>
+
+                <!-- Per Person Pricing -->
+                <div id="perPersonPricing">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Price per Person" %} *</label>
+                            <div class="input-group">
+                                <input type="number" name="price_per_person" class="form-control" step="0.01" min="0">
+                                <span class="input-group-text currency-label">MAD</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Child Price" %}</label>
+                            <div class="input-group">
+                                <input type="number" name="child_price" class="form-control" step="0.01" min="0">
+                                <span class="input-group-text currency-label">MAD</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Private Tour Price" %}</label>
+                            <div class="input-group">
+                                <input type="number" name="private_tour_price" class="form-control" step="0.01" min="0">
+                                <span class="input-group-text currency-label">MAD</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tiered Pricing -->
+                <div id="tieredPricing" style="display: none;">
+                    <label class="form-label">{% trans "Price Tiers" %}</label>
+                    <div id="priceTiersContainer">
+                        <!-- Tiers will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addPriceTier">
+                        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Price Tier" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inclusions & Exclusions Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#inclusionsSection">
+            <span><i class="bi bi-check2-square me-2"></i>{% trans "Inclusions & Exclusions" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse show" id="inclusionsSection">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label text-success">
+                            <i class="bi bi-check-circle me-1"></i>{% trans "Inclusions" %}
+                        </label>
+                        <textarea name="inclusions" class="form-control" rows="6" id="inclusionsText" placeholder="{% trans 'One item per line' %}">{% for item in default_inclusions %}{{ item }}
+{% endfor %}</textarea>
+                        <small class="text-muted">{% trans "One item per line" %}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-danger">
+                            <i class="bi bi-x-circle me-1"></i>{% trans "Exclusions" %}
+                        </label>
+                        <textarea name="exclusions" class="form-control" rows="6" id="exclusionsText" placeholder="{% trans 'One item per line' %}">{% for item in default_exclusions %}{{ item }}
+{% endfor %}</textarea>
+                        <small class="text-muted">{% trans "One item per line" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- What to Expect Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#expectSection">
+            <span><i class="bi bi-lightbulb me-2"></i>{% trans "What to Expect" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse" id="expectSection">
+            <div class="card-body">
+                <div id="contentBlocksContainer">
+                    <!-- Content blocks will be added here -->
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addContentBlock">
+                    <i class="bi bi-plus-lg me-1"></i>{% trans "Add Content Block" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#faqSection">
+            <span><i class="bi bi-question-circle me-2"></i>{% trans "FAQ" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse" id="faqSection">
+            <div class="card-body">
+                <div id="faqContainer">
+                    <!-- FAQs will be added here -->
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addFaq">
+                    <i class="bi bi-plus-lg me-1"></i>{% trans "Add FAQ" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policies Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#policiesSection">
+            <span><i class="bi bi-shield-check me-2"></i>{% trans "Policies" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse" id="policiesSection">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Cancellation Policy" %}</label>
+                        <select name="cancellation_policy" class="form-select">
+                            {% for value, label in cancellation_policies %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">{% trans "Booking Notice" %}</label>
+                        <div class="input-group">
+                            <input type="number" name="booking_notice_hours" class="form-control" value="24" min="0">
+                            <span class="input-group-text">{% trans "hours" %}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">{% trans "Confirmation" %}</label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" name="instant_confirmation" id="instantConfirm" checked>
+                            <label class="form-check-label" for="instantConfirm">{% trans "Instant confirmation" %}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Child Policy" %}</label>
+                        <textarea name="child_policy" class="form-control" rows="3" placeholder="{% trans 'Age restrictions, child pricing details, etc.' %}"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Accessibility Info" %}</label>
+                        <textarea name="accessibility_info" class="form-control" rows="3" placeholder="{% trans 'Wheelchair access, mobility requirements, etc.' %}"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEO Section -->
+    <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#seoSection">
+            <span><i class="bi bi-search me-2"></i>{% trans "SEO" %}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+        <div class="collapse" id="seoSection">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">{% trans "Meta Title" %}</label>
+                        <input type="text" name="meta_title" class="form-control" maxlength="70" id="metaTitle">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">{% trans "Leave empty to use tour title" %}</small>
+                            <span class="char-count"><span id="metaTitleCount">0</span>/70</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">{% trans "Meta Description" %}</label>
+                        <textarea name="meta_description" class="form-control" rows="2" maxlength="160" id="metaDesc"></textarea>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">{% trans "Leave empty to use short description" %}</small>
+                            <span class="char-count"><span id="metaDescCount">0</span>/160</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">{% trans "Keywords" %}</label>
+                        <input type="text" name="meta_keywords" class="form-control" placeholder="{% trans 'Comma-separated keywords' %}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Status" %}</label>
+                        <select name="status" class="form-select" id="tourStatus">
+                            {% for value, label in statuses %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Publish Date" %}</label>
+                        <input type="datetime-local" name="publish_date" class="form-control">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">{% trans "Related Tours" %}</label>
+                        <select name="related_trips" class="form-select" multiple size="4">
+                            {% for t in all_trips %}
+                            <option value="{{ t.id }}">{{ t.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">{% trans "Hold Ctrl/Cmd to select multiple" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" name="status" id="hiddenStatus" value="draft">
+</form>
+
+<!-- Floating Preview Button -->
+<button type="button" class="btn btn-secondary floating-preview" data-bs-toggle="modal" data-bs-target="#previewModal">
+    <i class="bi bi-eye me-1"></i>{% trans "Preview" %}
+</button>
+
+<!-- Preview Modal -->
+<div class="modal fade preview-modal" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Tour Preview" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Preview content will be generated here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('tourForm');
+    const LOCAL_STORAGE_KEY = 'tourFormDraft';
+
+    // Auto-generate slug from title
+    const titleInput = document.getElementById('tourTitle');
+    const slugInput = document.getElementById('tourSlug');
+    titleInput.addEventListener('input', function() {
+        if (!slugInput.value || slugInput.dataset.autoGenerated === 'true') {
+            slugInput.value = this.value.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-');
+            slugInput.dataset.autoGenerated = 'true';
+        }
+    });
+    slugInput.addEventListener('input', function() {
+        this.dataset.autoGenerated = 'false';
+    });
+
+    // Character counters
+    function updateCharCount(input, countEl, max) {
+        const count = input.value.length;
+        countEl.textContent = count;
+        const parent = countEl.closest('.char-count');
+        parent.classList.remove('warning', 'danger');
+        if (count > max * 0.9) parent.classList.add('danger');
+        else if (count > max * 0.7) parent.classList.add('warning');
+    }
+
+    document.getElementById('shortDesc').addEventListener('input', function() {
+        updateCharCount(this, document.getElementById('shortDescCount'), 300);
+    });
+    document.getElementById('metaTitle').addEventListener('input', function() {
+        updateCharCount(this, document.getElementById('metaTitleCount'), 70);
+    });
+    document.getElementById('metaDesc').addEventListener('input', function() {
+        updateCharCount(this, document.getElementById('metaDescCount'), 160);
+    });
+
+    // Driver languages
+    const langCheckboxes = document.querySelectorAll('.language-checkbox');
+    const langHidden = document.getElementById('driverLanguages');
+    langCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const selected = Array.from(langCheckboxes)
+                .filter(c => c.checked)
+                .map(c => c.value);
+            langHidden.value = selected.join(',');
+        });
+    });
+
+    // Currency label sync
+    const currencySelect = document.querySelector('select[name="currency"]');
+    const currencyLabels = document.querySelectorAll('.currency-label');
+    currencySelect.addEventListener('change', function() {
+        currencyLabels.forEach(label => label.textContent = this.value);
+    });
+
+    // Pricing model toggle
+    const pricingRadios = document.querySelectorAll('.pricing-model-radio');
+    const perPersonPricing = document.getElementById('perPersonPricing');
+    const tieredPricing = document.getElementById('tieredPricing');
+    pricingRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'tiered') {
+                perPersonPricing.style.display = 'none';
+                tieredPricing.style.display = 'block';
+            } else {
+                perPersonPricing.style.display = 'block';
+                tieredPricing.style.display = 'none';
+            }
+        });
+    });
+
+    // Featured image preview
+    const featuredInput = document.getElementById('featuredImageInput');
+    const featuredPreview = document.getElementById('featuredImagePreview');
+    featuredInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                featuredPreview.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;border-radius:0.375rem;">';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Gallery drag & drop
+    const galleryDropZone = document.getElementById('galleryDropZone');
+    const galleryInput = document.getElementById('galleryInput');
+    const galleryPreview = document.getElementById('galleryPreview');
+    const galleryPlaceholder = document.getElementById('galleryPlaceholder');
+
+    galleryDropZone.addEventListener('click', () => galleryInput.click());
+    galleryDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        galleryDropZone.classList.add('border-primary');
+    });
+    galleryDropZone.addEventListener('dragleave', () => {
+        galleryDropZone.classList.remove('border-primary');
+    });
+    galleryDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        galleryDropZone.classList.remove('border-primary');
+        handleGalleryFiles(e.dataTransfer.files);
+    });
+    galleryInput.addEventListener('change', function() {
+        handleGalleryFiles(this.files);
+    });
+
+    function handleGalleryFiles(files) {
+        galleryPlaceholder.style.display = 'none';
+        Array.from(files).forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'image-preview-item';
+                div.innerHTML = `
+                    <img src="${e.target.result}">
+                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="this.parentElement.remove()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                `;
+                div.addEventListener('click', function(ev) {
+                    if (ev.target.tagName !== 'BUTTON' && ev.target.tagName !== 'I') {
+                        document.querySelectorAll('.image-preview-item').forEach(item => item.classList.remove('is-thumbnail'));
+                        this.classList.add('is-thumbnail');
+                    }
+                });
+                galleryPreview.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Highlight items
+    const highlightIcons = ['bi-check-circle', 'bi-star', 'bi-geo-alt', 'bi-clock', 'bi-people', 'bi-car-front', 'bi-camera', 'bi-cup-hot', 'bi-sun', 'bi-tree', 'bi-building', 'bi-water'];
+    const highlightsContainer = document.getElementById('highlightsContainer');
+    document.getElementById('addHighlight').addEventListener('click', function() {
+        const idx = highlightsContainer.children.length;
+        const div = document.createElement('div');
+        div.className = 'repeatable-item d-flex align-items-start gap-2';
+        div.innerHTML = `
+            <i class="bi bi-grip-vertical drag-handle mt-2"></i>
+            <div class="flex-grow-1">
+                <div class="row g-2">
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-check-circle highlight-icon-display"></i>
+                            </button>
+                            <div class="dropdown-menu p-2" style="width:200px">
+                                <div class="icon-picker">
+                                    ${highlightIcons.map(icon => `<div class="icon-option" data-icon="${icon}"><i class="bi ${icon}"></i></div>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="highlight_icon[]" value="bi-check-circle">
+                    </div>
+                    <div class="col">
+                        <input type="text" name="highlight_text[]" class="form-control" placeholder="{% trans 'Highlight text' %}">
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm remove-item-btn"><i class="bi bi-trash"></i></button>
+        `;
+        highlightsContainer.appendChild(div);
+
+        // Icon picker
+        div.querySelectorAll('.icon-option').forEach(opt => {
+            opt.addEventListener('click', function() {
+                const icon = this.dataset.icon;
+                div.querySelector('.highlight-icon-display').className = 'bi ' + icon + ' highlight-icon-display';
+                div.querySelector('input[name="highlight_icon[]"]').value = icon;
+            });
+        });
+
+        div.querySelector('.remove-item-btn').addEventListener('click', () => div.remove());
+    });
+
+    // Itinerary stops
+    const stopsContainer = document.getElementById('stopsContainer');
+    let stopIndex = 1;
+    document.getElementById('addStop').addEventListener('click', function() {
+        const div = document.createElement('div');
+        div.className = 'repeatable-item';
+        div.draggable = true;
+        div.innerHTML = `
+            <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-grip-vertical drag-handle me-2"></i>
+                <span class="badge bg-primary me-2">{% trans "Stop" %}</span>
+                <input type="text" name="stop_name[]" class="form-control form-control-sm" style="width:200px" placeholder="{% trans 'Stop name' %}">
+                <input type="hidden" name="stop_type[]" value="stop">
+                <button type="button" class="btn btn-outline-danger btn-sm ms-auto remove-item-btn"><i class="bi bi-trash"></i></button>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <input type="text" name="stop_location[]" class="form-control" placeholder="{% trans 'Location' %}">
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="number" name="stop_duration[]" class="form-control" placeholder="{% trans 'Duration' %}" min="0">
+                        <span class="input-group-text">{% trans "min" %}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="stop_admission_${stopIndex}">
+                        <label class="form-check-label">{% trans "Admission included" %}</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <textarea name="stop_description[]" class="form-control" rows="2" placeholder="{% trans 'Description' %}"></textarea>
+                </div>
+            </div>
+        `;
+        stopsContainer.appendChild(div);
+        div.querySelector('.remove-item-btn').addEventListener('click', () => div.remove());
+        stopIndex++;
+    });
+
+    // Same as start toggle
+    document.getElementById('sameAsStart').addEventListener('change', function() {
+        document.getElementById('endPointFields').style.display = this.checked ? 'none' : 'flex';
+    });
+
+    // Price tiers
+    const priceTiersContainer = document.getElementById('priceTiersContainer');
+    document.getElementById('addPriceTier').addEventListener('click', function() {
+        const idx = priceTiersContainer.children.length;
+        const div = document.createElement('div');
+        div.className = 'repeatable-item';
+        div.innerHTML = `
+            <div class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <input type="text" name="tier_name[]" class="form-control" placeholder="{% trans 'Tier name (e.g., 1-2 persons)' %}">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="tier_min[]" class="form-control" placeholder="{% trans 'Min' %}" min="1" value="1">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="tier_max[]" class="form-control" placeholder="{% trans 'Max' %}" min="1" value="2">
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="number" name="tier_price[]" class="form-control tier-price" step="0.01" min="0" placeholder="{% trans 'Price/person' %}">
+                        <span class="input-group-text currency-label">${currencySelect.value}</span>
+                    </div>
+                </div>
+                <div class="col-md-2 text-end">
+                    <span class="tier-total text-muted">-</span>
+                    <button type="button" class="btn btn-outline-danger btn-sm ms-2 remove-item-btn"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+        `;
+        priceTiersContainer.appendChild(div);
+
+        // Auto-calculate total
+        const priceInput = div.querySelector('.tier-price');
+        const minInput = div.querySelector('input[name="tier_min[]"]');
+        const maxInput = div.querySelector('input[name="tier_max[]"]');
+        const totalSpan = div.querySelector('.tier-total');
+
+        function updateTotal() {
+            const price = parseFloat(priceInput.value) || 0;
+            const min = parseInt(minInput.value) || 1;
+            const max = parseInt(maxInput.value) || 1;
+            const avg = (min + max) / 2;
+            totalSpan.textContent = (price * avg).toFixed(2) + ' ' + currencySelect.value;
+        }
+        [priceInput, minInput, maxInput].forEach(input => input.addEventListener('input', updateTotal));
+
+        div.querySelector('.remove-item-btn').addEventListener('click', () => div.remove());
+    });
+
+    // Content blocks
+    const contentBlocksContainer = document.getElementById('contentBlocksContainer');
+    document.getElementById('addContentBlock').addEventListener('click', function() {
+        const div = document.createElement('div');
+        div.className = 'repeatable-item';
+        div.innerHTML = `
+            <div class="d-flex align-items-start mb-2">
+                <i class="bi bi-grip-vertical drag-handle me-2 mt-2"></i>
+                <input type="text" name="block_title[]" class="form-control" placeholder="{% trans 'Section title' %}">
+                <button type="button" class="btn btn-outline-danger btn-sm ms-2 remove-item-btn"><i class="bi bi-trash"></i></button>
+            </div>
+            <textarea name="block_content[]" class="form-control" rows="4" placeholder="{% trans 'Content...' %}"></textarea>
+        `;
+        contentBlocksContainer.appendChild(div);
+        div.querySelector('.remove-item-btn').addEventListener('click', () => div.remove());
+    });
+
+    // FAQs
+    const faqContainer = document.getElementById('faqContainer');
+    document.getElementById('addFaq').addEventListener('click', function() {
+        const div = document.createElement('div');
+        div.className = 'repeatable-item';
+        div.innerHTML = `
+            <div class="d-flex align-items-start mb-2">
+                <i class="bi bi-grip-vertical drag-handle me-2 mt-2"></i>
+                <input type="text" name="faq_question[]" class="form-control" placeholder="{% trans 'Question' %}">
+                <button type="button" class="btn btn-outline-danger btn-sm ms-2 remove-item-btn"><i class="bi bi-trash"></i></button>
+            </div>
+            <textarea name="faq_answer[]" class="form-control" rows="3" placeholder="{% trans 'Answer' %}"></textarea>
+        `;
+        faqContainer.appendChild(div);
+        div.querySelector('.remove-item-btn').addEventListener('click', () => div.remove());
+    });
+
+    // Auto-save to localStorage
+    function saveToLocalStorage() {
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            if (data[key]) {
+                if (Array.isArray(data[key])) {
+                    data[key].push(value);
+                } else {
+                    data[key] = [data[key], value];
+                }
+            } else {
+                data[key] = value;
+            }
+        });
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+        document.getElementById('autoSaveStatus').innerHTML = '<i class="bi bi-cloud-check me-1"></i>{% trans "Saved" %}';
+    }
+
+    // Restore from localStorage
+    function restoreFromLocalStorage() {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                // Restore simple fields
+                ['name', 'slug', 'short_description', 'description', 'departure_location', 'destinations',
+                 'duration_hours', 'duration_days', 'min_participants', 'max_participants',
+                 'price_per_person', 'child_price', 'private_tour_price', 'inclusions', 'exclusions',
+                 'booking_notice_hours', 'child_policy', 'accessibility_info', 'meta_title', 'meta_description', 'meta_keywords'
+                ].forEach(field => {
+                    if (data[field]) {
+                        const el = form.querySelector(`[name="${field}"]`);
+                        if (el) el.value = data[field];
+                    }
+                });
+                // Restore radio buttons
+                ['trip_type', 'service_type', 'pricing_model'].forEach(field => {
+                    if (data[field]) {
+                        const radio = form.querySelector(`[name="${field}"][value="${data[field]}"]`);
+                        if (radio) radio.checked = true;
+                    }
+                });
+                // Restore selects
+                ['currency', 'cancellation_policy', 'status'].forEach(field => {
+                    if (data[field]) {
+                        const select = form.querySelector(`select[name="${field}"]`);
+                        if (select) select.value = data[field];
+                    }
+                });
+            } catch (e) {
+                console.error('Error restoring form data:', e);
+            }
+        }
+    }
+
+    // Auto-save on input
+    let saveTimeout;
+    form.addEventListener('input', function() {
+        document.getElementById('autoSaveStatus').innerHTML = '<i class="bi bi-cloud-arrow-up me-1"></i>{% trans "Saving..." %}';
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveToLocalStorage, 1000);
+    });
+
+    // Restore on load
+    restoreFromLocalStorage();
+
+    // Save Draft button
+    document.getElementById('saveDraftBtn').addEventListener('click', function() {
+        document.getElementById('hiddenStatus').value = 'draft';
+        form.submit();
+    });
+
+    // Clear localStorage on successful submit
+    form.addEventListener('submit', function() {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+    });
+
+    // Preview
+    document.getElementById('previewModal').addEventListener('show.bs.modal', function() {
+        const previewContent = document.getElementById('previewContent');
+        const title = document.getElementById('tourTitle').value || '{% trans "Untitled Tour" %}';
+        const shortDesc = document.getElementById('shortDesc').value || '';
+        const fullDesc = document.getElementById('fullDesc').value || '';
+
+        previewContent.innerHTML = `
+            <h2>${title}</h2>
+            <p class="lead">${shortDesc}</p>
+            <hr>
+            <div>${fullDesc.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>
+        `;
+    });
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        const requiredFields = form.querySelectorAll('[required]');
+        document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+        document.querySelectorAll('.validation-error').forEach(el => el.classList.remove('validation-error'));
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('validation-error');
+                const errorEl = document.querySelector(`.error-message[data-for="${field.name}"]`);
+                if (errorEl) errorEl.textContent = '{% trans "This field is required" %}';
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = form.querySelector('.validation-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        }
+    });
+
+    // Collapse icon rotation
+    document.querySelectorAll('.section-card .card-header').forEach(header => {
+        const target = document.querySelector(header.dataset.bsTarget);
+        if (target) {
+            target.addEventListener('hide.bs.collapse', () => header.classList.add('collapsed'));
+            target.addEventListener('show.bs.collapse', () => header.classList.remove('collapsed'));
+        }
+    });
+});
+</script>
+{% endblock %}

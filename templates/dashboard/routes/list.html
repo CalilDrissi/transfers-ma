@@ -1,0 +1,75 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Routes" %}{% endblock %}
+{% block page_title %}{% trans "Routes" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">{% trans "Manage long-distance transfer routes with fixed pricing per vehicle" %}</p>
+    </div>
+    <a href="{% url 'dashboard:route_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>{% trans "Add Route" %}
+    </a>
+</div>
+
+<div class="row g-4">
+    {% for route in routes %}
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'dashboard:route_detail' route.pk %}" class="text-decoration-none">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title mb-1 text-dark">{{ route.name }}</h5>
+                            <small class="text-muted">{{ route.origin_name }} &rarr; {{ route.destination_name }}</small>
+                        </div>
+                        <div class="d-flex gap-1">
+                            {% if route.is_popular %}
+                            <span class="badge bg-warning text-dark">{% trans "Popular" %}</span>
+                            {% endif %}
+                            <span class="badge {% if route.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if route.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3 mb-3 text-muted small">
+                        <span><i class="bi bi-signpost-2 me-1"></i> {{ route.distance_km }} km</span>
+                        {% if route.estimated_duration_minutes %}
+                        <span><i class="bi bi-clock me-1"></i> {{ route.estimated_duration_minutes }} min</span>
+                        {% endif %}
+                        <span title="{% trans 'Pickup/Dropoff radius' %}"><i class="bi bi-circle me-1"></i> {{ route.origin_radius_km }}/{{ route.destination_radius_km }} km</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">
+                            {% if route.is_bidirectional %}
+                            <i class="bi bi-arrow-left-right me-1"></i> {% trans "Bidirectional" %}
+                            {% else %}
+                            <i class="bi bi-arrow-right me-1"></i> {% trans "One-way" %}
+                            {% endif %}
+                        </span>
+                        <span class="badge bg-primary">{{ route.vehicle_count }} {% trans "vehicles" %}</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">{% trans "Order" %}: {{ route.order }}</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-signpost-2 display-1 mb-3"></i>
+            <p>{% trans "No routes found" %}</p>
+            <a href="{% url 'dashboard:route_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>{% trans "Create First Route" %}
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

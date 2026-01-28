@@ -1,0 +1,469 @@
+{% load static i18n dashboard_tags %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - Transfers.ma</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --primary-color: #0d6efd;
+            --sidebar-bg: #212529;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            padding: 1rem;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: width 0.3s ease, transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 1rem 0;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-brand-text {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .sidebar-nav .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-nav .nav-link i {
+            font-size: 1.25rem;
+            min-width: 1.25rem;
+        }
+
+        .nav-link-text {
+            transition: opacity 0.2s;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 1rem 1.5rem;
+            margin: -1.5rem -1.5rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: #6c757d;
+            font-size: 1.25rem;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-card .stat-label {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #495057;
+            border-top: none;
+        }
+
+        /* Collapsed sidebar state */
+        body.sidebar-collapsed .sidebar {
+            width: var(--sidebar-collapsed-width);
+            padding: 1rem 0.5rem;
+        }
+
+        body.sidebar-collapsed .sidebar-brand {
+            justify-content: center;
+            padding: 1rem 0;
+        }
+
+        body.sidebar-collapsed .sidebar-brand-text,
+        body.sidebar-collapsed .nav-link-text,
+        body.sidebar-collapsed .sidebar-user-info span {
+            display: none;
+        }
+
+        body.sidebar-collapsed .sidebar-nav .nav-link {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        body.sidebar-collapsed .sidebar-nav .nav-link i {
+            margin: 0;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        body.sidebar-collapsed .sidebar-footer {
+            text-align: center;
+        }
+
+        body.sidebar-collapsed .sidebar-footer .nav-link {
+            justify-content: center;
+        }
+
+        body.sidebar-collapsed .sidebar-user-info {
+            justify-content: center;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: var(--sidebar-width) !important;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar.show .sidebar-brand-text,
+            .sidebar.show .nav-link-text,
+            .sidebar.show .sidebar-user-info {
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
+            .sidebar.show .sidebar-nav .nav-link {
+                justify-content: flex-start !important;
+                padding: 0.75rem 1rem !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar Overlay (for mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <a href="{% url 'dashboard:home' %}" class="sidebar-brand">
+            <i class="bi bi-car-front"></i>
+            <span class="sidebar-brand-text">Transfers.ma</span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="{% url 'dashboard:home' %}" class="nav-link {% active_link request '^/dashboard/$' %}" title="{% trans 'Dashboard' %}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span class="nav-link-text">{% trans "Dashboard" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:transfer_list' %}" class="nav-link {% active_link request '/transfers/' %}" title="{% trans 'Transfers' %}">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span class="nav-link-text">{% trans "Transfers" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:transfer_vehicle_list' %}" class="nav-link {% active_link request '/transfer-vehicles/' %}" title="{% trans 'Transfer Vehicles' %}">
+                    <i class="bi bi-truck"></i>
+                    <span class="nav-link-text">{% trans "Transfer Vehicles" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:vehicle_category_list' %}" class="nav-link {% active_link request '/vehicle-categories/' %}" title="{% trans 'Vehicle Categories' %}">
+                    <i class="bi bi-tags"></i>
+                    <span class="nav-link-text">{% trans "Vehicle Categories" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:zone_list' %}" class="nav-link {% active_link request '/zones/' %}" title="{% trans 'Zones' %}">
+                    <i class="bi bi-bullseye"></i>
+                    <span class="nav-link-text">{% trans "Zones" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:route_list' %}" class="nav-link {% active_link request '/routes/' %}" title="{% trans 'Routes' %}">
+                    <i class="bi bi-signpost-2"></i>
+                    <span class="nav-link-text">{% trans "Routes" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:trip_list' %}" class="nav-link {% active_link request '/trips/' %}" title="{% trans 'Tours' %}">
+                    <i class="bi bi-compass"></i>
+                    <span class="nav-link-text">{% trans "Tours" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:user_list' %}" class="nav-link {% active_link request '/users/' %}" title="{% trans 'Users' %}">
+                    <i class="bi bi-people"></i>
+                    <span class="nav-link-text">{% trans "Users" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:payment_list' %}" class="nav-link {% active_link request '/payments/' %}" title="{% trans 'Payments' %}">
+                    <i class="bi bi-credit-card"></i>
+                    <span class="nav-link-text">{% trans "Payments" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:reports' %}" class="nav-link {% active_link request '/reports/' %}" title="{% trans 'Reports' %}">
+                    <i class="bi bi-bar-chart"></i>
+                    <span class="nav-link-text">{% trans "Reports" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:settings' %}" class="nav-link {% active_link request '/settings/' %}" title="{% trans 'Settings' %}">
+                    <i class="bi bi-gear"></i>
+                    <span class="nav-link-text">{% trans "Settings" %}</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer mt-auto pt-3 border-top border-secondary">
+            <div class="sidebar-user-info d-flex align-items-center gap-2 text-white-50 small px-2" title="{{ request.user.email }}">
+                <i class="bi bi-person-circle"></i>
+                <span class="nav-link-text">{{ request.user.email }}</span>
+            </div>
+            <a href="{% url 'dashboard:logout' %}" class="nav-link text-danger mt-2" title="{% trans 'Logout' %}">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="nav-link-text">{% trans "Logout" %}</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="top-bar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="sidebar-toggle" id="sidebarToggle" title="{% trans 'Toggle Sidebar' %}">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h4 class="mb-0">{% block page_title %}Dashboard{% endblock %}</h4>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                {% block page_actions %}{% endblock %}
+                <!-- Language Switcher -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-translate"></i> {{ LANGUAGE_CODE|upper }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="?lang=en">English</a></li>
+                        <li><a class="dropdown-item" href="?lang=fr">Français</a></li>
+                        <li><a class="dropdown-item" href="?lang=ar">العربية</a></li>
+                    </ul>
+                </div>
+
+                <a href="{% url 'dashboard:settings' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-gear"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Sidebar Toggle Logic
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const body = document.body;
+            const STORAGE_KEY = 'sidebar-collapsed';
+
+            // Check if we're on mobile
+            function isMobile() {
+                return window.innerWidth <= 992;
+            }
+
+            // Load saved state on page load (desktop only)
+            function loadSavedState() {
+                if (!isMobile()) {
+                    const isCollapsed = localStorage.getItem(STORAGE_KEY) === 'true';
+                    if (isCollapsed) {
+                        body.classList.add('sidebar-collapsed');
+                    }
+                }
+            }
+
+            // Toggle sidebar
+            function toggleSidebar() {
+                if (isMobile()) {
+                    // Mobile: slide in/out
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                } else {
+                    // Desktop: collapse/expand
+                    body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem(STORAGE_KEY, body.classList.contains('sidebar-collapsed'));
+                }
+            }
+
+            // Close mobile sidebar when clicking overlay
+            function closeMobileSidebar() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            }
+
+            // Handle window resize
+            function handleResize() {
+                if (isMobile()) {
+                    // On mobile, remove collapsed class and ensure sidebar is hidden
+                    body.classList.remove('sidebar-collapsed');
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                } else {
+                    // On desktop, restore saved state
+                    loadSavedState();
+                }
+            }
+
+            // Initialize
+            loadSavedState();
+
+            // Event listeners
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', closeMobileSidebar);
+            window.addEventListener('resize', handleResize);
+        })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

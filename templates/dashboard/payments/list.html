@@ -1,0 +1,80 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Payments" %}{% endblock %}
+{% block page_title %}{% trans "Payment Transactions" %}{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Status" %}</label>
+                <select name="status" class="form-select">
+                    <option value="">{% trans "All Statuses" %}</option>
+                    {% for value, label in statuses %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Type" %}</label>
+                <select name="type" class="form-select">
+                    <option value="">{% trans "All Types" %}</option>
+                    {% for value, label in types %}
+                    <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>{% trans "Filter" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Reference" %}</th>
+                        <th>{% trans "Type" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Gateway" %}</th>
+                        <th>{% trans "Amount" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Date" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td><strong>{{ payment.payment_ref }}</strong></td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ payment.get_payment_type_display }}</span>
+                        </td>
+                        <td>{{ payment.customer_email }}</td>
+                        <td>{{ payment.gateway.display_name }}</td>
+                        <td><strong>{{ payment.amount|currency }}</strong></td>
+                        <td>{{ payment.status|status_badge }}</td>
+                        <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            {% trans "No payments found" %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

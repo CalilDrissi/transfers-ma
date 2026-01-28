@@ -1,0 +1,136 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Settings" %}{% endblock %}
+{% block page_title %}{% trans "System Settings" %}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-6">
+        <!-- General Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-gear me-2"></i>{% trans "General Settings" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_general">
+
+                    <div class="mb-3">
+                        <label for="site_name" class="form-label">{% trans "Site Name" %}</label>
+                        <input type="text" class="form-control" id="site_name" name="site_name"
+                               value="{{ site_settings.site_name }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="contact_email" class="form-label">{% trans "Contact Email" %}</label>
+                        <input type="email" class="form-control" id="contact_email" name="contact_email"
+                               value="{{ site_settings.contact_email }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="contact_phone" class="form-label">{% trans "Contact Phone" %}</label>
+                        <input type="text" class="form-control" id="contact_phone" name="contact_phone"
+                               value="{{ site_settings.contact_phone }}">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="default_currency" class="form-label">{% trans "Price Currency" %}</label>
+                                <select class="form-select" id="default_currency" name="default_currency">
+                                    <option value="MAD" {% if site_settings.default_currency == 'MAD' %}selected{% endif %}>MAD</option>
+                                    <option value="EUR" {% if site_settings.default_currency == 'EUR' %}selected{% endif %}>EUR</option>
+                                    <option value="USD" {% if site_settings.default_currency == 'USD' %}selected{% endif %}>USD</option>
+                                    <option value="GBP" {% if site_settings.default_currency == 'GBP' %}selected{% endif %}>GBP</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="cost_currency" class="form-label">{% trans "Cost Currency" %}</label>
+                                <select class="form-select" id="cost_currency" name="cost_currency">
+                                    <option value="MAD" {% if site_settings.cost_currency == 'MAD' %}selected{% endif %}>MAD</option>
+                                    <option value="EUR" {% if site_settings.cost_currency == 'EUR' %}selected{% endif %}>EUR</option>
+                                    <option value="USD" {% if site_settings.cost_currency == 'USD' %}selected{% endif %}>USD</option>
+                                    <option value="GBP" {% if site_settings.cost_currency == 'GBP' %}selected{% endif %}>GBP</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Save Settings" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- API Keys -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-key me-2"></i>{% trans "API Keys" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_api_keys">
+
+                    <div class="mb-3">
+                        <label for="google_maps_api_key" class="form-label">{% trans "Google Maps API Key" %}</label>
+                        <input type="text" class="form-control" id="google_maps_api_key" name="google_maps_api_key"
+                               value="{{ site_settings.google_maps_api_key }}" placeholder="AIza...">
+                        <div class="form-text">{% trans "Required for zone map functionality." %}</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Save API Keys" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Stripe Payment Settings -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-credit-card me-2"></i>{% trans "Stripe Payment Settings" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_stripe">
+
+                    <div class="mb-3">
+                        <label for="stripe_publishable_key" class="form-label">{% trans "Publishable Key" %}</label>
+                        <input type="text" class="form-control" id="stripe_publishable_key" name="stripe_publishable_key"
+                               value="{{ site_settings.stripe_publishable_key }}" placeholder="pk_test_... or pk_live_...">
+                        <div class="form-text">{% trans "Public key used on the frontend (starts with pk_)" %}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stripe_secret_key" class="form-label">{% trans "Secret Key" %}</label>
+                        <input type="password" class="form-control" id="stripe_secret_key" name="stripe_secret_key"
+                               value="{{ site_settings.stripe_secret_key }}" placeholder="sk_test_... or sk_live_...">
+                        <div class="form-text">{% trans "Secret key used on the backend (starts with sk_)" %}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stripe_webhook_secret" class="form-label">{% trans "Webhook Secret" %}</label>
+                        <input type="password" class="form-control" id="stripe_webhook_secret" name="stripe_webhook_secret"
+                               value="{{ site_settings.stripe_webhook_secret }}" placeholder="whsec_...">
+                        <div class="form-text">{% trans "Used to verify webhook events from Stripe (starts with whsec_)" %}</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Save Stripe Settings" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

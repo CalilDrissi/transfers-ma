@@ -1,0 +1,200 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Add Category" %}{% endblock %}
+{% block page_title %}{% trans "Add Vehicle Category" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .icon-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .icon-option {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: white;
+    }
+    .icon-option:hover {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+    }
+    .icon-option.selected {
+        border-color: #0d6efd;
+        background: #0d6efd;
+        color: white;
+    }
+    .icon-option i {
+        font-size: 1.5rem;
+    }
+    .selected-icon-preview {
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Name" %} *</label>
+                        <input type="text" name="name" class="form-control" placeholder="{% trans 'e.g., Sedan, SUV, Van' %}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Icon" %}</label>
+                        <input type="hidden" name="icon" id="iconInput" value="">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="selected-icon-preview" id="selectedIconPreview">
+                                <i class="bi bi-question text-muted"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="icon-picker" id="iconPicker">
+                                    <div class="icon-option" data-icon="bi bi-car-front" title="Car Front">
+                                        <i class="bi bi-car-front"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-car-front-fill" title="Car Front Fill">
+                                        <i class="bi bi-car-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-truck" title="Truck">
+                                        <i class="bi bi-truck"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-truck-front" title="Truck Front">
+                                        <i class="bi bi-truck-front"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-truck-front-fill" title="Truck Front Fill">
+                                        <i class="bi bi-truck-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-bus-front" title="Bus">
+                                        <i class="bi bi-bus-front"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-bus-front-fill" title="Bus Fill">
+                                        <i class="bi bi-bus-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-taxi-front" title="Taxi">
+                                        <i class="bi bi-taxi-front"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-taxi-front-fill" title="Taxi Fill">
+                                        <i class="bi bi-taxi-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-scooter" title="Scooter">
+                                        <i class="bi bi-scooter"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-bicycle" title="Bicycle">
+                                        <i class="bi bi-bicycle"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-ev-front" title="Electric Vehicle">
+                                        <i class="bi bi-ev-front"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-ev-front-fill" title="Electric Vehicle Fill">
+                                        <i class="bi bi-ev-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-fuel-pump" title="Fuel Pump">
+                                        <i class="bi bi-fuel-pump"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-ev-station" title="EV Station">
+                                        <i class="bi bi-ev-station"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-speedometer" title="Speedometer">
+                                        <i class="bi bi-speedometer"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-speedometer2" title="Speedometer 2">
+                                        <i class="bi bi-speedometer2"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-gear" title="Gear">
+                                        <i class="bi bi-gear"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-person" title="Person">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-people" title="People">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-people-fill" title="People Fill">
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-briefcase" title="Briefcase">
+                                        <i class="bi bi-briefcase"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-luggage" title="Luggage">
+                                        <i class="bi bi-luggage"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-star" title="Star">
+                                        <i class="bi bi-star"></i>
+                                    </div>
+                                    <div class="icon-option" data-icon="bi bi-star-fill" title="Star Fill">
+                                        <i class="bi bi-star-fill"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{% trans "Create Category" %}
+                        </button>
+                        <a href="{% url 'dashboard:vehicle_category_list' %}" class="btn btn-outline-secondary">
+                            {% trans "Cancel" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const iconPicker = document.getElementById('iconPicker');
+    const iconInput = document.getElementById('iconInput');
+    const preview = document.getElementById('selectedIconPreview');
+
+    iconPicker.addEventListener('click', function(e) {
+        const option = e.target.closest('.icon-option');
+        if (!option) return;
+
+        // Remove selected class from all options
+        iconPicker.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+
+        // Add selected class to clicked option
+        option.classList.add('selected');
+
+        // Update hidden input
+        const iconClass = option.dataset.icon;
+        iconInput.value = iconClass;
+
+        // Update preview
+        preview.innerHTML = '<i class="' + iconClass + '"></i>';
+    });
+});
+</script>
+{% endblock %}

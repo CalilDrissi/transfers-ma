@@ -1,0 +1,49 @@
+# Django
+Django==5.0.1
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+django-filter==23.5
+
+# Authentication
+djangorestframework-simplejwt==5.3.1
+PyJWT==2.8.0
+
+# Database
+psycopg2-binary==2.9.9
+
+# Payment Gateways
+stripe==7.10.0
+paypalrestsdk==1.13.3
+
+# API Documentation
+drf-spectacular==0.27.0
+
+# Multi-language
+django-modeltranslation==0.18.11
+
+# Image handling
+Pillow==10.2.0
+
+# Environment variables
+python-decouple==3.8
+
+# Utilities
+python-dateutil==2.8.2
+uuid==1.30
+
+# Development
+django-debug-toolbar==4.2.0
+
+# Production
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Redis (for caching)
+django-redis==5.4.0
+redis==5.0.1
+
+# Celery (for async tasks)
+celery==5.3.4
+
+# Email
+django-anymail==10.2

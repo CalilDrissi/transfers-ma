@@ -1,0 +1,190 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{{ transfer.booking_ref }}{% endblock %}
+{% block page_title %}{% trans "Transfer" %} #{{ transfer.booking_ref }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-info-circle me-2"></i>{% trans "Booking Details" %}</span>
+                {{ transfer.status|status_badge }}
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Pickup Location" %}</label>
+                        <p class="mb-1"><strong>{{ transfer.pickup_location.name }}</strong></p>
+                        {% if transfer.pickup_address %}
+                        <small class="text-muted">{{ transfer.pickup_address }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Drop-off Location" %}</label>
+                        <p class="mb-1"><strong>{{ transfer.dropoff_location.name }}</strong></p>
+                        {% if transfer.dropoff_address %}
+                        <small class="text-muted">{{ transfer.dropoff_address }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Pickup Date & Time" %}</label>
+                        <p class="mb-0"><strong>{{ transfer.pickup_datetime|date:"M d, Y H:i" }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Passengers" %}</label>
+                        <p class="mb-0"><strong>{{ transfer.passengers }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Luggage" %}</label>
+                        <p class="mb-0"><strong>{{ transfer.luggage }}</strong></p>
+                    </div>
+                    {% if transfer.flight_number %}
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Flight Number" %}</label>
+                        <p class="mb-0"><strong>{{ transfer.flight_number }}</strong></p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-person me-2"></i>{% trans "Customer Information" %}
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Name" %}</label>
+                        <p class="mb-0"><strong>{{ transfer.customer_name }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Email" %}</label>
+                        <p class="mb-0"><a href="mailto:{{ transfer.customer_email }}">{{ transfer.customer_email }}</a></p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Phone" %}</label>
+                        <p class="mb-0"><a href="tel:{{ transfer.customer_phone }}">{{ transfer.customer_phone }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Requests -->
+        {% if transfer.special_requests %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-chat-text me-2"></i>{% trans "Special Requests" %}
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ transfer.special_requests }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Pricing -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-receipt me-2"></i>{% trans "Pricing" %}
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Base Price" %}</span>
+                    <span>{{ transfer.base_price|currency }}</span>
+                </div>
+                {% if transfer.extras_price %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Extras" %}</span>
+                    <span>{{ transfer.extras_price|currency }}</span>
+                </div>
+                {% endif %}
+                {% if transfer.discount %}
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>{% trans "Discount" %}</span>
+                    <span>-{{ transfer.discount|currency }}</span>
+                </div>
+                {% endif %}
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>{% trans "Total" %}</strong>
+                    <strong class="text-primary">{{ transfer.total_price|currency }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Update -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-gear me-2"></i>{% trans "Update Status" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_status">
+                    <select name="status" class="form-select mb-3">
+                        {% for value, label in statuses %}
+                        <option value="{{ value }}" {% if transfer.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary w-100">
+                        {% trans "Update Status" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Assign Driver -->
+        {% if transfer.status in 'pending,confirmed' %}
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-person-badge me-2"></i>{% trans "Assign Driver" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="assign_driver">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Driver" %}</label>
+                        <select name="driver_id" class="form-select">
+                            <option value="">{% trans "Select driver" %}</option>
+                            {% for driver in drivers %}
+                            <option value="{{ driver.id }}" {% if transfer.driver_id == driver.id %}selected{% endif %}>
+                                {{ driver.full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Vehicle" %}</label>
+                        <select name="vehicle_id" class="form-select">
+                            <option value="">{% trans "Select vehicle" %}</option>
+                            {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}" {% if transfer.vehicle_id == vehicle.id %}selected{% endif %}>
+                                {{ vehicle.name }} ({{ vehicle.license_plate }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        {% trans "Assign" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'dashboard:transfer_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>{% trans "Back to List" %}
+    </a>
+</div>
+{% endblock %}

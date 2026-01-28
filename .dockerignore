@@ -1,0 +1,45 @@
+# Certbot SSL certificates (permission issues)
+certbot/
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local development
+.claude/
+*.log
+*.sqlite3
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+
+# Media and static (handled by volumes)
+media/
+staticfiles/
+
+# Node (if any)
+node_modules/
+
+# Misc
+*.md
+LICENSE
+Makefile

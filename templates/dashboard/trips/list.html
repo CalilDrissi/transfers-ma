@@ -1,0 +1,77 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Trips" %}{% endblock %}
+{% block page_title %}{% trans "Trips & Tours" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{% url 'dashboard:trip_booking_list' %}" class="btn btn-outline-primary">
+        <i class="bi bi-calendar-check me-2"></i>{% trans "View Bookings" %}
+    </a>
+    <a href="{% url 'dashboard:trip_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>{% trans "Create Tour" %}
+    </a>
+</div>
+
+<!-- Trips Grid -->
+<div class="row g-4">
+    {% for trip in trips %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+            {% if trip.featured_image %}
+            <img src="{{ trip.featured_image.url }}" class="card-img-top" alt="{{ trip.name }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">{{ trip.name }}</h5>
+                    {% if trip.is_featured %}
+                    <span class="badge bg-warning text-dark">{% trans "Featured" %}</span>
+                    {% endif %}
+                </div>
+                <p class="card-text text-muted small">{{ trip.short_description|truncatewords:20 }}</p>
+                <div class="d-flex gap-3 text-muted small mb-3">
+                    <span><i class="bi bi-clock me-1"></i>
+                        {% if trip.duration_days > 1 %}
+                        {{ trip.duration_days }} {% trans "days" %}
+                        {% else %}
+                        {{ trip.duration_hours }} {% trans "hours" %}
+                        {% endif %}
+                    </span>
+                    <span><i class="bi bi-people me-1"></i> {{ trip.min_participants }}-{{ trip.max_participants }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-light text-dark">{{ trip.get_trip_type_display }}</span>
+                    <strong class="text-primary">{{ trip.price_per_person|currency }}/{% trans "person" %}</strong>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+                <div>
+                    {% if trip.is_active %}
+                    <span class="badge bg-success">{% trans "Active" %}</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                    {% endif %}
+                    {% if trip.status == 'draft' %}
+                    <span class="badge bg-warning text-dark">{% trans "Draft" %}</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'dashboard:trip_detail' trip.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5 text-muted">
+            {% trans "No trips found" %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

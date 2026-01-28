@@ -1,0 +1,269 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{{ category.name }}{% endblock %}
+{% block page_title %}{{ category.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .icon-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .icon-option {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: white;
+    }
+    .icon-option:hover {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+    }
+    .icon-option.selected {
+        border-color: #0d6efd;
+        background: #0d6efd;
+        color: white;
+    }
+    .icon-option i {
+        font-size: 1.5rem;
+    }
+    .selected-icon-preview {
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:vehicle_category_list' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>{% trans "Back to Categories" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <!-- Category Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">{% trans "Category Details" %}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_category">
+
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Name" %} *</label>
+                        <input type="text" name="name" class="form-control" value="{{ category.name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Icon" %}</label>
+                        <input type="hidden" name="icon" id="iconInput" value="{{ category.icon }}">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="selected-icon-preview" id="selectedIconPreview">
+                                {% if category.icon %}
+                                <i class="{{ category.icon }}"></i>
+                                {% else %}
+                                <i class="bi bi-question text-muted"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="icon-picker" id="iconPicker">
+                                    <div class="icon-option{% if category.icon == 'bi bi-car-front' %} selected{% endif %}" data-icon="bi bi-car-front" title="Car Front">
+                                        <i class="bi bi-car-front"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-car-front-fill' %} selected{% endif %}" data-icon="bi bi-car-front-fill" title="Car Front Fill">
+                                        <i class="bi bi-car-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-truck' %} selected{% endif %}" data-icon="bi bi-truck" title="Truck">
+                                        <i class="bi bi-truck"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-truck-front' %} selected{% endif %}" data-icon="bi bi-truck-front" title="Truck Front">
+                                        <i class="bi bi-truck-front"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-truck-front-fill' %} selected{% endif %}" data-icon="bi bi-truck-front-fill" title="Truck Front Fill">
+                                        <i class="bi bi-truck-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-bus-front' %} selected{% endif %}" data-icon="bi bi-bus-front" title="Bus">
+                                        <i class="bi bi-bus-front"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-bus-front-fill' %} selected{% endif %}" data-icon="bi bi-bus-front-fill" title="Bus Fill">
+                                        <i class="bi bi-bus-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-taxi-front' %} selected{% endif %}" data-icon="bi bi-taxi-front" title="Taxi">
+                                        <i class="bi bi-taxi-front"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-taxi-front-fill' %} selected{% endif %}" data-icon="bi bi-taxi-front-fill" title="Taxi Fill">
+                                        <i class="bi bi-taxi-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-scooter' %} selected{% endif %}" data-icon="bi bi-scooter" title="Scooter">
+                                        <i class="bi bi-scooter"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-bicycle' %} selected{% endif %}" data-icon="bi bi-bicycle" title="Bicycle">
+                                        <i class="bi bi-bicycle"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-ev-front' %} selected{% endif %}" data-icon="bi bi-ev-front" title="Electric Vehicle">
+                                        <i class="bi bi-ev-front"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-ev-front-fill' %} selected{% endif %}" data-icon="bi bi-ev-front-fill" title="Electric Vehicle Fill">
+                                        <i class="bi bi-ev-front-fill"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-fuel-pump' %} selected{% endif %}" data-icon="bi bi-fuel-pump" title="Fuel Pump">
+                                        <i class="bi bi-fuel-pump"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-ev-station' %} selected{% endif %}" data-icon="bi bi-ev-station" title="EV Station">
+                                        <i class="bi bi-ev-station"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-speedometer' %} selected{% endif %}" data-icon="bi bi-speedometer" title="Speedometer">
+                                        <i class="bi bi-speedometer"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-speedometer2' %} selected{% endif %}" data-icon="bi bi-speedometer2" title="Speedometer 2">
+                                        <i class="bi bi-speedometer2"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-gear' %} selected{% endif %}" data-icon="bi bi-gear" title="Gear">
+                                        <i class="bi bi-gear"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-person' %} selected{% endif %}" data-icon="bi bi-person" title="Person">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-people' %} selected{% endif %}" data-icon="bi bi-people" title="People">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-people-fill' %} selected{% endif %}" data-icon="bi bi-people-fill" title="People Fill">
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-briefcase' %} selected{% endif %}" data-icon="bi bi-briefcase" title="Briefcase">
+                                        <i class="bi bi-briefcase"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-luggage' %} selected{% endif %}" data-icon="bi bi-luggage" title="Luggage">
+                                        <i class="bi bi-luggage"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-star' %} selected{% endif %}" data-icon="bi bi-star" title="Star">
+                                        <i class="bi bi-star"></i>
+                                    </div>
+                                    <div class="icon-option{% if category.icon == 'bi bi-star-fill' %} selected{% endif %}" data-icon="bi bi-star-fill" title="Star Fill">
+                                        <i class="bi bi-star-fill"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{% trans "Save Changes" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">{% trans "Danger Zone" %}</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">{% trans "Delete this category permanently. Vehicles in this category will need to be reassigned." %}</p>
+                <form method="post" onsubmit="return confirm('{% trans "Are you sure you want to delete this category?" %}');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_category">
+                    <button type="submit" class="btn btn-danger" {% if vehicles %}disabled title="{% trans 'Cannot delete category with vehicles' %}"{% endif %}>
+                        <i class="bi bi-trash me-2"></i>{% trans "Delete Category" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <!-- Vehicles in this Category -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{% trans "Vehicles" %}</h5>
+                <span class="badge bg-secondary">{{ vehicles.count }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if vehicles %}
+                <ul class="list-group list-group-flush">
+                    {% for vehicle in vehicles %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ vehicle.name }}</strong>
+                            <small class="text-muted ms-2">{{ vehicle.license_plate }}</small>
+                            <br>
+                            <small class="text-muted">
+                                <i class="bi bi-people me-1"></i>{{ vehicle.passengers }}
+                                <i class="bi bi-briefcase ms-2 me-1"></i>{{ vehicle.luggage }}
+                            </small>
+                        </div>
+                        <div>
+                            {{ vehicle.status|status_badge }}
+                            <a href="{% if vehicle.service_type == 'rental' %}{% url 'dashboard:rental_vehicle_detail' vehicle.pk %}{% else %}{% url 'dashboard:transfer_vehicle_detail' vehicle.pk %}{% endif %}" class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-car-front display-4 mb-2"></i>
+                    <p>{% trans "No vehicles in this category yet." %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const iconPicker = document.getElementById('iconPicker');
+    const iconInput = document.getElementById('iconInput');
+    const preview = document.getElementById('selectedIconPreview');
+
+    iconPicker.addEventListener('click', function(e) {
+        const option = e.target.closest('.icon-option');
+        if (!option) return;
+
+        // Remove selected class from all options
+        iconPicker.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+
+        // Add selected class to clicked option
+        option.classList.add('selected');
+
+        // Update hidden input
+        const iconClass = option.dataset.icon;
+        iconInput.value = iconClass;
+
+        // Update preview
+        preview.innerHTML = '<i class="' + iconClass + '"></i>';
+    });
+});
+</script>
+{% endblock %}

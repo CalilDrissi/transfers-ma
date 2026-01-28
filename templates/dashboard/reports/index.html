@@ -1,0 +1,114 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Reports" %}{% endblock %}
+{% block page_title %}{% trans "Reports & Analytics" %}{% endblock %}
+
+{% block content %}
+<!-- Revenue Overview -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value">{{ monthly_revenue|currency }}</div>
+            <div class="stat-label">{% trans "Monthly Revenue" %}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Revenue by Type -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-pie-chart me-2"></i>{% trans "Revenue by Service Type" %}
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Bookings" %}</th>
+                            <th>{% trans "Revenue" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in revenue_by_type %}
+                        <tr>
+                            <td>{{ item.payment_type|title }}</td>
+                            <td>{{ item.count }}</td>
+                            <td>{{ item.total|currency }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-muted text-center">{% trans "No data" %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Routes -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-signpost me-2"></i>{% trans "Top Transfer Routes" %}
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Route" %}</th>
+                            <th>{% trans "Bookings" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for route in top_routes %}
+                        <tr>
+                            <td>{{ route.pickup_location__name }} &rarr; {{ route.dropoff_location__name }}</td>
+                            <td>{{ route.count }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-muted text-center">{% trans "No data" %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Trips -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-map me-2"></i>{% trans "Top Trips" %}
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Trip" %}</th>
+                            <th>{% trans "Bookings" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trip in top_trips %}
+                        <tr>
+                            <td>{{ trip.trip__name }}</td>
+                            <td>{{ trip.count }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-muted text-center">{% trans "No data" %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

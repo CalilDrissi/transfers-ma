@@ -1,0 +1,182 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{{ trip.name }}{% endblock %}
+{% block page_title %}{{ trip.name }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:trip_list' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>{% trans "Back to Tours" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{% trans "Tour Details" %}</h5>
+                <div>
+                    {% if trip.status == 'draft' %}
+                    <span class="badge bg-warning text-dark">{% trans "Draft" %}</span>
+                    {% elif trip.status == 'published' %}
+                    <span class="badge bg-success">{% trans "Published" %}</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{% trans "Archived" %}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_trip">
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">{% trans "Title" %} *</label>
+                            <input type="text" name="name" class="form-control" value="{{ trip.name }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Status" %}</label>
+                            <select name="status" class="form-select">
+                                {% for value, label in statuses %}
+                                <option value="{{ value }}" {% if value == trip.status %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Trip Type" %}</label>
+                            <select name="trip_type" class="form-select">
+                                {% for value, label in trip_types %}
+                                <option value="{{ value }}" {% if value == trip.trip_type %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Service Type" %}</label>
+                            <select name="service_type" class="form-select">
+                                {% for value, label in service_types %}
+                                <option value="{{ value }}" {% if value == trip.service_type %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Origin City" %}</label>
+                            <input type="text" name="departure_location" class="form-control" value="{{ trip.departure_location }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Destination" %}</label>
+                            <input type="text" name="destinations" class="form-control" value="{{ trip.destinations }}">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{% trans "Short Description" %}</label>
+                            <textarea name="short_description" class="form-control" rows="2">{{ trip.short_description }}</textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{% trans "Full Description" %}</label>
+                            <textarea name="description" class="form-control" rows="6">{{ trip.description }}</textarea>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Duration (hours)" %}</label>
+                            <input type="number" name="duration_hours" class="form-control" value="{{ trip.duration_hours|default:'' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Duration (days)" %}</label>
+                            <input type="number" name="duration_days" class="form-control" value="{{ trip.duration_days }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Min Travelers" %}</label>
+                            <input type="number" name="min_participants" class="form-control" value="{{ trip.min_participants }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Max Travelers" %}</label>
+                            <input type="number" name="max_participants" class="form-control" value="{{ trip.max_participants }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Price per Person" %} ({{ trip.currency }})</label>
+                            <input type="number" name="price_per_person" class="form-control" step="0.01" value="{{ trip.price_per_person|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Child Price" %} ({{ trip.currency }})</label>
+                            <input type="number" name="child_price" class="form-control" step="0.01" value="{{ trip.child_price|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Currency" %}</label>
+                            <select name="currency" class="form-select">
+                                <option value="MAD" {% if trip.currency == 'MAD' %}selected{% endif %}>MAD</option>
+                                <option value="EUR" {% if trip.currency == 'EUR' %}selected{% endif %}>EUR</option>
+                                <option value="USD" {% if trip.currency == 'USD' %}selected{% endif %}>USD</option>
+                                <option value="GBP" {% if trip.currency == 'GBP' %}selected{% endif %}>GBP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Inclusions" %}</label>
+                            <textarea name="inclusions" class="form-control" rows="5">{{ trip.inclusions }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Exclusions" %}</label>
+                            <textarea name="exclusions" class="form-control" rows="5">{{ trip.exclusions }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{% trans "Save Changes" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Quick Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">{% trans "Quick Info" %}</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>{% trans "Type" %}:</strong> {{ trip.get_trip_type_display }}</p>
+                <p class="mb-2"><strong>{% trans "Service" %}:</strong> {{ trip.get_service_type_display }}</p>
+                <p class="mb-2"><strong>{% trans "Cancellation" %}:</strong> {{ trip.get_cancellation_policy_display }}</p>
+                <p class="mb-2"><strong>{% trans "Created" %}:</strong> {{ trip.created_at|date:"M d, Y" }}</p>
+                <p class="mb-0"><strong>{% trans "Updated" %}:</strong> {{ trip.updated_at|date:"M d, Y H:i" }}</p>
+            </div>
+        </div>
+
+        <!-- Highlights -->
+        {% if trip.highlights.all %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">{% trans "Highlights" %}</h6>
+            </div>
+            <div class="card-body">
+                {% for highlight in trip.highlights.all %}
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi {{ highlight.icon }} text-primary me-2"></i>
+                    <span>{{ highlight.text }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Danger Zone -->
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">{% trans "Danger Zone" %}</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">{% trans "Delete this tour permanently." %}</p>
+                <form method="post" onsubmit="return confirm('{% trans "Are you sure you want to delete this tour?" %}');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_trip">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash me-2"></i>{% trans "Delete Tour" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

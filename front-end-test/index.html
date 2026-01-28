@@ -1,0 +1,2286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfers.ma - Private Transfers in Morocco</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --accent: #e94560;
+            --accent-hover: #d63d56;
+            --light-bg: #f8f9fa;
+            --text-dark: #1a1a2e;
+            --text-muted: #6c757d;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: #fff;
+            color: var(--text-dark);
+        }
+
+        /* Hide all sections by default */
+        .booking-section {
+            display: none;
+        }
+        .booking-section.active {
+            display: block;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 1px 0 var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary) !important;
+        }
+
+        .navbar-brand span {
+            color: var(--accent);
+        }
+
+        .nav-link {
+            color: var(--text-dark) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+        }
+
+        /* Progress Steps */
+        .booking-progress {
+            background: white;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            color: var(--text-muted);
+            position: relative;
+        }
+
+        .progress-step::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            width: 20px;
+            height: 2px;
+            background: var(--border-color);
+        }
+
+        .progress-step:last-child::after {
+            display: none;
+        }
+
+        .progress-step.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .progress-step.completed {
+            color: var(--success);
+        }
+
+        .progress-step .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .progress-step.active .step-number {
+            background: var(--accent);
+            color: white;
+        }
+
+        .progress-step.completed .step-number {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 480px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1548013146-72479768bada?w=1920') center/cover;
+            opacity: 0.15;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            color: white;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Search Form */
+        .search-form-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 2rem;
+            margin-top: -60px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 140px 140px 140px auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        @media (max-width: 992px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            padding: 14px 14px 14px 44px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-control-custom:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.1);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            z-index: 1;
+        }
+
+        .btn-search {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            height: 52px;
+        }
+
+        .btn-search:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-search:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Autocomplete Dropdown */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            margin-top: 8px;
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: var(--light-bg);
+        }
+
+        .autocomplete-item i {
+            color: var(--accent);
+            font-size: 1.2rem;
+            position: static;
+            transform: none;
+        }
+
+        .autocomplete-item .location-name {
+            font-weight: 500;
+        }
+
+        .autocomplete-item .location-type {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Passengers Dropdown */
+        .passengers-dropdown {
+            position: relative;
+        }
+
+        .passengers-display {
+            padding: 14px 14px 14px 44px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 52px;
+        }
+
+        .passengers-panel {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            padding: 1rem;
+            margin-top: 8px;
+            z-index: 100;
+            display: none;
+        }
+
+        .passengers-panel.show {
+            display: block;
+        }
+
+        .passenger-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .passenger-row:last-child {
+            border-bottom: none;
+        }
+
+        .counter {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .counter button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .counter button:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .counter button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: var(--light-bg);
+            min-height: calc(100vh - 120px);
+            padding: 2rem 0;
+        }
+
+        .results-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .route-summary {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .route-point {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .route-point i {
+            color: var(--accent);
+        }
+
+        .route-arrow {
+            color: var(--text-muted);
+        }
+
+        .route-meta {
+            display: flex;
+            gap: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+        }
+
+        .route-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Vehicle Cards */
+        .vehicle-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .vehicle-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .vehicle-card.selected {
+            border-color: var(--accent);
+            background: rgba(233, 69, 96, 0.02);
+        }
+
+        .vehicle-header {
+            display: flex;
+            gap: 1.25rem;
+        }
+
+        .vehicle-image {
+            width: 120px;
+            height: 80px;
+            background: var(--light-bg);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .vehicle-image i {
+            font-size: 2.5rem;
+            color: var(--text-muted);
+        }
+
+        .vehicle-info {
+            flex: 1;
+        }
+
+        .vehicle-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .vehicle-description {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .vehicle-specs {
+            display: flex;
+            gap: 1.25rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .vehicle-specs span {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .vehicle-features {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .feature-tag {
+            background: var(--light-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .vehicle-price {
+            text-align: right;
+            min-width: 120px;
+        }
+
+        .price-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .price-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Extras Section */
+        .extras-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .extras-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .extra-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .extra-item:hover {
+            border-color: var(--accent);
+        }
+
+        .extra-item.selected {
+            border-color: var(--accent);
+            background: rgba(233, 69, 96, 0.02);
+        }
+
+        .extra-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .extra-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .extra-item.selected .extra-checkbox {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .extra-name {
+            font-weight: 500;
+        }
+
+        .extra-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .extra-price {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .extra-quantity {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Booking Summary Sidebar */
+        .booking-sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: sticky;
+            top: 100px;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        .summary-item.total {
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .summary-item .label {
+            color: var(--text-muted);
+        }
+
+        .btn-continue {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-continue:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .btn-continue:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Passenger Details Form */
+        .details-form {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .form-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 576px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group-inline label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group-inline .form-control {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .form-group-inline .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-group-inline .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        .form-group-inline textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Success Page */
+        .success-section {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-bg);
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .success-icon i {
+            font-size: 2.5rem;
+            color: var(--success);
+        }
+
+        .success-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .booking-ref {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: rgba(233, 69, 96, 0.1);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 1rem 0;
+        }
+
+        /* Popular Routes */
+        .popular-routes {
+            padding: 4rem 0;
+            background: var(--light-bg);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .route-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        .route-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .route-card-image {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .route-card-image i {
+            font-size: 2.5rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .route-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .route-card-body {
+            padding: 1.25rem;
+        }
+
+        .route-cities {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .route-city {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .route-info {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .route-price {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 0;
+            background: white;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(233, 69, 96, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .feature-icon i {
+            font-size: 1.75rem;
+            color: var(--accent);
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 3rem 0 1.5rem;
+        }
+
+        footer a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: white;
+        }
+
+        .footer-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand span {
+            color: var(--accent);
+        }
+
+        /* Loading Spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Back Button */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+
+        .btn-back:hover {
+            color: var(--accent);
+        }
+
+        /* API Status */
+        .api-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .api-status.connected {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .api-status.disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Google Places Autocomplete Styling */
+        .pac-container {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            border-radius: 12px;
+            border: none;
+            box-shadow: var(--shadow-lg);
+            margin-top: 8px;
+            z-index: 10000 !important;
+        }
+
+        .pac-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        .pac-item:hover {
+            background: var(--light-bg);
+        }
+
+        .pac-item-selected {
+            background: var(--light-bg);
+        }
+
+        .pac-icon {
+            margin-right: 12px;
+        }
+
+        .pac-item-query {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .pac-matched {
+            font-weight: 600;
+        }
+
+        /* Hide Google branding if needed */
+        .pac-logo::after {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="#" onclick="showSection('home')">Transfers<span>.ma</span></a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="api-status disconnected" id="apiStatus">
+                    <i class="bi bi-circle-fill" style="font-size: 8px;"></i>
+                    <span>Checking...</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Booking Progress (hidden on home) -->
+    <div class="booking-progress" id="bookingProgress" style="display: none;">
+        <div class="container">
+            <div class="progress-steps">
+                <div class="progress-step" data-step="1">
+                    <span class="step-number">1</span>
+                    <span class="d-none d-md-inline">Select Vehicle</span>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <span class="step-number">2</span>
+                    <span class="d-none d-md-inline">Add Extras</span>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <span class="step-number">3</span>
+                    <span class="d-none d-md-inline">Your Details</span>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <span class="step-number">4</span>
+                    <span class="d-none d-md-inline">Confirmation</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOME SECTION -->
+    <div class="booking-section active" id="homeSection">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content text-center">
+                    <h1>Private transfers<br>across Morocco</h1>
+                    <p>Door-to-door comfort with professional drivers</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Form -->
+        <div class="container">
+            <div class="search-form-container">
+                <div class="form-grid">
+                    <!-- From -->
+                    <div class="form-group">
+                        <label>From</label>
+                        <div class="input-wrapper">
+                            <i class="bi bi-geo-alt"></i>
+                            <input type="text" class="form-control-custom" id="pickupInput" placeholder="City or airport" autocomplete="off">
+                            <div class="autocomplete-dropdown" id="pickupDropdown"></div>
+                        </div>
+                    </div>
+
+                    <!-- To -->
+                    <div class="form-group">
+                        <label>To</label>
+                        <div class="input-wrapper">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <input type="text" class="form-control-custom" id="dropoffInput" placeholder="City or airport" autocomplete="off">
+                            <div class="autocomplete-dropdown" id="dropoffDropdown"></div>
+                        </div>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="form-group">
+                        <label>Date</label>
+                        <div class="input-wrapper">
+                            <i class="bi bi-calendar3"></i>
+                            <input type="date" class="form-control-custom" id="tripDate">
+                        </div>
+                    </div>
+
+                    <!-- Time -->
+                    <div class="form-group">
+                        <label>Time</label>
+                        <div class="input-wrapper">
+                            <i class="bi bi-clock"></i>
+                            <input type="time" class="form-control-custom" id="tripTime">
+                        </div>
+                    </div>
+
+                    <!-- Passengers -->
+                    <div class="form-group">
+                        <label>Passengers</label>
+                        <div class="passengers-dropdown">
+                            <div class="input-wrapper">
+                                <i class="bi bi-people"></i>
+                                <div class="passengers-display" onclick="togglePassengers()">
+                                    <span id="passengersText">1</span>
+                                    <i class="bi bi-chevron-down"></i>
+                                </div>
+                            </div>
+                            <div class="passengers-panel" id="passengersPanel">
+                                <div class="passenger-row">
+                                    <span>Passengers</span>
+                                    <div class="counter">
+                                        <button type="button" onclick="updateCount('passengers', -1)">-</button>
+                                        <span id="passengersCount">1</span>
+                                        <button type="button" onclick="updateCount('passengers', 1)">+</button>
+                                    </div>
+                                </div>
+                                <div class="passenger-row">
+                                    <span>Luggage</span>
+                                    <div class="counter">
+                                        <button type="button" onclick="updateCount('luggage', -1)">-</button>
+                                        <span id="luggageCount">1</span>
+                                        <button type="button" onclick="updateCount('luggage', 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Button -->
+                    <div class="form-group">
+                        <button class="btn-search" onclick="searchTransfers()" id="btnSearch">
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Routes -->
+        <section class="popular-routes">
+            <div class="container">
+                <h2 class="section-title">Popular routes</h2>
+                <p class="section-subtitle">Most booked transfers in Morocco</p>
+                <div class="row g-4" id="routesGrid">
+                    <div class="col-12 text-center py-4">
+                        <div class="spinner-border text-secondary" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="features">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <h5 class="feature-title">Safe & Reliable</h5>
+                            <p class="feature-desc">Vetted professional drivers and well-maintained vehicles</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <h5 class="feature-title">Fixed Prices</h5>
+                            <p class="feature-desc">No surprises - see the total price upfront before you book</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="bi bi-headset"></i>
+                            </div>
+                            <h5 class="feature-title">24/7 Support</h5>
+                            <p class="feature-desc">Our team is available around the clock to assist you</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="footer-brand">Transfers<span>.ma</span></div>
+                        <p class="text-white-50">Private transfer services across Morocco.</p>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <h6 class="text-white mb-3">Popular Cities</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><a href="#">Marrakech</a></li>
+                                    <li class="mb-2"><a href="#">Casablanca</a></li>
+                                    <li class="mb-2"><a href="#">Fes</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><a href="#">Agadir</a></li>
+                                    <li class="mb-2"><a href="#">Tangier</a></li>
+                                    <li class="mb-2"><a href="#">Rabat</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-4 border-secondary">
+                <p class="text-center text-white-50 mb-0">&copy; 2024 Transfers.ma</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- RESULTS SECTION (Step 1: Select Vehicle) -->
+    <div class="booking-section" id="resultsSection">
+        <div class="results-section">
+            <div class="container">
+                <a class="btn-back" onclick="showSection('home')">
+                    <i class="bi bi-arrow-left"></i> Back to search
+                </a>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Route Summary -->
+                        <div class="results-header">
+                            <div class="route-summary">
+                                <div class="route-point">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span id="resultPickup">--</span>
+                                </div>
+                                <i class="bi bi-arrow-right route-arrow"></i>
+                                <div class="route-point">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <span id="resultDropoff">--</span>
+                                </div>
+                            </div>
+                            <div class="route-meta">
+                                <span><i class="bi bi-calendar3"></i> <span id="resultDate">--</span></span>
+                                <span><i class="bi bi-clock"></i> <span id="resultTime">--</span></span>
+                                <span><i class="bi bi-signpost"></i> <span id="resultDistance">--</span> km</span>
+                                <span><i class="bi bi-stopwatch"></i> <span id="resultDuration">--</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Vehicle Options -->
+                        <h5 class="mb-3">Choose your vehicle</h5>
+                        <div id="vehiclesList">
+                            <!-- Vehicles will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="booking-sidebar">
+                            <h6 class="sidebar-title">Booking Summary</h6>
+                            <div class="summary-item">
+                                <span class="label">Route</span>
+                                <span id="sidebarRoute">--</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Date</span>
+                                <span id="sidebarDate">--</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Vehicle</span>
+                                <span id="sidebarVehicle">Not selected</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Passengers</span>
+                                <span id="sidebarPassengers">--</span>
+                            </div>
+                            <div class="summary-item total">
+                                <span>Total</span>
+                                <span id="sidebarTotal">-- MAD</span>
+                            </div>
+                            <button class="btn-continue" id="btnToExtras" disabled onclick="showSection('extras')">
+                                Continue to Extras
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXTRAS SECTION (Step 2: Add Extras) -->
+    <div class="booking-section" id="extrasSection">
+        <div class="results-section">
+            <div class="container">
+                <a class="btn-back" onclick="showSection('results')">
+                    <i class="bi bi-arrow-left"></i> Back to vehicles
+                </a>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="extras-section">
+                            <h5 class="extras-title">Add extras to your transfer</h5>
+                            <p class="text-muted mb-4">Optional services to enhance your journey</p>
+                            <div id="extrasList">
+                                <!-- Extras will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="booking-sidebar">
+                            <h6 class="sidebar-title">Booking Summary</h6>
+                            <div class="summary-item">
+                                <span class="label">Route</span>
+                                <span id="sidebarRoute2">--</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Vehicle</span>
+                                <span id="sidebarVehicle2">--</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Base Price</span>
+                                <span id="sidebarBasePrice">-- MAD</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Extras</span>
+                                <span id="sidebarExtrasPrice">0 MAD</span>
+                            </div>
+                            <div class="summary-item total">
+                                <span>Total</span>
+                                <span id="sidebarTotal2">-- MAD</span>
+                            </div>
+                            <button class="btn-continue" onclick="showSection('details')">
+                                Continue to Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAILS SECTION (Step 3: Your Details) -->
+    <div class="booking-section" id="detailsSection">
+        <div class="results-section">
+            <div class="container">
+                <a class="btn-back" onclick="showSection('extras')">
+                    <i class="bi bi-arrow-left"></i> Back to extras
+                </a>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="details-form">
+                            <h5 class="form-section-title">
+                                <i class="bi bi-person"></i> Passenger Details
+                            </h5>
+
+                            <div class="form-row">
+                                <div class="form-group-inline">
+                                    <label>Full Name *</label>
+                                    <input type="text" class="form-control" id="customerName" placeholder="John Doe">
+                                </div>
+                                <div class="form-group-inline">
+                                    <label>Email *</label>
+                                    <input type="email" class="form-control" id="customerEmail" placeholder="john@example.com">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group-inline">
+                                    <label>Phone *</label>
+                                    <input type="tel" class="form-control" id="customerPhone" placeholder="+212 600 000 000">
+                                </div>
+                                <div class="form-group-inline">
+                                    <label>Flight Number (optional)</label>
+                                    <input type="text" class="form-control" id="flightNumber" placeholder="RAM 205">
+                                </div>
+                            </div>
+
+                            <h5 class="form-section-title mt-4">
+                                <i class="bi bi-chat-text"></i> Additional Information
+                            </h5>
+
+                            <div class="form-group-inline">
+                                <label>Special Requests (optional)</label>
+                                <textarea class="form-control" id="specialRequests" placeholder="Any special requirements or requests..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="booking-sidebar">
+                            <h6 class="sidebar-title">Booking Summary</h6>
+                            <div class="summary-item">
+                                <span class="label">Route</span>
+                                <span id="sidebarRoute3">--</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Date & Time</span>
+                                <span id="sidebarDateTime3">--</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Vehicle</span>
+                                <span id="sidebarVehicle3">--</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Passengers</span>
+                                <span id="sidebarPassengers3">--</span>
+                            </div>
+                            <div id="extrasListSidebar"></div>
+                            <div class="summary-item total">
+                                <span>Total</span>
+                                <span id="sidebarTotal3">-- MAD</span>
+                            </div>
+                            <button class="btn-continue" onclick="confirmBooking()">
+                                <i class="bi bi-check-lg me-2"></i>Confirm Booking
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS SECTION (Step 4: Confirmation) -->
+    <div class="booking-section" id="successSection">
+        <div class="success-section">
+            <div class="success-card">
+                <div class="success-icon">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <h2 class="success-title">Booking Confirmed!</h2>
+                <p class="text-muted">Your transfer has been successfully booked</p>
+                <div class="booking-ref" id="bookingRefDisplay">TRF-XXXXXXXX</div>
+                <p class="text-muted">
+                    Confirmation email sent to<br>
+                    <strong id="confirmEmailDisplay">--</strong>
+                </p>
+                <div class="mt-4">
+                    <button class="btn-search" onclick="resetAndGoHome()">
+                        Book Another Transfer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ===================
+        // Configuration
+        // ===================
+        const API_BASE = 'http://127.0.0.1:8000/api/v1';
+        let googleMapsApiKey = '';
+        let googleMapsLoaded = false;
+        let pickupAutocomplete = null;
+        let dropoffAutocomplete = null;
+
+        // Fallback Morocco locations (used when Google API is not available)
+        const FALLBACK_LOCATIONS = [
+            { name: 'Marrakech Menara Airport', type: 'Airport', lat: 31.6069, lng: -8.0363 },
+            { name: 'Marrakech Medina', type: 'City Center', lat: 31.6295, lng: -7.9811 },
+            { name: 'Casablanca Mohammed V Airport', type: 'Airport', lat: 33.3675, lng: -7.5898 },
+            { name: 'Casablanca City Center', type: 'City', lat: 33.5731, lng: -7.5898 },
+            { name: 'Fes Saiss Airport', type: 'Airport', lat: 33.9273, lng: -4.9779 },
+            { name: 'Fes Medina', type: 'City Center', lat: 34.0331, lng: -5.0003 },
+            { name: 'Agadir Al Massira Airport', type: 'Airport', lat: 30.3250, lng: -9.4131 },
+            { name: 'Agadir City Center', type: 'City', lat: 30.4278, lng: -9.5981 },
+            { name: 'Tangier Ibn Battouta Airport', type: 'Airport', lat: 35.7269, lng: -5.9169 },
+            { name: 'Tangier City Center', type: 'City', lat: 35.7595, lng: -5.8340 },
+            { name: 'Essaouira', type: 'City', lat: 31.5085, lng: -9.7595 },
+            { name: 'Ouarzazate', type: 'City', lat: 30.9189, lng: -6.8936 },
+            { name: 'Chefchaouen', type: 'City', lat: 35.1688, lng: -5.2636 },
+            { name: 'Rabat', type: 'Capital City', lat: 34.0209, lng: -6.8416 },
+            { name: 'Meknes', type: 'City', lat: 33.8935, lng: -5.5547 },
+        ];
+
+        // ===================
+        // State Management
+        // ===================
+        let state = {
+            // Search params
+            pickup: null,
+            dropoff: null,
+            date: null,
+            time: null,
+            passengers: 1,
+            luggage: 1,
+            // Route/pricing data
+            routeData: null,
+            vehicleOptions: [],
+            selectedVehicle: null,
+            // Extras
+            availableExtras: [],
+            selectedExtras: [],
+            // Totals
+            basePrice: 0,
+            extrasTotal: 0,
+            totalPrice: 0
+        };
+
+        // ===================
+        // API Helper
+        // ===================
+        async function api(endpoint, options = {}) {
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: { 'Content-Type': 'application/json', ...options.headers },
+                    ...options
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || data.error || 'API Error');
+                return data;
+            } catch (e) {
+                console.error('API Error:', e);
+                throw e;
+            }
+        }
+
+        // ===================
+        // UI Functions
+        // ===================
+        function showLoading(show = true) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.booking-section').forEach(el => el.classList.remove('active'));
+
+            // Show target section
+            document.getElementById(section + 'Section').classList.add('active');
+
+            // Update progress bar
+            const progressBar = document.getElementById('bookingProgress');
+            const steps = { 'home': 0, 'results': 1, 'extras': 2, 'details': 3, 'success': 4 };
+            const stepNum = steps[section] || 0;
+
+            progressBar.style.display = stepNum > 0 ? 'block' : 'none';
+
+            document.querySelectorAll('.progress-step').forEach(el => {
+                const elStep = parseInt(el.dataset.step);
+                el.classList.remove('active', 'completed');
+                if (elStep === stepNum) el.classList.add('active');
+                else if (elStep < stepNum) el.classList.add('completed');
+            });
+
+            // Update sidebars when entering sections
+            if (section === 'extras') updateExtrasSidebar();
+            if (section === 'details') updateDetailsSidebar();
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function updateProgress(step) {
+            document.querySelectorAll('.progress-step').forEach(el => {
+                const elStep = parseInt(el.dataset.step);
+                el.classList.remove('active', 'completed');
+                if (elStep === step) el.classList.add('active');
+                else if (elStep < step) el.classList.add('completed');
+            });
+        }
+
+        // ===================
+        // Google Places Autocomplete
+        // ===================
+        async function loadGoogleMapsAPI() {
+            // Try to get API key from backend, fallback to hardcoded key for local development
+            let apiKey = 'AIzaSyDcGWnF5A9sfCJLFSr-3UluEk33qDEuDjQ'; // Development key
+
+            try {
+                const config = await api('/locations/google-maps-config/');
+                if (config.enabled && config.api_key) {
+                    apiKey = config.api_key;
+                }
+            } catch (e) {
+                console.log('Backend not available, using development API key');
+            }
+
+            googleMapsApiKey = apiKey;
+
+            // Load Google Maps script
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initGooglePlaces`;
+            script.async = true;
+            script.defer = true;
+            script.onerror = () => {
+                console.log('Failed to load Google Maps, using fallback autocomplete');
+                setupFallbackAutocomplete('pickupInput', 'pickupDropdown');
+                setupFallbackAutocomplete('dropoffInput', 'dropoffDropdown');
+            };
+            document.head.appendChild(script);
+        }
+
+        // Called when Google Maps API is loaded
+        function initGooglePlaces() {
+            googleMapsLoaded = true;
+            console.log('Google Places API loaded');
+
+            // Morocco bounds for biasing results
+            const moroccoBounds = new google.maps.LatLngBounds(
+                new google.maps.LatLng(27.6, -13.2),  // SW corner
+                new google.maps.LatLng(35.9, -1.0)    // NE corner
+            );
+
+            const options = {
+                bounds: moroccoBounds,
+                componentRestrictions: { country: 'ma' },
+                fields: ['formatted_address', 'geometry', 'name', 'types'],
+                strictBounds: false
+            };
+
+            // Setup pickup autocomplete
+            const pickupInput = document.getElementById('pickupInput');
+            pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, options);
+            pickupAutocomplete.addListener('place_changed', () => {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    state.pickup = {
+                        name: place.formatted_address || place.name,
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng()
+                    };
+                    console.log('Pickup selected:', state.pickup);
+                }
+            });
+
+            // Setup dropoff autocomplete
+            const dropoffInput = document.getElementById('dropoffInput');
+            dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, options);
+            dropoffAutocomplete.addListener('place_changed', () => {
+                const place = dropoffAutocomplete.getPlace();
+                if (place.geometry) {
+                    state.dropoff = {
+                        name: place.formatted_address || place.name,
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng()
+                    };
+                    console.log('Dropoff selected:', state.dropoff);
+                }
+            });
+
+            // Prevent form submission on Enter key in autocomplete fields
+            pickupInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+            dropoffInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+        }
+
+        // Fallback autocomplete for when Google API is not available
+        function setupFallbackAutocomplete(inputId, dropdownId) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+
+            input.addEventListener('input', () => {
+                const query = input.value.toLowerCase();
+                if (query.length < 2) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                const matches = FALLBACK_LOCATIONS.filter(l =>
+                    l.name.toLowerCase().includes(query) ||
+                    l.type.toLowerCase().includes(query)
+                );
+
+                if (matches.length === 0) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                dropdown.innerHTML = matches.map(l => `
+                    <div class="autocomplete-item" onclick="selectFallbackLocation('${inputId}', '${l.name}', ${l.lat}, ${l.lng})">
+                        <i class="bi bi-${l.type.includes('Airport') ? 'airplane' : 'geo-alt'}"></i>
+                        <div>
+                            <div class="location-name">${l.name}</div>
+                            <div class="location-type">${l.type}</div>
+                        </div>
+                    </div>
+                `).join('');
+                dropdown.classList.add('show');
+            });
+
+            input.addEventListener('blur', () => {
+                setTimeout(() => dropdown.classList.remove('show'), 200);
+            });
+        }
+
+        function selectFallbackLocation(inputId, name, lat, lng) {
+            document.getElementById(inputId).value = name;
+            if (inputId === 'pickupInput') {
+                state.pickup = { name, lat, lng };
+            } else {
+                state.dropoff = { name, lat, lng };
+            }
+            document.getElementById(inputId.replace('Input', 'Dropdown')).classList.remove('show');
+        }
+
+        // ===================
+        // Passengers Dropdown
+        // ===================
+        function togglePassengers() {
+            document.getElementById('passengersPanel').classList.toggle('show');
+        }
+
+        function updateCount(type, delta) {
+            const countEl = document.getElementById(type + 'Count');
+            let count = parseInt(countEl.textContent) + delta;
+            const min = type === 'passengers' ? 1 : 0;
+            const max = 8;
+            count = Math.max(min, Math.min(max, count));
+            countEl.textContent = count;
+            state[type] = count;
+
+            if (type === 'passengers') {
+                document.getElementById('passengersText').textContent = count;
+            }
+        }
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.passengers-dropdown')) {
+                document.getElementById('passengersPanel').classList.remove('show');
+            }
+        });
+
+        // ===================
+        // Search & Results
+        // ===================
+        async function searchTransfers() {
+            const pickup = document.getElementById('pickupInput').value;
+            const dropoff = document.getElementById('dropoffInput').value;
+            const date = document.getElementById('tripDate').value;
+            const time = document.getElementById('tripTime').value;
+
+            // Validation
+            if (!pickup || !dropoff) {
+                alert('Please enter pickup and dropoff locations');
+                return;
+            }
+            if (!date || !time) {
+                alert('Please select date and time');
+                return;
+            }
+
+            // Set defaults if no coordinates
+            if (!state.pickup) {
+                state.pickup = { name: pickup, lat: 31.6295, lng: -7.9811 };
+            }
+            if (!state.dropoff) {
+                state.dropoff = { name: dropoff, lat: 33.5731, lng: -7.5898 };
+            }
+
+            state.date = date;
+            state.time = time;
+
+            showLoading(true);
+
+            try {
+                // Get pricing from API
+                const params = new URLSearchParams({
+                    origin_lat: state.pickup.lat,
+                    origin_lng: state.pickup.lng,
+                    destination_lat: state.dropoff.lat,
+                    destination_lng: state.dropoff.lng,
+                    passengers: state.passengers,
+                    origin_name: state.pickup.name,
+                    destination_name: state.dropoff.name
+                });
+
+                const data = await api(`/locations/routes/get_pricing/?${params}`);
+                state.routeData = data;
+                state.vehicleOptions = data.vehicle_options || [];
+
+                // Update results UI
+                displayResults();
+                showSection('results');
+
+            } catch (e) {
+                alert('Failed to search: ' + e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayResults() {
+            // Update header
+            document.getElementById('resultPickup').textContent = state.pickup.name;
+            document.getElementById('resultDropoff').textContent = state.dropoff.name;
+            document.getElementById('resultDate').textContent = formatDate(state.date);
+            document.getElementById('resultTime').textContent = state.time;
+            document.getElementById('resultDistance').textContent = state.routeData.distance_km || '--';
+            document.getElementById('resultDuration').textContent = state.routeData.duration_display || '--';
+
+            // Update sidebar
+            document.getElementById('sidebarRoute').textContent = `${shortName(state.pickup.name)} - ${shortName(state.dropoff.name)}`;
+            document.getElementById('sidebarDate').textContent = formatDate(state.date);
+            document.getElementById('sidebarPassengers').textContent = state.passengers;
+
+            // Display vehicle options
+            const container = document.getElementById('vehiclesList');
+            if (state.vehicleOptions.length === 0) {
+                container.innerHTML = '<p class="text-muted">No vehicles available for this route.</p>';
+                return;
+            }
+
+            container.innerHTML = state.vehicleOptions.map(v => `
+                <div class="vehicle-card" data-category-id="${v.category_id}" onclick="selectVehicle(${v.category_id})">
+                    <div class="vehicle-header">
+                        <div class="vehicle-image">
+                            <i class="${v.category_icon || 'bi bi-car-front'}"></i>
+                        </div>
+                        <div class="vehicle-info">
+                            <div class="vehicle-name">${v.category_name}</div>
+                            <div class="vehicle-description">${v.vehicle_name || 'Comfortable vehicle for your journey'}</div>
+                            <div class="vehicle-specs">
+                                <span><i class="bi bi-people-fill"></i> ${v.passengers} passengers</span>
+                                <span><i class="bi bi-briefcase-fill"></i> ${v.luggage} bags</span>
+                            </div>
+                            ${v.features && v.features.length > 0 ? `
+                                <div class="vehicle-features">
+                                    ${v.features.map(f => `<span class="feature-tag">${f}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="vehicle-price">
+                            <div class="price-value">${Math.round(v.price)} MAD</div>
+                            <div class="price-label">total price</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectVehicle(categoryId) {
+            // Update UI
+            document.querySelectorAll('.vehicle-card').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`.vehicle-card[data-category-id="${categoryId}"]`).classList.add('selected');
+
+            // Update state
+            state.selectedVehicle = state.vehicleOptions.find(v => v.category_id === categoryId);
+            state.basePrice = state.selectedVehicle.price;
+            state.totalPrice = state.basePrice;
+
+            // Update sidebar
+            document.getElementById('sidebarVehicle').textContent = state.selectedVehicle.category_name;
+            document.getElementById('sidebarTotal').textContent = Math.round(state.totalPrice) + ' MAD';
+
+            // Enable continue button
+            document.getElementById('btnToExtras').disabled = false;
+        }
+
+        // ===================
+        // Extras
+        // ===================
+        async function loadExtras() {
+            try {
+                const data = await api('/transfers/extras/');
+                state.availableExtras = data;
+                displayExtras();
+            } catch (e) {
+                console.log('Failed to load extras:', e);
+                document.getElementById('extrasList').innerHTML = '<p class="text-muted">No extras available.</p>';
+            }
+        }
+
+        function displayExtras() {
+            const container = document.getElementById('extrasList');
+
+            if (!state.availableExtras || state.availableExtras.length === 0) {
+                container.innerHTML = '<p class="text-muted">No extras available at this time.</p>';
+                return;
+            }
+
+            container.innerHTML = state.availableExtras.map(e => `
+                <div class="extra-item" data-extra-id="${e.id}" onclick="toggleExtra(${e.id})">
+                    <div class="extra-info">
+                        <div class="extra-checkbox">
+                            <i class="bi bi-check"></i>
+                        </div>
+                        <div>
+                            <div class="extra-name">${e.name}</div>
+                            <div class="extra-desc">${e.description || ''}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        ${e.is_per_item ? `
+                            <div class="extra-quantity" onclick="event.stopPropagation()">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="updateExtraQty(${e.id}, -1)">-</button>
+                                <span id="extraQty${e.id}">1</span>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="updateExtraQty(${e.id}, 1)">+</button>
+                            </div>
+                        ` : ''}
+                        <div class="extra-price">${e.price} MAD${e.is_per_item ? '/each' : ''}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleExtra(extraId) {
+            const item = document.querySelector(`.extra-item[data-extra-id="${extraId}"]`);
+            const extra = state.availableExtras.find(e => e.id === extraId);
+
+            const existingIndex = state.selectedExtras.findIndex(e => e.id === extraId);
+
+            if (existingIndex >= 0) {
+                // Remove
+                state.selectedExtras.splice(existingIndex, 1);
+                item.classList.remove('selected');
+            } else {
+                // Add
+                state.selectedExtras.push({
+                    id: extra.id,
+                    name: extra.name,
+                    price: extra.price,
+                    quantity: 1,
+                    is_per_item: extra.is_per_item
+                });
+                item.classList.add('selected');
+            }
+
+            updateExtrasTotals();
+        }
+
+        function updateExtraQty(extraId, delta) {
+            const selected = state.selectedExtras.find(e => e.id === extraId);
+            if (!selected) return;
+
+            selected.quantity = Math.max(1, Math.min(10, selected.quantity + delta));
+            document.getElementById(`extraQty${extraId}`).textContent = selected.quantity;
+            updateExtrasTotals();
+        }
+
+        function updateExtrasTotals() {
+            state.extrasTotal = state.selectedExtras.reduce((sum, e) => {
+                return sum + (e.price * (e.is_per_item ? e.quantity : 1));
+            }, 0);
+            state.totalPrice = state.basePrice + state.extrasTotal;
+
+            // Update sidebar
+            document.getElementById('sidebarExtrasPrice').textContent = Math.round(state.extrasTotal) + ' MAD';
+            document.getElementById('sidebarTotal2').textContent = Math.round(state.totalPrice) + ' MAD';
+        }
+
+        function updateExtrasSidebar() {
+            document.getElementById('sidebarRoute2').textContent = `${shortName(state.pickup.name)} - ${shortName(state.dropoff.name)}`;
+            document.getElementById('sidebarVehicle2').textContent = state.selectedVehicle?.category_name || '--';
+            document.getElementById('sidebarBasePrice').textContent = Math.round(state.basePrice) + ' MAD';
+            document.getElementById('sidebarExtrasPrice').textContent = Math.round(state.extrasTotal) + ' MAD';
+            document.getElementById('sidebarTotal2').textContent = Math.round(state.totalPrice) + ' MAD';
+
+            // Load extras if not loaded
+            if (state.availableExtras.length === 0) {
+                loadExtras();
+            }
+        }
+
+        // ===================
+        // Details & Booking
+        // ===================
+        function updateDetailsSidebar() {
+            document.getElementById('sidebarRoute3').textContent = `${shortName(state.pickup.name)} - ${shortName(state.dropoff.name)}`;
+            document.getElementById('sidebarDateTime3').textContent = `${formatDate(state.date)} at ${state.time}`;
+            document.getElementById('sidebarVehicle3').textContent = state.selectedVehicle?.category_name || '--';
+            document.getElementById('sidebarPassengers3').textContent = state.passengers;
+            document.getElementById('sidebarTotal3').textContent = Math.round(state.totalPrice) + ' MAD';
+
+            // Show selected extras
+            const extrasContainer = document.getElementById('extrasListSidebar');
+            if (state.selectedExtras.length > 0) {
+                extrasContainer.innerHTML = state.selectedExtras.map(e => `
+                    <div class="summary-item">
+                        <span class="label">${e.name}${e.is_per_item ? ` x${e.quantity}` : ''}</span>
+                        <span>${Math.round(e.price * (e.is_per_item ? e.quantity : 1))} MAD</span>
+                    </div>
+                `).join('');
+            } else {
+                extrasContainer.innerHTML = '';
+            }
+        }
+
+        async function confirmBooking() {
+            const name = document.getElementById('customerName').value.trim();
+            const email = document.getElementById('customerEmail').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+
+            // Validation
+            if (!name) {
+                alert('Please enter your name');
+                document.getElementById('customerName').focus();
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email');
+                document.getElementById('customerEmail').focus();
+                return;
+            }
+            if (!phone) {
+                alert('Please enter your phone number');
+                document.getElementById('customerPhone').focus();
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const bookingData = {
+                    customer_name: name,
+                    customer_email: email,
+                    customer_phone: phone,
+                    pickup_address: state.pickup.name,
+                    pickup_latitude: state.pickup.lat,
+                    pickup_longitude: state.pickup.lng,
+                    dropoff_address: state.dropoff.name,
+                    dropoff_latitude: state.dropoff.lat,
+                    dropoff_longitude: state.dropoff.lng,
+                    pickup_datetime: `${state.date}T${state.time}:00`,
+                    passengers: state.passengers,
+                    luggage: state.luggage,
+                    vehicle_category_id: state.selectedVehicle.category_id,
+                    flight_number: document.getElementById('flightNumber').value,
+                    special_requests: document.getElementById('specialRequests').value,
+                    is_round_trip: false,
+                    extras: state.selectedExtras.map(e => ({
+                        extra_id: e.id,
+                        quantity: e.quantity
+                    }))
+                };
+
+                const result = await api('/transfers/', {
+                    method: 'POST',
+                    body: JSON.stringify(bookingData)
+                });
+
+                // Show success
+                document.getElementById('bookingRefDisplay').textContent = result.booking_ref;
+                document.getElementById('confirmEmailDisplay').textContent = email;
+                showSection('success');
+
+            } catch (e) {
+                alert('Booking failed: ' + e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function resetAndGoHome() {
+            // Reset state
+            state = {
+                pickup: null,
+                dropoff: null,
+                date: null,
+                time: null,
+                passengers: 1,
+                luggage: 1,
+                routeData: null,
+                vehicleOptions: [],
+                selectedVehicle: null,
+                availableExtras: [],
+                selectedExtras: [],
+                basePrice: 0,
+                extrasTotal: 0,
+                totalPrice: 0
+            };
+
+            // Reset form
+            document.getElementById('pickupInput').value = '';
+            document.getElementById('dropoffInput').value = '';
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerEmail').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('flightNumber').value = '';
+            document.getElementById('specialRequests').value = '';
+            document.getElementById('passengersCount').textContent = '1';
+            document.getElementById('luggageCount').textContent = '1';
+            document.getElementById('passengersText').textContent = '1';
+
+            // Set default date
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('tripDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('tripTime').value = '10:00';
+
+            showSection('home');
+        }
+
+        // ===================
+        // Utilities
+        // ===================
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+
+        function shortName(name) {
+            return name.split(' ')[0];
+        }
+
+        // ===================
+        // Popular Routes
+        // ===================
+        async function loadRoutes() {
+            const grid = document.getElementById('routesGrid');
+            try {
+                let data = await api('/locations/routes/popular/');
+                if (data.length === 0) {
+                    data = await api('/locations/routes/');
+                }
+                const routes = data.slice(0, 6);
+
+                if (routes.length === 0) {
+                    grid.innerHTML = '<div class="col-12 text-muted text-center">No routes available</div>';
+                    return;
+                }
+
+                const colors = [
+                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                    'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+                ];
+
+                grid.innerHTML = routes.map((r, i) => `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="route-card" onclick="selectPopularRoute('${r.slug}')">
+                            <div class="route-card-image" style="background: ${colors[i % colors.length]}">
+                                <i class="bi bi-car-front-fill"></i>
+                                ${r.is_popular ? '<span class="route-badge">Popular</span>' : ''}
+                            </div>
+                            <div class="route-card-body">
+                                <div class="route-cities">
+                                    <span class="route-city">${r.origin_name}</span>
+                                    <i class="bi bi-arrow-right text-muted"></i>
+                                    <span class="route-city">${r.destination_name}</span>
+                                </div>
+                                <div class="route-info">
+                                    <span><i class="bi bi-signpost"></i> ${r.distance_km} km</span>
+                                    <span><i class="bi bi-clock"></i> ${r.duration_display || r.estimated_duration_minutes + ' min'}</span>
+                                </div>
+                                <div class="route-price">
+                                    <span class="text-muted">From</span>
+                                    <span class="price-value" style="font-size: 1.25rem;">Get Quote</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                grid.innerHTML = '<div class="col-12 text-danger text-center">Failed to load routes</div>';
+            }
+        }
+
+        async function selectPopularRoute(slug) {
+            showLoading(true);
+            try {
+                const route = await api(`/locations/routes/${slug}/`);
+
+                document.getElementById('pickupInput').value = route.origin_name;
+                state.pickup = {
+                    name: route.origin_name,
+                    lat: route.origin_latitude,
+                    lng: route.origin_longitude
+                };
+
+                document.getElementById('dropoffInput').value = route.destination_name;
+                state.dropoff = {
+                    name: route.destination_name,
+                    lat: route.destination_latitude,
+                    lng: route.destination_longitude
+                };
+
+                document.querySelector('.search-form-container').scrollIntoView({ behavior: 'smooth' });
+            } catch (e) {
+                alert('Failed to load route details');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ===================
+        // API Status Check
+        // ===================
+        async function checkAPI() {
+            const el = document.getElementById('apiStatus');
+            try {
+                await api('/vehicles/categories/');
+                el.className = 'api-status connected';
+                el.innerHTML = '<i class="bi bi-circle-fill" style="font-size: 8px;"></i><span>API Connected</span>';
+                return true;
+            } catch {
+                el.className = 'api-status disconnected';
+                el.innerHTML = '<i class="bi bi-circle-fill" style="font-size: 8px;"></i><span>API Offline</span>';
+                return false;
+            }
+        }
+
+        // ===================
+        // Initialization
+        // ===================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default date/time
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('tripDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('tripTime').value = '10:00';
+
+            // Load Google Maps API (will fall back to static list if not available)
+            loadGoogleMapsAPI();
+
+            // Load data
+            checkAPI();
+            loadRoutes();
+        });
+    </script>
+</body>
+</html>

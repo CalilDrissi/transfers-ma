@@ -1,0 +1,124 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Transfers" %}{% endblock %}
+{% block page_title %}{% trans "Transfer Bookings" %}{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Status" %}</label>
+                <select name="status" class="form-select">
+                    <option value="">{% trans "All Statuses" %}</option>
+                    {% for value, label in statuses %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Type" %}</label>
+                <select name="type" class="form-select">
+                    <option value="">{% trans "All Types" %}</option>
+                    {% for value, label in types %}
+                    <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Search" %}</label>
+                <input type="text" name="search" class="form-control" placeholder="{% trans 'Booking ref, name, email...' %}" value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>{% trans "Filter" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Booking Ref" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Route" %}</th>
+                        <th>{% trans "Pickup" %}</th>
+                        <th>{% trans "Vehicle" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Total" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transfer in transfers %}
+                    <tr>
+                        <td><strong>{{ transfer.booking_ref }}</strong></td>
+                        <td>
+                            {{ transfer.customer_name }}<br>
+                            <small class="text-muted">{{ transfer.customer_email }}</small>
+                        </td>
+                        <td>
+                            {{ transfer.pickup_location.name }}<br>
+                            <small class="text-muted">&rarr; {{ transfer.dropoff_location.name }}</small>
+                        </td>
+                        <td>
+                            {{ transfer.pickup_datetime|date:"M d, Y" }}<br>
+                            <small class="text-muted">{{ transfer.pickup_datetime|time:"H:i" }}</small>
+                        </td>
+                        <td>{{ transfer.vehicle_category.name }}</td>
+                        <td>{{ transfer.status|status_badge }}</td>
+                        <td>{{ transfer.total_price|currency }}</td>
+                        <td>
+                            <a href="{% url 'dashboard:transfer_detail' transfer.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            {% trans "No transfers found" %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if transfers.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if transfers.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ transfers.previous_page_number }}&{{ request.GET.urlencode }}">&laquo;</a>
+        </li>
+        {% endif %}
+
+        {% for num in transfers.paginator.page_range %}
+            {% if transfers.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > transfers.number|add:'-3' and num < transfers.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if transfers.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ transfers.next_page_number }}&{{ request.GET.urlencode }}">&raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

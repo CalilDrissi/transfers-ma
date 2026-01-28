@@ -1,0 +1,498 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ vehicle.name }}{% endblock %}
+{% block page_title %}{{ vehicle.name }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% if vehicle.service_type == 'rental' %}{% url 'dashboard:rental_vehicle_list' %}{% else %}{% url 'dashboard:transfer_vehicle_list' %}{% endif %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>{% if vehicle.service_type == 'rental' %}{% trans "Back to Rental Cars" %}{% else %}{% trans "Back to Transfer Vehicles" %}{% endif %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Vehicle Details & Image -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">{% trans "Vehicle Details" %}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_vehicle">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Category" %} *</label>
+                            <select name="category" class="form-select" required>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if cat.id == vehicle.category_id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Name" %} *</label>
+                            <input type="text" name="name" class="form-control" value="{{ vehicle.name }}" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Max Passengers" %} *</label>
+                            <input type="number" name="passengers" class="form-control" value="{{ vehicle.passengers }}" min="1" max="50" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Luggage Capacity" %} *</label>
+                            <input type="number" name="luggage" class="form-control" value="{{ vehicle.luggage }}" min="0" max="50" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Status" %}</label>
+                            <select name="status" class="form-select">
+                                {% for value, label in statuses %}
+                                <option value="{{ value }}" {% if value == vehicle.status %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Supplier Name" %}</label>
+                            <input type="text" name="supplier_name" class="form-control" value="{{ vehicle.supplier_name }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
+                                    {% if vehicle.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    {% trans "Active" %}
+                                </label>
+                            </div>
+                        </div>
+
+                        {% if vehicle.service_type == 'rental' %}
+                        <div class="col-12">
+                            <hr>
+                            <h6>{% trans "Rental Pricing" %}</h6>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Daily Rate" %} ({{ CURRENCY }})</label>
+                            <input type="number" name="daily_rate" class="form-control" step="0.01" min="0" value="{{ vehicle.daily_rate|default:'' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Weekly Rate" %} ({{ CURRENCY }})</label>
+                            <input type="number" name="weekly_rate" class="form-control" step="0.01" min="0" value="{{ vehicle.weekly_rate|default:'' }}">
+                        </div>
+                        {% endif %}
+
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Notes" %}</label>
+                            <textarea name="notes" class="form-control" rows="2">{{ vehicle.notes }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{% trans "Save Changes" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Image, Quick Info, Danger Zone -->
+    <div class="col-lg-4">
+        <!-- Vehicle Image -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">{% trans "Vehicle Photo" %}</h6>
+            </div>
+            <div class="card-body">
+                {% if vehicle_images %}
+                <div class="mb-3">
+                    {% for img in vehicle_images %}
+                    <div class="position-relative d-inline-block me-2 mb-2">
+                        <img src="{{ img.image.url }}" alt="{{ vehicle.name }}" class="rounded" style="width: 100%; max-width: 250px; height: auto; object-fit: cover;">
+                        {% if img.is_primary %}
+                        <span class="badge bg-success position-absolute top-0 start-0 m-1">{% trans "Primary" %}</span>
+                        {% endif %}
+                        <div class="position-absolute bottom-0 end-0 m-1">
+                            {% if not img.is_primary %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="set_primary_image">
+                                <input type="hidden" name="image_id" value="{{ img.id }}">
+                                <button type="submit" class="btn btn-sm btn-light" title="{% trans 'Set as primary' %}">
+                                    <i class="bi bi-star"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form method="post" class="d-inline" onsubmit="return confirm('{% trans "Delete this image?" %}');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_image">
+                                <input type="hidden" name="image_id" value="{{ img.id }}">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-3 text-muted mb-3">
+                    <i class="bi bi-image display-4 mb-2"></i>
+                    <p class="mb-0">{% trans "No photo uploaded yet" %}</p>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" class="p-3 bg-light rounded">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_image">
+                    <div class="mb-2">
+                        <input type="file" name="image" class="form-control" accept="image/*" required>
+                    </div>
+                    {% if not vehicle_images %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="is_primary" id="is_primary_new" checked>
+                        <label class="form-check-label" for="is_primary_new">
+                            {% trans "Set as primary image" %}
+                        </label>
+                    </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-upload me-1"></i>{% trans "Upload" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">{% trans "Quick Info" %}</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>{% trans "Category" %}:</strong> {{ vehicle.category.name }}</p>
+                <p class="mb-2"><strong>{% trans "Created" %}:</strong> {{ vehicle.created_at|date:"M d, Y" }}</p>
+                <p class="mb-0"><strong>{% trans "Updated" %}:</strong> {{ vehicle.updated_at|date:"M d, Y H:i" }}</p>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">{% trans "Danger Zone" %}</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">{% trans "Delete this vehicle permanently." %}</p>
+                <form method="post" onsubmit="return confirm('{% trans "Are you sure you want to delete this vehicle?" %}');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_vehicle">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash me-2"></i>{% trans "Delete Vehicle" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if vehicle.service_type == 'transfer' %}
+<!-- Zone Pricing - Full Width -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>{% trans "Zone Pricing" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Add Pricing Form -->
+                    <div class="col-lg-4">
+                        {% if available_ranges %}
+                        <form method="post" class="p-3 bg-light rounded h-100">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_zone_pricing">
+                            <h6 class="mb-3">{% trans "Add Zone Pricing" %}</h6>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Zone Range" %}</label>
+                                <select name="zone_distance_range" class="form-select" required>
+                                    <option value="">{% trans "Select zone range..." %}</option>
+                                    {% regroup available_ranges by zone as zone_list %}
+                                    {% for zone in zone_list %}
+                                    <optgroup label="{{ zone.grouper.name }}">
+                                        {% for range in zone.list %}
+                                        <option value="{{ range.id }}">{{ range.name }} ({{ range.min_km }}-{{ range.max_km }} km)</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label">{% trans "Price" %} ({{ CURRENCY }})</label>
+                                    <input type="number" name="price" class="form-control" step="0.01" min="0" required placeholder="0.00">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">{% trans "Cost" %} ({{ COST_CURRENCY }})</label>
+                                    <input type="number" name="cost" class="form-control" step="0.01" min="0" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label">{% trans "Deposit" %} ({{ CURRENCY }})</label>
+                                    <input type="number" name="deposit" class="form-control" step="0.01" min="0" placeholder="0.00">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">{% trans "Min. Booking" %}</label>
+                                    <div class="input-group">
+                                        <input type="number" name="min_booking_hours" class="form-control" min="0" placeholder="0">
+                                        <span class="input-group-text">{% trans "hrs" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i>{% trans "Add Pricing" %}
+                            </button>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-info h-100 d-flex align-items-center justify-content-center">
+                            <div class="text-center">
+                                <i class="bi bi-info-circle display-4 mb-2"></i>
+                                <p class="mb-0">{% trans "All zone ranges have pricing configured." %}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Existing Pricing -->
+                    <div class="col-lg-8">
+                        {% if zone_pricing %}
+                        {% regroup zone_pricing by zone_distance_range.zone as zones %}
+                        {% for zone in zones %}
+                        <div class="mb-4">
+                            <h6 class="bg-light p-2 rounded">
+                                <i class="bi bi-geo-alt me-1"></i>{{ zone.grouper.name }}
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>{% trans "Range" %}</th>
+                                            <th>{% trans "Price" %} ({{ CURRENCY }})</th>
+                                            <th>{% trans "Cost" %} ({{ COST_CURRENCY }})</th>
+                                            <th>{% trans "Deposit" %} ({{ CURRENCY }})</th>
+                                            <th>{% trans "Min. Booking" %}</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for pricing in zone.list %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ pricing.zone_distance_range.name }}</strong>
+                                                <small class="text-muted d-block">({{ pricing.zone_distance_range.min_km }}-{{ pricing.zone_distance_range.max_km }} km)</small>
+                                            </td>
+                                            <td>
+                                                <form method="post" class="d-flex gap-1 align-items-center" id="zone-form-{{ pricing.id }}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="update_zone_pricing">
+                                                    <input type="hidden" name="pricing_id" value="{{ pricing.id }}">
+                                                    <input type="number" name="price" class="form-control form-control-sm" value="{{ pricing.price }}" step="0.01" min="0" style="width: 90px;">
+                                            </td>
+                                            <td>
+                                                    <input type="number" name="cost" class="form-control form-control-sm" value="{{ pricing.cost|default:'' }}" step="0.01" min="0" style="width: 90px;">
+                                            </td>
+                                            <td>
+                                                    <input type="number" name="deposit" class="form-control form-control-sm" value="{{ pricing.deposit|default:'' }}" step="0.01" min="0" style="width: 90px;">
+                                            </td>
+                                            <td>
+                                                    <div class="input-group input-group-sm" style="width: 100px;">
+                                                        <input type="number" name="min_booking_hours" class="form-control" value="{{ pricing.min_booking_hours|default:'' }}" min="0">
+                                                        <span class="input-group-text">{% trans "hrs" %}</span>
+                                                    </div>
+                                            </td>
+                                            <td>
+                                                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                        <i class="bi bi-check"></i>
+                                                    </button>
+                                                </form>
+                                                <form method="post" class="d-inline" onsubmit="return confirm('{% trans "Delete this pricing?" %}');">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="delete_zone_pricing">
+                                                    <input type="hidden" name="pricing_id" value="{{ pricing.id }}">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-currency-dollar display-4 mb-2"></i>
+                            <p>{% trans "No zone pricing configured yet." %}</p>
+                            {% if not available_ranges %}
+                            <p><a href="{% url 'dashboard:zone_list' %}">{% trans "Create zone distance ranges first" %}</a></p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Route Pricing - Full Width -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-signpost-2 me-2"></i>{% trans "Route Pricing" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Add Route Pricing Form -->
+                    <div class="col-lg-4">
+                        {% if available_routes %}
+                        <form method="post" class="p-3 bg-light rounded h-100">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_route_pricing">
+                            <h6 class="mb-3">{% trans "Add Route Pricing" %}</h6>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Route" %}</label>
+                                <select name="route_id" class="form-select" required>
+                                    <option value="">{% trans "Select route..." %}</option>
+                                    {% for route in available_routes %}
+                                    <option value="{{ route.id }}">{{ route.name }} ({{ route.distance_km }} km)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label">{% trans "Price" %} ({{ CURRENCY }})</label>
+                                    <input type="number" name="price" class="form-control" step="0.01" min="0" required placeholder="0.00">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">{% trans "Cost" %} ({{ COST_CURRENCY }})</label>
+                                    <input type="number" name="cost" class="form-control" step="0.01" min="0" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label">{% trans "Deposit" %} ({{ CURRENCY }})</label>
+                                    <input type="number" name="deposit" class="form-control" step="0.01" min="0" placeholder="0.00">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">{% trans "Min. Booking" %}</label>
+                                    <div class="input-group">
+                                        <input type="number" name="min_booking_hours" class="form-control" min="0" placeholder="0">
+                                        <span class="input-group-text">{% trans "hrs" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i>{% trans "Add Pricing" %}
+                            </button>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-info h-100 d-flex align-items-center justify-content-center">
+                            <div class="text-center">
+                                <i class="bi bi-info-circle display-4 mb-2"></i>
+                                <p class="mb-0">{% trans "All routes have pricing configured." %}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Existing Route Pricing -->
+                    <div class="col-lg-8">
+                        {% if route_pricing %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>{% trans "Route" %}</th>
+                                        <th>{% trans "Price" %} ({{ CURRENCY }})</th>
+                                        <th>{% trans "Cost" %} ({{ COST_CURRENCY }})</th>
+                                        <th>{% trans "Deposit" %} ({{ CURRENCY }})</th>
+                                        <th>{% trans "Min. Booking" %}</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pricing in route_pricing %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'dashboard:route_detail' pricing.route.pk %}" class="text-decoration-none">
+                                                <strong>{{ pricing.route.name }}</strong>
+                                            </a>
+                                            <small class="text-muted d-block">{{ pricing.route.origin_name }} &rarr; {{ pricing.route.destination_name }}</small>
+                                        </td>
+                                        <td>
+                                            <form method="post" class="d-flex gap-1 align-items-center" id="route-form-{{ pricing.id }}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="update_route_pricing">
+                                                <input type="hidden" name="pricing_id" value="{{ pricing.id }}">
+                                                <input type="number" name="price" class="form-control form-control-sm" value="{{ pricing.price }}" step="0.01" min="0" style="width: 90px;">
+                                        </td>
+                                        <td>
+                                                <input type="number" name="cost" class="form-control form-control-sm" value="{{ pricing.cost|default:'' }}" step="0.01" min="0" style="width: 90px;">
+                                        </td>
+                                        <td>
+                                                <input type="number" name="deposit" class="form-control form-control-sm" value="{{ pricing.deposit|default:'' }}" step="0.01" min="0" style="width: 90px;">
+                                        </td>
+                                        <td>
+                                                <div class="input-group input-group-sm" style="width: 100px;">
+                                                    <input type="number" name="min_booking_hours" class="form-control" value="{{ pricing.min_booking_hours|default:'' }}" min="0">
+                                                    <span class="input-group-text">{% trans "hrs" %}</span>
+                                                </div>
+                                        </td>
+                                        <td>
+                                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-check"></i>
+                                                </button>
+                                            </form>
+                                            <form method="post" class="d-inline" onsubmit="return confirm('{% trans "Delete this pricing?" %}');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="delete_route_pricing">
+                                                <input type="hidden" name="pricing_id" value="{{ pricing.id }}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-signpost-2 display-4 mb-2"></i>
+                            <p>{% trans "No route pricing configured yet." %}</p>
+                            {% if not available_routes %}
+                            <p><a href="{% url 'dashboard:route_list' %}">{% trans "Create routes first" %}</a></p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

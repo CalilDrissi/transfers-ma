@@ -1,0 +1,469 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Route" %}{% endblock %}
+{% block page_title %}{% trans "Create Route" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .map-container {
+        height: 300px;
+        border-radius: 0.5rem;
+        border: 1px solid #dee2e6;
+        margin-bottom: 1rem;
+    }
+    .location-card {
+        background: #f8f9fa;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+    }
+    .radius-slider {
+        width: 100%;
+    }
+    .radius-value {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    /* Google Places Autocomplete dropdown styling */
+    .pac-container {
+        z-index: 10000 !important;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: 1px solid #dee2e6;
+        font-family: inherit;
+    }
+    .pac-item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+    .pac-item:hover {
+        background-color: #f8f9fa;
+    }
+    .pac-item-query {
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if not GOOGLE_MAPS_API_KEY %}
+<div class="alert alert-warning mb-4">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {% trans "Google Maps API key is not configured. Please add it in" %}
+    <a href="{% url 'dashboard:settings' %}">{% trans "Settings" %}</a>.
+</div>
+{% endif %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{% trans "New Route" %}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="routeForm">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label for="name" class="form-label">{% trans "Route Name" %} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required
+                               placeholder="{% trans 'e.g., Marrakech to Casablanca' %}">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label">{% trans "Description" %}</label>
+                        <textarea class="form-control" id="description" name="description" rows="2"
+                                  placeholder="{% trans 'Optional description of the route...' %}"></textarea>
+                    </div>
+
+                    <div class="row mb-4">
+                        <!-- Origin -->
+                        <div class="col-md-6">
+                            <div class="location-card h-100">
+                                <h6 class="mb-3"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Origin (Pickup Area)" %}</h6>
+
+                                <div class="mb-3">
+                                    <label for="origin_name" class="form-label">{% trans "City/Location Name" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="origin_name" name="origin_name" required
+                                           placeholder="{% trans 'e.g., Marrakech' %}" autocomplete="off">
+                                </div>
+
+                                <div id="originMap" class="map-container"></div>
+
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label for="origin_latitude" class="form-label">{% trans "Latitude" %}</label>
+                                        <input type="number" step="0.0000001" class="form-control form-control-sm" id="origin_latitude" name="origin_latitude"
+                                               placeholder="31.6295">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="origin_longitude" class="form-label">{% trans "Longitude" %}</label>
+                                        <input type="number" step="0.0000001" class="form-control form-control-sm" id="origin_longitude" name="origin_longitude"
+                                               placeholder="-7.9811">
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label for="origin_radius_km" class="form-label">
+                                        {% trans "Pickup Radius" %}: <span id="origin_radius_display" class="radius-value">10</span> km
+                                    </label>
+                                    <input type="range" class="form-range radius-slider" id="origin_radius_slider"
+                                           min="1" max="50" value="10" step="1">
+                                    <input type="hidden" id="origin_radius_km" name="origin_radius_km" value="10">
+                                </div>
+                                <small class="text-muted">{% trans "Clients can choose any pickup location within this radius" %}</small>
+                            </div>
+                        </div>
+
+                        <!-- Destination -->
+                        <div class="col-md-6">
+                            <div class="location-card h-100">
+                                <h6 class="mb-3"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Destination (Dropoff Area)" %}</h6>
+
+                                <div class="mb-3">
+                                    <label for="destination_name" class="form-label">{% trans "City/Location Name" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="destination_name" name="destination_name" required
+                                           placeholder="{% trans 'e.g., Casablanca' %}" autocomplete="off">
+                                </div>
+
+                                <div id="destinationMap" class="map-container"></div>
+
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label for="destination_latitude" class="form-label">{% trans "Latitude" %}</label>
+                                        <input type="number" step="0.0000001" class="form-control form-control-sm" id="destination_latitude" name="destination_latitude"
+                                               placeholder="33.5731">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="destination_longitude" class="form-label">{% trans "Longitude" %}</label>
+                                        <input type="number" step="0.0000001" class="form-control form-control-sm" id="destination_longitude" name="destination_longitude"
+                                               placeholder="-7.5898">
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label for="destination_radius_km" class="form-label">
+                                        {% trans "Dropoff Radius" %}: <span id="destination_radius_display" class="radius-value">10</span> km
+                                    </label>
+                                    <input type="range" class="form-range radius-slider" id="destination_radius_slider"
+                                           min="1" max="50" value="10" step="1">
+                                    <input type="hidden" id="destination_radius_km" name="destination_radius_km" value="10">
+                                </div>
+                                <small class="text-muted">{% trans "Clients can choose any dropoff location within this radius" %}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden fields for auto-calculated values -->
+                    <input type="hidden" id="distance_km" name="distance_km" value="">
+                    <input type="hidden" id="estimated_duration_minutes" name="estimated_duration_minutes" value="">
+
+                    <!-- Distance display (auto-calculated) -->
+                    <div class="row mb-4" id="distanceDisplay" style="display: none;">
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-signpost-2 me-2"></i>
+                                <strong>{% trans "Calculated Distance" %}:</strong> <span id="distanceValue">--</span> km
+                                <span class="mx-2">|</span>
+                                <strong>{% trans "Duration" %}:</strong> <span id="durationValue">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
+                            </div>
+                            <div class="form-text">{% trans "Enable this route" %}</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{% trans "Create Route" %}
+                        </button>
+                        <a href="{% url 'dashboard:route_list' %}" class="btn btn-outline-secondary">
+                            {% trans "Cancel" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Store map references globally for the callback
+let originMap, destinationMap;
+let originMarker, destinationMarker;
+let originCircle, destinationCircle;
+let geocoder;
+let originAutocomplete, destinationAutocomplete;
+
+function initMaps() {
+    try {
+        // Default center (Morocco)
+        const defaultCenter = { lat: 31.7917, lng: -7.0926 };
+        const defaultZoom = 6;
+
+        // Initialize geocoder
+        geocoder = new google.maps.Geocoder();
+
+        // Initialize origin map
+        originMap = new google.maps.Map(document.getElementById('originMap'), {
+            center: defaultCenter,
+            zoom: defaultZoom,
+            mapTypeControl: false,
+            streetViewControl: false,
+        });
+
+        // Initialize destination map
+        destinationMap = new google.maps.Map(document.getElementById('destinationMap'), {
+            center: defaultCenter,
+            zoom: defaultZoom,
+            mapTypeControl: false,
+            streetViewControl: false,
+        });
+
+        // Initialize Places Autocomplete for origin
+        const originInput = document.getElementById('origin_name');
+        originAutocomplete = new google.maps.places.Autocomplete(originInput, {
+            types: ['(cities)'],
+            componentRestrictions: { country: 'ma' }
+        });
+        originAutocomplete.addListener('place_changed', function() {
+            const place = originAutocomplete.getPlace();
+            if (place.geometry) {
+                updateLocation(place.geometry.location.lat(), place.geometry.location.lng(), true);
+            }
+        });
+
+        // Initialize Places Autocomplete for destination
+        const destinationInput = document.getElementById('destination_name');
+        destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput, {
+            types: ['(cities)'],
+            componentRestrictions: { country: 'ma' }
+        });
+        destinationAutocomplete.addListener('place_changed', function() {
+            const place = destinationAutocomplete.getPlace();
+            if (place.geometry) {
+                updateLocation(place.geometry.location.lat(), place.geometry.location.lng(), false);
+            }
+        });
+
+        // Prevent form submission on Enter in autocomplete fields
+        originInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') e.preventDefault();
+        });
+        destinationInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') e.preventDefault();
+        });
+
+        // Click handlers
+        originMap.addListener('click', function(e) {
+            updateLocation(e.latLng.lat(), e.latLng.lng(), true);
+        });
+
+        destinationMap.addListener('click', function(e) {
+            updateLocation(e.latLng.lat(), e.latLng.lng(), false);
+        });
+
+        // Radius sliders
+        document.getElementById('origin_radius_slider').addEventListener('input', function() {
+            const radius = parseInt(this.value);
+            document.getElementById('origin_radius_km').value = radius;
+            document.getElementById('origin_radius_display').textContent = radius;
+            if (originCircle) {
+                originCircle.setRadius(radius * 1000);
+                fitBoundsToCircle(originMap, originCircle);
+            }
+        });
+
+        document.getElementById('destination_radius_slider').addEventListener('input', function() {
+            const radius = parseInt(this.value);
+            document.getElementById('destination_radius_km').value = radius;
+            document.getElementById('destination_radius_display').textContent = radius;
+            if (destinationCircle) {
+                destinationCircle.setRadius(radius * 1000);
+                fitBoundsToCircle(destinationMap, destinationCircle);
+            }
+        });
+
+        // Coordinate input handlers
+        document.getElementById('origin_latitude').addEventListener('change', function() { updateFromInputs(true); });
+        document.getElementById('origin_longitude').addEventListener('change', function() { updateFromInputs(true); });
+        document.getElementById('destination_latitude').addEventListener('change', function() { updateFromInputs(false); });
+        document.getElementById('destination_longitude').addEventListener('change', function() { updateFromInputs(false); });
+
+    } catch (error) {
+        console.error('Google Maps initialization error:', error);
+        document.getElementById('originMap').innerHTML = '<div class="alert alert-danger m-3">{% trans "Failed to load Google Maps. Please check your API key configuration." %}</div>';
+        document.getElementById('destinationMap').innerHTML = '<div class="alert alert-danger m-3">{% trans "Failed to load Google Maps. Please check your API key configuration." %}</div>';
+    }
+}
+
+function updateLocation(lat, lng, isOrigin) {
+    const map = isOrigin ? originMap : destinationMap;
+    const color = isOrigin ? '#28a745' : '#dc3545';
+    const radiusInput = document.getElementById(isOrigin ? 'origin_radius_km' : 'destination_radius_km');
+    const radius = parseInt(radiusInput.value) || 10;
+
+    // Update input fields
+    document.getElementById(isOrigin ? 'origin_latitude' : 'destination_latitude').value = lat.toFixed(7);
+    document.getElementById(isOrigin ? 'origin_longitude' : 'destination_longitude').value = lng.toFixed(7);
+
+    const position = { lat: lat, lng: lng };
+
+    // Remove existing marker and circle
+    if (isOrigin) {
+        if (originMarker) originMarker.setMap(null);
+        if (originCircle) originCircle.setMap(null);
+    } else {
+        if (destinationMarker) destinationMarker.setMap(null);
+        if (destinationCircle) destinationCircle.setMap(null);
+    }
+
+    // Create new marker
+    const marker = new google.maps.Marker({
+        position: position,
+        map: map,
+        draggable: true,
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: color,
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+        }
+    });
+
+    // Create new circle
+    const circle = new google.maps.Circle({
+        map: map,
+        center: position,
+        radius: radius * 1000,
+        fillColor: color,
+        fillOpacity: 0.2,
+        strokeColor: color,
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+    });
+
+    // Handle marker drag
+    marker.addListener('dragend', function() {
+        const pos = marker.getPosition();
+        document.getElementById(isOrigin ? 'origin_latitude' : 'destination_latitude').value = pos.lat().toFixed(7);
+        document.getElementById(isOrigin ? 'origin_longitude' : 'destination_longitude').value = pos.lng().toFixed(7);
+        circle.setCenter(pos);
+    });
+
+    // Store references
+    if (isOrigin) {
+        originMarker = marker;
+        originCircle = circle;
+    } else {
+        destinationMarker = marker;
+        destinationCircle = circle;
+    }
+
+    // Fit map to circle bounds
+    fitBoundsToCircle(map, circle);
+
+    // Auto-calculate distance when both locations are set
+    tryCalculateDistance();
+}
+
+function fitBoundsToCircle(map, circle) {
+    map.fitBounds(circle.getBounds());
+}
+
+function tryCalculateDistance() {
+    const originLat = parseFloat(document.getElementById('origin_latitude').value);
+    const originLng = parseFloat(document.getElementById('origin_longitude').value);
+    const destLat = parseFloat(document.getElementById('destination_latitude').value);
+    const destLng = parseFloat(document.getElementById('destination_longitude').value);
+
+    // Only calculate if both locations are set
+    if (!isNaN(originLat) && !isNaN(originLng) && !isNaN(destLat) && !isNaN(destLng)) {
+        calculateRouteDistance();
+    }
+}
+
+function updateFromInputs(isOrigin) {
+    const lat = parseFloat(document.getElementById(isOrigin ? 'origin_latitude' : 'destination_latitude').value);
+    const lng = parseFloat(document.getElementById(isOrigin ? 'origin_longitude' : 'destination_longitude').value);
+
+    if (!isNaN(lat) && !isNaN(lng)) {
+        updateLocation(lat, lng, isOrigin);
+    }
+}
+
+function calculateRouteDistance() {
+    const originLat = parseFloat(document.getElementById('origin_latitude').value);
+    const originLng = parseFloat(document.getElementById('origin_longitude').value);
+    const destLat = parseFloat(document.getElementById('destination_latitude').value);
+    const destLng = parseFloat(document.getElementById('destination_longitude').value);
+
+    if (isNaN(originLat) || isNaN(originLng) || isNaN(destLat) || isNaN(destLng)) {
+        return;
+    }
+
+    const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix({
+        origins: [{ lat: originLat, lng: originLng }],
+        destinations: [{ lat: destLat, lng: destLng }],
+        travelMode: 'DRIVING',
+    }, function(response, status) {
+        if (status === 'OK') {
+            const result = response.rows[0].elements[0];
+            if (result.status === 'OK') {
+                // Distance in km
+                const distanceKm = (result.distance.value / 1000).toFixed(2);
+                document.getElementById('distance_km').value = distanceKm;
+                document.getElementById('distanceValue').textContent = distanceKm;
+
+                // Duration in minutes
+                const durationMinutes = Math.round(result.duration.value / 60);
+                document.getElementById('estimated_duration_minutes').value = durationMinutes;
+
+                // Format duration for display
+                const hours = Math.floor(durationMinutes / 60);
+                const mins = durationMinutes % 60;
+                let durationDisplay = '';
+                if (hours > 0) durationDisplay += hours + 'h ';
+                if (mins > 0) durationDisplay += mins + 'min';
+                document.getElementById('durationValue').textContent = durationDisplay || '0min';
+
+                // Show the distance display
+                document.getElementById('distanceDisplay').style.display = 'block';
+            } else {
+                console.error('Could not calculate route distance');
+            }
+        } else {
+            console.error('Distance service error: ' + status);
+        }
+    });
+}
+
+// Error handler for Google Maps script loading failure
+function gm_authFailure() {
+    console.error('Google Maps authentication failed');
+    document.getElementById('originMap').innerHTML = '<div class="alert alert-danger m-3">{% trans "Google Maps API key is invalid or missing required permissions." %}</div>';
+    document.getElementById('destinationMap').innerHTML = '<div class="alert alert-danger m-3">{% trans "Google Maps API key is invalid or missing required permissions." %}</div>';
+}
+</script>
+{% if GOOGLE_MAPS_API_KEY %}
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMaps">
+</script>
+{% else %}
+<script>
+document.getElementById('originMap').innerHTML = '<div class="alert alert-warning m-3">{% trans "Google Maps API key not configured." %}</div>';
+document.getElementById('destinationMap').innerHTML = '<div class="alert alert-warning m-3">{% trans "Google Maps API key not configured." %}</div>';
+</script>
+{% endif %}
+{% endblock %}
