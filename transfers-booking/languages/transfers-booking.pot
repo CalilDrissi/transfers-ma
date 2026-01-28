@@ -1,0 +1,366 @@
+# Copyright (C) 2024 Transfers.ma
+# This file is distributed under the same license as the Transfers.ma Booking plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Transfers.ma Booking 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: public/partials/booking-widget.php
+msgid "Route"
+msgstr ""
+
+#: public/partials/booking-widget.php
+msgid "Vehicle"
+msgstr ""
+
+#: public/partials/booking-widget.php
+msgid "Payment"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Book Your Transfer"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Transfer Type"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Select type..."
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Pickup Location"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "City, airport, or hotel..."
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Drop-off Location"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Date & Time"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Passengers"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Round trip"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Return Date & Time"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Flight Number"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "e.g. AT 1234"
+msgstr ""
+
+#: public/partials/step-1.php
+msgid "Search Vehicles"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Back to search"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Choose your vehicle"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Add extras"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Optional services to enhance your journey"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Booking Summary"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Date"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Not selected"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Total"
+msgstr ""
+
+#: public/partials/step-2.php
+msgid "Continue"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Back to vehicle"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Passenger Details"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Full Name"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Email"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Phone"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Special Requests"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Optional"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Pay Now"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Confirm Payment"
+msgstr ""
+
+#: public/partials/step-3.php
+msgid "Order Summary"
+msgstr ""
+
+#: public/partials/confirmation.php
+msgid "Booking Confirmed!"
+msgstr ""
+
+#: public/partials/confirmation.php
+msgid "Your transfer has been successfully booked."
+msgstr ""
+
+#: public/partials/confirmation.php
+msgid "Confirmation email sent to"
+msgstr ""
+
+#: public/partials/confirmation.php
+msgid "Book Another Transfer"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Airport Pickup"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Airport Drop-off"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "City to City"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Port Transfer"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Select pickup location"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Select drop-off location"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Please select a transfer type"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Please select date and time"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Please select a vehicle"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "This field is required"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Please enter a valid email"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Please enter a valid phone number"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Loading..."
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Processing..."
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "No vehicles available for this route."
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Payment failed. Please try again."
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Distance"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Est. Duration"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "passengers"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "bags"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "total price"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "/each"
+msgstr ""
+
+#: public/class-tb-public.php
+msgid "Return date is required for round trips"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Transfers Booking"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "API Connection"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Configure the connection to your Transfers.ma backend API."
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "API Base URL"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Google Maps API Key"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Leave empty to fetch from the API automatically."
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Payment Settings"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Configure Stripe payment integration."
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Stripe Publishable Key"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Starts with pk_"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Appearance"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Customize the look of the booking widget."
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Primary Color"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Accent Color"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Currency Symbol"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Currency Position"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Before amount"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "After amount"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Features"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Enable or disable booking form features."
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Enable Round Trip"
+msgstr ""
+
+#: admin/class-tb-admin.php
+msgid "Enable Flight Number"
+msgstr ""
+
+#: admin/partials/settings-page.php
+msgid "Transfers.ma Booking Settings"
+msgstr ""
+
+#: admin/partials/settings-page.php
+msgid "Configure the booking widget. Use the shortcode"
+msgstr ""
+
+#: admin/partials/settings-page.php
+msgid "to embed the booking form on any page."
+msgstr ""

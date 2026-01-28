@@ -1,0 +1,37 @@
+/*
+ * RTL overrides for Arabic and other RTL languages.
+ */
+
+.tb-booking-widget[dir="rtl"] .tb-input-wrapper .tb-input {
+    padding-left: 14px;
+    padding-right: 38px;
+}
+
+.tb-booking-widget[dir="rtl"] .tb-input-icon {
+    left: auto;
+    right: 12px;
+}
+
+.tb-booking-widget[dir="rtl"] .tb-route-arrow {
+    transform: scaleX(-1);
+}
+
+.tb-booking-widget[dir="rtl"] .tb-vehicle-price {
+    text-align: left;
+}
+
+.tb-booking-widget[dir="rtl"] .tb-summary-value {
+    text-align: left;
+}
+
+.tb-booking-widget[dir="rtl"] .tb-summary-label {
+    text-align: right;
+}
+
+.tb-booking-widget[dir="rtl"] .tb-btn-back {
+    direction: rtl;
+}
+
+.tb-booking-widget[dir="rtl"] .tb-extra-right {
+    flex-direction: row-reverse;
+}
