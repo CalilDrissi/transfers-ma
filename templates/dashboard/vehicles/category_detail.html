@@ -79,6 +79,41 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">{% trans "Description" %}</label>
+                        <textarea name="description" class="form-control" rows="2">{{ category.description }}</textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Max Passengers" %}</label>
+                            <input type="number" name="max_passengers" class="form-control" value="{{ category.max_passengers }}" min="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Max Luggage" %}</label>
+                            <input type="number" name="max_luggage" class="form-control" value="{{ category.max_luggage }}" min="0">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Price Multiplier" %}</label>
+                            <input type="number" name="price_multiplier" class="form-control" value="{{ category.price_multiplier }}" step="0.01" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Display Order" %}</label>
+                            <input type="number" name="order" class="form-control" value="{{ category.order }}" min="0">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if category.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="isActive">{% trans "Active" %}</label>
+                        </div>
+                        <small class="text-muted">{% trans "Inactive categories won't appear in vehicle forms" %}</small>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">{% trans "Icon" %}</label>
                         <input type="hidden" name="icon" id="iconInput" value="{{ category.icon }}">
                         <div class="d-flex align-items-start gap-3">
