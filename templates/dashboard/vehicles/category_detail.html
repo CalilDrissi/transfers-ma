@@ -83,6 +83,38 @@
                         <textarea name="description" class="form-control" rows="2">{{ category.description }}</textarea>
                     </div>
 
+                    <!-- Customer Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{% trans "Customer Information" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Tagline" %}</label>
+                                <input type="text" name="tagline" class="form-control" value="{{ category.tagline }}">
+                                <small class="text-muted">{% trans "Short tagline for this category" %}</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Included Amenities" %}</label>
+                                <input type="hidden" name="included_amenities" id="catAmenitiesInput" value='{{ category.included_amenities|safe }}'>
+                                <div id="catAmenitiesList" class="mb-2"></div>
+                                <div class="input-group">
+                                    <input type="text" id="catAmenitiesNew" class="form-control" placeholder="{% trans 'Add an amenity...' %}">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="addCatListItem('catAmenities')"><i class="bi bi-plus-lg"></i></button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Not Included" %}</label>
+                                <input type="hidden" name="not_included" id="catNotIncludedInput" value='{{ category.not_included|safe }}'>
+                                <div id="catNotIncludedList" class="mb-2"></div>
+                                <div class="input-group">
+                                    <input type="text" id="catNotIncludedNew" class="form-control" placeholder="{% trans 'Add an item...' %}">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="addCatListItem('catNotIncluded')"><i class="bi bi-plus-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">{% trans "Max Passengers" %}</label>
@@ -299,6 +331,49 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update preview
         preview.innerHTML = '<i class="' + iconClass + '"></i>';
     });
+});
+</script>
+<script>
+function addCatListItem(type) {
+    var inputId = type + 'New';
+    var hiddenId = type + 'Input';
+    var listId = type + 'List';
+    var input = document.getElementById(inputId);
+    var val = input.value.trim();
+    if (!val) return;
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.push(val);
+    hidden.value = JSON.stringify(items);
+    input.value = '';
+    renderCatListItems(type);
+}
+function removeCatListItem(type, index) {
+    var hiddenId = type + 'Input';
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.splice(index, 1);
+    hidden.value = JSON.stringify(items);
+    renderCatListItems(type);
+}
+function renderCatListItems(type) {
+    var hiddenId = type + 'Input';
+    var listId = type + 'List';
+    var hidden = document.getElementById(hiddenId);
+    var list = document.getElementById(listId);
+    if (!hidden || !list) return;
+    var items = JSON.parse(hidden.value || '[]');
+    list.innerHTML = '';
+    for (var i = 0; i < items.length; i++) {
+        var badge = document.createElement('span');
+        badge.className = 'badge bg-light text-dark me-1 mb-1 p-2';
+        badge.innerHTML = items[i] + ' <a href="#" onclick="removeCatListItem(\'' + type + '\',' + i + ');return false;" class="text-danger ms-1">&times;</a>';
+        list.appendChild(badge);
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    renderCatListItems('catAmenities');
+    renderCatListItems('catNotIncluded');
 });
 </script>
 {% endblock %}

@@ -37,7 +37,8 @@ class VehicleCategorySerializer(serializers.ModelSerializer):
         model = VehicleCategory
         fields = [
             'id', 'name', 'slug', 'description', 'max_passengers',
-            'max_luggage', 'price_multiplier', 'icon', 'image', 'order'
+            'max_luggage', 'price_multiplier', 'icon', 'image', 'order',
+            'tagline', 'included_amenities', 'not_included'
         ]
 
 
@@ -82,7 +83,9 @@ class VehicleSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'category', 'category_id', 'name', 'license_plate',
             'year', 'color', 'passengers', 'luggage', 'features', 'feature_ids',
-            'status', 'notes', 'custom_info', 'is_active', 'daily_rate', 'weekly_rate',
+            'status', 'notes', 'client_description', 'key_features',
+            'important_note', 'important_note_type',
+            'custom_info', 'is_active', 'daily_rate', 'weekly_rate',
             'is_available_for_rental', 'images', 'primary_image', 'zone_pricing'
         ]
 

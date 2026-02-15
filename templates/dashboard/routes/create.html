@@ -189,6 +189,67 @@
                         </div>
                     </div>
 
+                    <!-- Customer Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{% trans "Customer Information" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Client Notice" %}</label>
+                                <textarea name="client_notice" class="form-control" rows="2"></textarea>
+                                <small class="text-muted">{% trans "Notice shown to customers" %}</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Notice Type" %}</label>
+                                <select name="client_notice_type" class="form-select">
+                                    <option value="info">{% trans "Info" %}</option>
+                                    <option value="warning">{% trans "Warning" %}</option>
+                                    <option value="success">{% trans "Success" %}</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Route Description" %}</label>
+                                <textarea name="route_description" class="form-control" rows="3"></textarea>
+                                <small class="text-muted">{% trans "Detailed customer-facing description" %}</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Highlights" %}</label>
+                                <input type="hidden" name="highlights" id="highlightsInput" value='[]'>
+                                <div id="highlightsList" class="mb-2"></div>
+                                <div class="input-group">
+                                    <input type="text" id="highlightNew" class="form-control" placeholder="{% trans 'Add a highlight...' %}">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="addListItem('highlights')">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Travel Tips" %}</label>
+                                <textarea name="travel_tips" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Traffic Info" %}</label>
+                                <textarea name="estimated_traffic_info" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Included Amenities" %}</label>
+                                <input type="hidden" name="included_amenities" id="amenitiesInput" value='[]'>
+                                <div id="amenitiesList" class="mb-2"></div>
+                                <div class="input-group">
+                                    <input type="text" id="amenityNew" class="form-control" placeholder="{% trans 'Add an amenity...' %}">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="addListItem('amenities')">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Cancellation Policy Override" %}</label>
+                                <textarea name="cancellation_policy_override" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Custom Information -->
                     <div class="card mb-4">
                         <div class="card-header">
@@ -519,5 +580,53 @@ function serializeCustomInfo() {
 // Init existing data
 Object.entries(customInfoData).forEach(([k, v]) => addCustomInfoPair(k, v));
 if (Object.keys(customInfoData).length === 0) serializeCustomInfo();
+</script>
+<script>
+function addListItem(type) {
+    var inputId = type === 'highlights' ? 'highlightNew' : 'amenityNew';
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var listId = type === 'highlights' ? 'highlightsList' : 'amenitiesList';
+
+    var input = document.getElementById(inputId);
+    var val = input.value.trim();
+    if (!val) return;
+
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.push(val);
+    hidden.value = JSON.stringify(items);
+    input.value = '';
+    renderListItems(type);
+}
+
+function removeListItem(type, index) {
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.splice(index, 1);
+    hidden.value = JSON.stringify(items);
+    renderListItems(type);
+}
+
+function renderListItems(type) {
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var listId = type === 'highlights' ? 'highlightsList' : 'amenitiesList';
+    var hidden = document.getElementById(hiddenId);
+    var list = document.getElementById(listId);
+    if (!hidden || !list) return;
+    var items = JSON.parse(hidden.value || '[]');
+    list.innerHTML = '';
+    for (var i = 0; i < items.length; i++) {
+        var badge = document.createElement('span');
+        badge.className = 'badge bg-light text-dark me-1 mb-1 p-2';
+        badge.innerHTML = items[i] + ' <a href="#" onclick="removeListItem(\'' + type + '\',' + i + ');return false;" class="text-danger ms-1">&times;</a>';
+        list.appendChild(badge);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderListItems('highlights');
+    renderListItems('amenities');
+});
 </script>
 {% endblock %}

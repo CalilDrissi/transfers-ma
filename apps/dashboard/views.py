@@ -393,6 +393,14 @@ def vehicle_create(request, service_type='transfer'):
                 except (json_mod.JSONDecodeError, ValueError):
                     pass
 
+                # Parse JSON list fields for vehicle
+                key_features = []
+                key_features_raw = request.POST.get('key_features', '[]')
+                try:
+                    key_features = json_mod.loads(key_features_raw) if key_features_raw else []
+                except (json_mod.JSONDecodeError, ValueError):
+                    pass
+
                 vehicle = Vehicle.objects.create(
                     category_id=category_id,
                     name=name,
@@ -402,6 +410,10 @@ def vehicle_create(request, service_type='transfer'):
                     daily_rate=daily_rate,
                     weekly_rate=weekly_rate,
                     service_type=service_type,
+                    client_description=request.POST.get('client_description', ''),
+                    key_features=key_features,
+                    important_note=request.POST.get('important_note', ''),
+                    important_note_type=request.POST.get('important_note_type', 'info'),
                     custom_info=custom_info,
                     status='available',
                     is_active=True
@@ -513,6 +525,14 @@ def vehicle_detail(request, pk):
             vehicle.weekly_rate = request.POST.get('weekly_rate') or None
             vehicle.is_active = request.POST.get('is_active') == 'on'
             vehicle.notes = request.POST.get('notes', '')
+            vehicle.client_description = request.POST.get('client_description', '')
+            key_features_raw = request.POST.get('key_features', '[]')
+            try:
+                vehicle.key_features = json_mod.loads(key_features_raw) if key_features_raw else []
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
+            vehicle.important_note = request.POST.get('important_note', '')
+            vehicle.important_note_type = request.POST.get('important_note_type', 'info')
             custom_info_raw = request.POST.get('custom_info', '{}')
             try:
                 vehicle.custom_info = json_mod.loads(custom_info_raw) if custom_info_raw else {}
@@ -724,6 +744,20 @@ def vehicle_category_create(request):
                 slug = f"{base_slug}-{counter}"
                 counter += 1
 
+            import json as json_mod
+            cat_amenities = []
+            cat_amenities_raw = request.POST.get('included_amenities', '[]')
+            try:
+                cat_amenities = json_mod.loads(cat_amenities_raw) if cat_amenities_raw else []
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
+            cat_not_included = []
+            cat_not_included_raw = request.POST.get('not_included', '[]')
+            try:
+                cat_not_included = json_mod.loads(cat_not_included_raw) if cat_not_included_raw else []
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
+
             category = VehicleCategory.objects.create(
                 name=name,
                 slug=slug,
@@ -733,6 +767,9 @@ def vehicle_category_create(request):
                 price_multiplier=price_multiplier,
                 icon=icon,
                 order=order,
+                tagline=request.POST.get('tagline', ''),
+                included_amenities=cat_amenities,
+                not_included=cat_not_included,
                 is_active=True
             )
             messages.success(request, f'Category "{name}" created successfully.')
@@ -753,6 +790,7 @@ def vehicle_category_detail(request, pk):
         action = request.POST.get('action')
 
         if action == 'update_category':
+            import json as json_mod
             category.name = request.POST.get('name', category.name)
             category.description = request.POST.get('description', '')
             category.max_passengers = request.POST.get('max_passengers', category.max_passengers)
@@ -760,6 +798,17 @@ def vehicle_category_detail(request, pk):
             category.price_multiplier = request.POST.get('price_multiplier', category.price_multiplier)
             category.icon = request.POST.get('icon', '')
             category.order = request.POST.get('order', 0)
+            category.tagline = request.POST.get('tagline', '')
+            cat_amenities_raw = request.POST.get('included_amenities', '[]')
+            try:
+                category.included_amenities = json_mod.loads(cat_amenities_raw) if cat_amenities_raw else []
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
+            cat_not_included_raw = request.POST.get('not_included', '[]')
+            try:
+                category.not_included = json_mod.loads(cat_not_included_raw) if cat_not_included_raw else []
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
             category.is_active = request.POST.get('is_active') == 'on'
             category.save()
             messages.success(request, 'Category updated successfully.')
@@ -830,6 +879,11 @@ def zone_create(request):
                 description=description,
                 color=color,
                 deposit_percentage=request.POST.get('deposit_percentage', 0) or 0,
+                client_notice=request.POST.get('client_notice', ''),
+                client_notice_type=request.POST.get('client_notice_type', 'info'),
+                pickup_instructions=request.POST.get('pickup_instructions', ''),
+                area_description=request.POST.get('area_description', ''),
+                display_order=request.POST.get('display_order', 0) or 0,
                 custom_info=custom_info,
                 is_active=True
             )
@@ -856,6 +910,11 @@ def zone_detail(request, pk):
             zone.description = request.POST.get('description', '')
             zone.color = request.POST.get('color', zone.color)
             zone.deposit_percentage = request.POST.get('deposit_percentage', 0) or 0
+            zone.client_notice = request.POST.get('client_notice', '')
+            zone.client_notice_type = request.POST.get('client_notice_type', 'info')
+            zone.pickup_instructions = request.POST.get('pickup_instructions', '')
+            zone.area_description = request.POST.get('area_description', '')
+            zone.display_order = request.POST.get('display_order', 0) or 0
             zone.is_active = request.POST.get('is_active') == 'on'
             custom_info_raw = request.POST.get('custom_info', '{}')
             try:
@@ -984,6 +1043,21 @@ def route_create(request):
             except (json_mod.JSONDecodeError, ValueError):
                 pass
 
+            # Parse JSON list fields
+            import json as json_mod2
+            highlights = []
+            highlights_raw = request.POST.get('highlights', '[]')
+            try:
+                highlights = json_mod2.loads(highlights_raw) if highlights_raw else []
+            except (json_mod2.JSONDecodeError, ValueError):
+                pass
+            included_amenities = []
+            amenities_raw = request.POST.get('included_amenities', '[]')
+            try:
+                included_amenities = json_mod2.loads(amenities_raw) if amenities_raw else []
+            except (json_mod2.JSONDecodeError, ValueError):
+                pass
+
             route = Route.objects.create(
                 name=name,
                 slug=slug,
@@ -999,6 +1073,14 @@ def route_create(request):
                 distance_km=distance_km,
                 estimated_duration_minutes=request.POST.get('estimated_duration_minutes') or None,
                 deposit_percentage=request.POST.get('deposit_percentage', 0) or 0,
+                client_notice=request.POST.get('client_notice', ''),
+                client_notice_type=request.POST.get('client_notice_type', 'info'),
+                route_description=request.POST.get('route_description', ''),
+                highlights=highlights,
+                travel_tips=request.POST.get('travel_tips', ''),
+                estimated_traffic_info=request.POST.get('estimated_traffic_info', ''),
+                included_amenities=included_amenities,
+                cancellation_policy_override=request.POST.get('cancellation_policy_override', ''),
                 custom_info=custom_info,
                 is_bidirectional=True,
                 is_popular=False,
@@ -1045,6 +1127,22 @@ def route_detail(request, pk):
             route.distance_km = request.POST.get('distance_km', route.distance_km)
             route.estimated_duration_minutes = request.POST.get('estimated_duration_minutes') or None
             route.deposit_percentage = request.POST.get('deposit_percentage', 0) or 0
+            route.client_notice = request.POST.get('client_notice', '')
+            route.client_notice_type = request.POST.get('client_notice_type', 'info')
+            route.route_description = request.POST.get('route_description', '')
+            highlights_raw = request.POST.get('highlights', '[]')
+            try:
+                route.highlights = json_mod.loads(highlights_raw) if highlights_raw else []
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
+            route.travel_tips = request.POST.get('travel_tips', '')
+            route.estimated_traffic_info = request.POST.get('estimated_traffic_info', '')
+            amenities_raw = request.POST.get('included_amenities', '[]')
+            try:
+                route.included_amenities = json_mod.loads(amenities_raw) if amenities_raw else []
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
+            route.cancellation_policy_override = request.POST.get('cancellation_policy_override', '')
             custom_info_raw = request.POST.get('custom_info', '{}')
             try:
                 route.custom_info = json_mod.loads(custom_info_raw) if custom_info_raw else {}

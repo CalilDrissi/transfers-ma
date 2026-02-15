@@ -3,11 +3,12 @@ from .models import Zone, Route, RoutePickupZone, RouteDropoffZone
 
 
 class ZoneTranslationOptions(TranslationOptions):
-    fields = ('name', 'description')
+    fields = ('name', 'description', 'client_notice', 'pickup_instructions', 'area_description')
 
 
 class RouteTranslationOptions(TranslationOptions):
-    fields = ('name', 'description', 'origin_name', 'destination_name')
+    fields = ('name', 'description', 'origin_name', 'destination_name',
+              'client_notice', 'route_description', 'travel_tips', 'cancellation_policy_override')
 
 
 class RoutePickupZoneTranslationOptions(TranslationOptions):

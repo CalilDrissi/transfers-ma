@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import PaymentGateway, Payment, Refund, Invoice
+from .models import PaymentGateway, Payment, Refund, Invoice, Coupon, CouponUsage
 
 
 @admin.register(PaymentGateway)
@@ -103,3 +103,26 @@ class InvoiceAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+class CouponUsageInline(admin.TabularInline):
+    model = CouponUsage
+    extra = 0
+    readonly_fields = ('customer_email', 'discount_applied', 'used_at')
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('code', 'discount_type', 'discount_value', 'is_active', 'used_count', 'usage_limit', 'valid_from', 'valid_until')
+    list_filter = ('is_active', 'discount_type', 'applicable_to')
+    search_fields = ('code', 'description')
+    readonly_fields = ('used_count', 'created_at', 'updated_at')
+    inlines = [CouponUsageInline]
+
+
+@admin.register(CouponUsage)
+class CouponUsageAdmin(admin.ModelAdmin):
+    list_display = ('coupon', 'customer_email', 'discount_applied', 'used_at')
+    list_filter = ('used_at',)
+    search_fields = ('customer_email', 'coupon__code')
+    raw_id_fields = ('coupon', 'payment')

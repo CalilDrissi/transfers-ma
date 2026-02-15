@@ -319,6 +319,41 @@
                         {% endif %}
                     </div>
 
+                    <!-- Customer Information -->
+                    <div class="card mb-4 mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{% trans "Customer Information" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Client Description" %}</label>
+                                <textarea name="client_description" class="form-control" rows="2"></textarea>
+                                <small class="text-muted">{% trans "Customer-facing description" %}</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Key Features" %}</label>
+                                <input type="hidden" name="key_features" id="keyFeaturesInput" value='[]'>
+                                <div id="keyFeaturesList" class="mb-2"></div>
+                                <div class="input-group">
+                                    <input type="text" id="keyFeatureNew" class="form-control" placeholder="Add a key feature...">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="addVehicleListItem('keyFeatures')"><i class="bi bi-plus-lg"></i></button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Important Note" %}</label>
+                                <textarea name="important_note" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Note Type" %}</label>
+                                <select name="important_note_type" class="form-select">
+                                    <option value="info">{% trans "Info" %}</option>
+                                    <option value="warning">{% trans "Warning" %}</option>
+                                    <option value="success">{% trans "Success" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Custom Information -->
                     <div class="card mb-4 mt-4">
                         <div class="card-header">
@@ -415,5 +450,47 @@ function serializeCustomInfo() {
 // Init existing data
 Object.entries(customInfoData).forEach(([k, v]) => addCustomInfoPair(k, v));
 if (Object.keys(customInfoData).length === 0) serializeCustomInfo();
+</script>
+<script>
+function addVehicleListItem(type) {
+    var inputId = type + 'New';
+    var hiddenId = type + 'Input';
+    var listId = type + 'List';
+    var input = document.getElementById(inputId);
+    var val = input.value.trim();
+    if (!val) return;
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.push(val);
+    hidden.value = JSON.stringify(items);
+    input.value = '';
+    renderVehicleListItems(type);
+}
+function removeVehicleListItem(type, index) {
+    var hiddenId = type + 'Input';
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.splice(index, 1);
+    hidden.value = JSON.stringify(items);
+    renderVehicleListItems(type);
+}
+function renderVehicleListItems(type) {
+    var hiddenId = type + 'Input';
+    var listId = type + 'List';
+    var hidden = document.getElementById(hiddenId);
+    var list = document.getElementById(listId);
+    if (!hidden || !list) return;
+    var items = JSON.parse(hidden.value || '[]');
+    list.innerHTML = '';
+    for (var i = 0; i < items.length; i++) {
+        var badge = document.createElement('span');
+        badge.className = 'badge bg-light text-dark me-1 mb-1 p-2';
+        badge.innerHTML = items[i] + ' <a href="#" onclick="removeVehicleListItem(\'' + type + '\',' + i + ');return false;" class="text-danger ms-1">&times;</a>';
+        list.appendChild(badge);
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    renderVehicleListItems('keyFeatures');
+});
 </script>
 {% endblock %}

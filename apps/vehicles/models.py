@@ -31,6 +31,10 @@ class VehicleCategory(models.Model):
     )
     is_active = models.BooleanField(_('active'), default=True)
     order = models.PositiveSmallIntegerField(_('display order'), default=0)
+    # Customer-facing information fields
+    tagline = models.CharField(_('tagline'), max_length=200, blank=True, help_text=_('Short tagline shown on results page'))
+    included_amenities = models.JSONField(_('included amenities'), default=list, blank=True, help_text=_('List of included amenity strings'))
+    not_included = models.JSONField(_('not included'), default=list, blank=True, help_text=_('List of items not included'))
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
 
@@ -107,6 +111,14 @@ class Vehicle(models.Model):
         default=Status.AVAILABLE
     )
     notes = models.TextField(_('notes'), blank=True)
+    # Customer-facing information fields
+    client_description = models.TextField(_('client description'), blank=True, help_text=_('Customer-facing vehicle description'))
+    key_features = models.JSONField(_('key features'), default=list, blank=True, help_text=_('List of key feature strings'))
+    important_note = models.TextField(_('important note'), blank=True, help_text=_('Important note shown to customers'))
+    important_note_type = models.CharField(
+        _('note type'), max_length=20, blank=True, default='info',
+        choices=[('info', _('Info')), ('warning', _('Warning')), ('success', _('Success'))],
+    )
     custom_info = models.JSONField(
         _('custom information'),
         default=dict,

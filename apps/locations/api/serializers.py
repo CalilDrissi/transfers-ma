@@ -19,7 +19,9 @@ class ZoneSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'description', 'color',
             'center_latitude', 'center_longitude', 'radius_km',
-            'is_active', 'custom_info', 'distance_ranges'
+            'is_active', 'client_notice', 'client_notice_type',
+            'pickup_instructions', 'area_description', 'display_order',
+            'custom_info', 'distance_ranges'
         ]
 
 
@@ -121,7 +123,11 @@ class RouteDetailSerializer(serializers.ModelSerializer):
             'origin_name', 'origin_latitude', 'origin_longitude', 'origin_radius_km',
             'destination_name', 'destination_latitude', 'destination_longitude', 'destination_radius_km',
             'distance_km', 'estimated_duration_minutes', 'duration_display',
-            'is_bidirectional', 'is_popular', 'custom_info',
+            'is_bidirectional', 'is_popular',
+            'client_notice', 'client_notice_type', 'route_description',
+            'highlights', 'travel_tips', 'estimated_traffic_info',
+            'included_amenities', 'cancellation_policy_override',
+            'custom_info',
             'has_zones', 'pickup_zones', 'dropoff_zones',
             'vehicle_pricing'
         ]
@@ -147,7 +153,11 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
             'origin_name', 'origin_latitude', 'origin_longitude',
             'destination_name', 'destination_latitude', 'destination_longitude',
             'distance_km', 'estimated_duration_minutes', 'duration_display',
-            'is_bidirectional', 'vehicle_options'
+            'is_bidirectional',
+            'client_notice', 'client_notice_type', 'route_description',
+            'highlights', 'travel_tips', 'estimated_traffic_info',
+            'included_amenities', 'cancellation_policy_override',
+            'vehicle_options'
         ]
 
     def get_vehicle_options(self, obj):
@@ -233,12 +243,19 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                     'category_name': category.name,
                     'category_icon': category.icon,
                     'category_description': category.description or '',
+                    'category_tagline': category.tagline or '',
+                    'category_included_amenities': category.included_amenities or [],
+                    'category_not_included': category.not_included or [],
                     'category_image': category.image.url if category.image else None,
                     'passengers': category.max_passengers,
                     'luggage': category.max_luggage,
                     'price': max(base_price, 100),
                     'features': [],
                     'image': category.image.url if category.image else None,
+                    'client_description': '',
+                    'key_features': [],
+                    'important_note': '',
+                    'important_note_type': 'info',
                     'custom_info': {},
                     'pricing_type': 'calculated'
                 })
@@ -257,12 +274,19 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
             'category_name': category.name,
             'category_icon': category.icon,
             'category_description': category.description or '',
+            'category_tagline': category.tagline or '',
+            'category_included_amenities': category.included_amenities or [],
+            'category_not_included': category.not_included or [],
             'category_image': category.image.url if category.image else None,
             'passengers': vehicle.passengers,
             'luggage': vehicle.luggage,
             'price': float(price),
             'features': [f.name for f in vehicle.features.all()[:4]],
             'image': image_url,
+            'client_description': vehicle.client_description or '',
+            'key_features': vehicle.key_features or [],
+            'important_note': vehicle.important_note or '',
+            'important_note_type': vehicle.important_note_type or 'info',
             'custom_info': vehicle.custom_info or {},
             'pricing_type': pricing_type
         }

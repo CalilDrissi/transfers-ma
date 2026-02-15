@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 from .models import User, Profile, DriverProfile
+from .api_keys import APIKey
 
 
 class ProfileInline(admin.StackedInline):
@@ -56,3 +57,12 @@ class DriverProfileAdmin(admin.ModelAdmin):
     list_filter = ('is_available',)
     search_fields = ('user__email', 'license_number')
     raw_id_fields = ('user', 'vehicle')
+
+
+@admin.register(APIKey)
+class APIKeyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'prefix', 'owner', 'tier', 'is_active', 'rate_limit', 'last_used_at', 'created_at')
+    list_filter = ('is_active', 'tier')
+    search_fields = ('name', 'prefix', 'owner__email')
+    raw_id_fields = ('owner',)
+    readonly_fields = ('key', 'prefix', 'last_used_at', 'created_at', 'updated_at')

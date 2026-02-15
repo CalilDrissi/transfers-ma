@@ -53,6 +53,15 @@ class Zone(models.Model):
         _('deposit percentage'), max_digits=5, decimal_places=2,
         default=0, help_text=_('Percentage of total price required as deposit (0-100)')
     )
+    # Customer-facing information fields
+    client_notice = models.TextField(_('client notice'), blank=True, help_text=_('Notice shown to customers for this zone'))
+    client_notice_type = models.CharField(
+        _('notice type'), max_length=20, blank=True, default='info',
+        choices=[('info', _('Info')), ('warning', _('Warning')), ('success', _('Success'))],
+    )
+    pickup_instructions = models.TextField(_('pickup instructions'), blank=True, help_text=_('Pickup instructions for customers'))
+    area_description = models.TextField(_('area description'), blank=True, help_text=_('Description of the area for customers'))
+    display_order = models.PositiveSmallIntegerField(_('display order'), default=0)
     custom_info = models.JSONField(
         _('custom information'),
         default=dict,
@@ -65,7 +74,7 @@ class Zone(models.Model):
     class Meta:
         verbose_name = _('zone')
         verbose_name_plural = _('zones')
-        ordering = ['name']
+        ordering = ['display_order', 'name']
 
     def __str__(self):
         return self.name
@@ -269,6 +278,18 @@ class Route(models.Model):
         _('deposit percentage'), max_digits=5, decimal_places=2,
         default=0, help_text=_('Percentage of total price required as deposit (0-100)')
     )
+    # Customer-facing information fields
+    client_notice = models.TextField(_('client notice'), blank=True, help_text=_('Notice shown to customers for this route'))
+    client_notice_type = models.CharField(
+        _('notice type'), max_length=20, blank=True, default='info',
+        choices=[('info', _('Info')), ('warning', _('Warning')), ('success', _('Success'))],
+    )
+    route_description = models.TextField(_('route description'), blank=True, help_text=_('Detailed customer-facing route description'))
+    highlights = models.JSONField(_('highlights'), default=list, blank=True, help_text=_('List of highlight strings'))
+    travel_tips = models.TextField(_('travel tips'), blank=True, help_text=_('Travel tips for customers'))
+    estimated_traffic_info = models.TextField(_('traffic info'), blank=True, help_text=_('Estimated traffic information'))
+    included_amenities = models.JSONField(_('included amenities'), default=list, blank=True, help_text=_('List of included amenity strings'))
+    cancellation_policy_override = models.TextField(_('cancellation policy'), blank=True, help_text=_('Override cancellation policy for this route'))
     custom_info = models.JSONField(
         _('custom information'),
         default=dict,

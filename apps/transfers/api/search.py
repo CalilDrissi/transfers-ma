@@ -3,12 +3,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
+from apps.accounts.permissions import HasAPIKeyOrIsAuthenticated
 
 
 class UnifiedSearchView(APIView):
     """Search across transfers, routes, and trips."""
 
-    permission_classes = [AllowAny]
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
 
     def get(self, request):
         query = request.query_params.get('q', '').strip()
@@ -65,7 +66,7 @@ class UnifiedSearchView(APIView):
 class TransferByRefView(APIView):
     """Look up a transfer by booking reference."""
 
-    permission_classes = [AllowAny]
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
 
     def get(self, request, ref):
         from apps.transfers.models import Transfer

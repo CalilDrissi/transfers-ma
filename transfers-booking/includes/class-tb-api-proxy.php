@@ -14,7 +14,7 @@ class TB_API_Proxy {
         'get_pricing'         => ['method' => 'GET',  'path' => '/locations/routes/get_pricing/'],
         'get_extras'          => ['method' => 'GET',  'path' => '/transfers/extras/'],
         'get_categories'      => ['method' => 'GET',  'path' => '/vehicles/categories/'],
-        'search_transfers'    => ['method' => 'GET',  'path' => '/search/'],
+        'search_transfers'    => ['method' => 'GET',  'path' => '/locations/routes/get_pricing/'],
         'create_booking'      => ['method' => 'POST', 'path' => '/transfers/'],
         'get_booking_by_ref'  => ['method' => 'GET',  'path' => '/transfers/by-ref/', 'dynamic' => true],
         'create_payment'      => ['method' => 'POST', 'path' => '/payments/'],

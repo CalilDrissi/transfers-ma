@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.trips.models import Trip, TripSchedule, TripBooking
+from apps.accounts.permissions import HasAPIKeyOrIsAuthenticated
 from .serializers import (
     TripSerializer,
     TripListSerializer,
@@ -23,7 +24,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 class TripViewSet(viewsets.ModelViewSet):
     """ViewSet for trips/tours."""
     queryset = Trip.objects.prefetch_related('images', 'schedules', 'destinations')
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['trip_type', 'is_featured', 'is_active', 'departure_location']
     search_fields = ['name', 'description']
@@ -67,9 +68,9 @@ class TripBookingViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            return [permissions.AllowAny()]
+            return [HasAPIKeyOrIsAuthenticated()]
         if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
+            return [HasAPIKeyOrIsAuthenticated()]
         return [permissions.IsAdminUser()]
 
     def get_serializer_class(self):

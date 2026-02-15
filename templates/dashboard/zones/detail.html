@@ -64,6 +64,40 @@
                         </div>
                     </div>
 
+                    <!-- Customer Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{% trans "Customer Information" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Client Notice" %}</label>
+                                <textarea name="client_notice" class="form-control" rows="2">{{ zone.client_notice }}</textarea>
+                                <small class="text-muted">{% trans "Notice shown to customers for this zone" %}</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Notice Type" %}</label>
+                                <select name="client_notice_type" class="form-select">
+                                    <option value="info" {% if zone.client_notice_type == 'info' %}selected{% endif %}>{% trans "Info" %}</option>
+                                    <option value="warning" {% if zone.client_notice_type == 'warning' %}selected{% endif %}>{% trans "Warning" %}</option>
+                                    <option value="success" {% if zone.client_notice_type == 'success' %}selected{% endif %}>{% trans "Success" %}</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Pickup Instructions" %}</label>
+                                <textarea name="pickup_instructions" class="form-control" rows="2">{{ zone.pickup_instructions }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Area Description" %}</label>
+                                <textarea name="area_description" class="form-control" rows="2">{{ zone.area_description }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Display Order" %}</label>
+                                <input type="number" name="display_order" class="form-control" value="{{ zone.display_order }}" min="0">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Custom Information -->
                     <div class="card mb-4">
                         <div class="card-header">

@@ -6,6 +6,7 @@ from django.db.models import Q
 from datetime import datetime
 from apps.rentals.models import Rental, RentalExtra, InsuranceOption
 from apps.vehicles.models import Vehicle
+from apps.accounts.permissions import HasAPIKeyOrIsAuthenticated
 from .serializers import (
     RentalSerializer,
     RentalCreateSerializer,
@@ -28,9 +29,9 @@ class RentalViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['create', 'quote', 'available_vehicles']:
-            return [permissions.AllowAny()]
+            return [HasAPIKeyOrIsAuthenticated()]
         if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
+            return [HasAPIKeyOrIsAuthenticated()]
         return [permissions.IsAdminUser()]
 
     def get_serializer_class(self):

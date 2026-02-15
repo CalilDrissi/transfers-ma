@@ -180,6 +180,9 @@ class Command(BaseCommand):
                 'max_luggage': 2,
                 'price_multiplier': Decimal('1.00'),
                 'order': 1,
+                'tagline': 'Affordable & reliable',
+                'included_amenities': ['Air conditioning', 'USB charging'],
+                'not_included': ['WiFi', 'Water bottles'],
             },
             {
                 'name': 'Comfort Sedan',
@@ -189,6 +192,9 @@ class Command(BaseCommand):
                 'max_luggage': 3,
                 'price_multiplier': Decimal('1.30'),
                 'order': 2,
+                'tagline': 'Premium comfort, great value',
+                'included_amenities': ['Air conditioning', 'Leather seats', 'USB charging', 'Water bottles', 'WiFi'],
+                'not_included': [],
             },
             {
                 'name': 'Premium SUV',
@@ -198,6 +204,9 @@ class Command(BaseCommand):
                 'max_luggage': 5,
                 'price_multiplier': Decimal('1.60'),
                 'order': 3,
+                'tagline': 'Space for the whole family',
+                'included_amenities': ['Air conditioning', 'Leather seats', 'USB charging', 'Water bottles', 'WiFi'],
+                'not_included': [],
             },
             {
                 'name': 'Minivan',
@@ -207,6 +216,9 @@ class Command(BaseCommand):
                 'max_luggage': 8,
                 'price_multiplier': Decimal('1.80'),
                 'order': 4,
+                'tagline': 'Room for everyone & everything',
+                'included_amenities': ['Air conditioning', 'USB charging', 'Water bottles', 'WiFi'],
+                'not_included': ['Leather seats'],
             },
             {
                 'name': 'Luxury',
@@ -216,6 +228,9 @@ class Command(BaseCommand):
                 'max_luggage': 3,
                 'price_multiplier': Decimal('2.50'),
                 'order': 5,
+                'tagline': 'The ultimate VIP experience',
+                'included_amenities': ['Air conditioning', 'Leather seats', 'USB charging', 'Water bottles', 'WiFi', 'Meet & greet', 'Flight monitoring'],
+                'not_included': [],
             },
         ]
         categories = {}
@@ -236,30 +251,50 @@ class Command(BaseCommand):
                 'name': 'Dacia Logan',
                 'passengers': 3, 'luggage': 2, 'year': 2023,
                 'features': ['Air Conditioning', 'USB Charging'],
+                'client_description': 'Reliable and comfortable sedan, perfect for budget-conscious travelers.',
+                'key_features': ['Fuel efficient', 'Spacious trunk'],
+                'important_note': '',
+                'important_note_type': 'info',
             },
             {
                 'category_slug': 'comfort-sedan',
                 'name': 'Mercedes C-Class',
                 'passengers': 4, 'luggage': 3, 'year': 2024,
                 'features': ['Air Conditioning', 'Leather Seats', 'USB Charging', 'Water Bottles', 'WiFi'],
+                'client_description': 'Premium Mercedes sedan with leather interior and all modern amenities.',
+                'key_features': ['Leather interior', 'Climate control', 'Premium sound system'],
+                'important_note': '',
+                'important_note_type': 'info',
             },
             {
                 'category_slug': 'premium-suv',
                 'name': 'Toyota Land Cruiser',
                 'passengers': 6, 'luggage': 5, 'year': 2024,
                 'features': ['Air Conditioning', 'Leather Seats', 'USB Charging', 'Water Bottles', 'WiFi'],
+                'client_description': 'Powerful SUV with plenty of room for families and groups.',
+                'key_features': ['4x4 capable', 'Third row seating', 'Extra luggage space'],
+                'important_note': 'Ideal for Atlas Mountain routes',
+                'important_note_type': 'info',
             },
             {
                 'category_slug': 'minivan',
                 'name': 'Mercedes Vito',
                 'passengers': 8, 'luggage': 8, 'year': 2023,
                 'features': ['Air Conditioning', 'USB Charging', 'Water Bottles', 'WiFi'],
+                'client_description': 'Spacious van ideal for groups of up to 8 passengers with full luggage.',
+                'key_features': ['Sliding doors', '8 comfortable seats', 'Large luggage area'],
+                'important_note': '',
+                'important_note_type': 'info',
             },
             {
                 'category_slug': 'luxury',
                 'name': 'Mercedes S-Class',
                 'passengers': 4, 'luggage': 3, 'year': 2025,
                 'features': ['Air Conditioning', 'Leather Seats', 'USB Charging', 'Water Bottles', 'WiFi', 'Meet & Greet', 'Flight Monitoring'],
+                'client_description': 'The ultimate in luxury travel. Brand new Mercedes S-Class with VIP amenities.',
+                'key_features': ['Massage seats', 'Privacy glass', 'Ambient lighting', 'Premium champagne'],
+                'important_note': 'Includes complimentary meet & greet and flight monitoring',
+                'important_note_type': 'success',
             },
         ]
         vehicles = {}
@@ -277,6 +312,10 @@ class Command(BaseCommand):
                     'year': data.get('year'),
                     'status': Vehicle.Status.AVAILABLE,
                     'service_type': Vehicle.ServiceType.TRANSFER,
+                    'client_description': data.get('client_description', ''),
+                    'key_features': data.get('key_features', []),
+                    'important_note': data.get('important_note', ''),
+                    'important_note_type': data.get('important_note_type', 'info'),
                 },
             )
             vehicle.features.set([features[f] for f in feat_names])
@@ -310,11 +349,11 @@ class Command(BaseCommand):
                 'is_popular': True,
                 'deposit_percentage': Decimal('30'),
                 'order': 1,
-                'custom_info': {
-                    'highlights': ['Meet & greet at arrivals', 'AC vehicle', 'Flight monitoring'],
-                    'travel_tips': 'Have your hotel/riad address ready. Vehicles cannot enter the Medina - your driver will drop you at the nearest gate.',
-                    'estimated_traffic_info': '15-30 minutes at rush hour (7-9am, 5-7pm)',
-                },
+                'highlights': ['Meet & greet at arrivals', 'AC vehicle', 'Flight monitoring'],
+                'travel_tips': 'Have your hotel/riad address ready. Vehicles cannot enter the Medina - your driver will drop you at the nearest gate.',
+                'estimated_traffic_info': '15-30 minutes at rush hour (7-9am, 5-7pm)',
+                'included_amenities': ['Air conditioning', 'Free water', 'Flight monitoring'],
+                'custom_info': {},
             },
         )
         # Pickup zones for Route 1
@@ -368,10 +407,10 @@ class Command(BaseCommand):
                 'is_popular': True,
                 'deposit_percentage': Decimal('30'),
                 'order': 2,
-                'custom_info': {
-                    'highlights': ['Meet & greet', 'Highway transfer', 'Flight monitoring'],
-                    'travel_tips': 'The airport is 30km south of the city. Highway tolls are included in the price.',
-                },
+                'highlights': ['Meet & greet', 'Highway transfer', 'Flight monitoring'],
+                'travel_tips': 'The airport is 30km south of the city. Highway tolls are included in the price.',
+                'included_amenities': ['Air conditioning', 'Free water', 'Highway tolls included'],
+                'custom_info': {},
             },
         )
         pz2, _ = RoutePickupZone.objects.update_or_create(
@@ -414,11 +453,11 @@ class Command(BaseCommand):
                 'is_popular': True,
                 'deposit_percentage': Decimal('30'),
                 'order': 3,
-                'custom_info': {
-                    'highlights': ['Scenic Argan tree route', 'Photo stop available', 'AC long-distance vehicle'],
-                    'travel_tips': 'The road is well-maintained. Ask your driver for an Argan oil cooperative stop.',
-                    'estimated_traffic_info': 'Approx 2h45 via N8 highway. Little traffic outside Marrakech.',
-                },
+                'highlights': ['Scenic Argan tree route', 'Photo stop available', 'AC long-distance vehicle'],
+                'travel_tips': 'The road is well-maintained. Ask your driver for an Argan oil cooperative stop.',
+                'estimated_traffic_info': 'Approx 2h45 via N8 highway. Little traffic outside Marrakech.',
+                'included_amenities': ['Air conditioning', 'Free water', 'Photo stops'],
+                'custom_info': {},
             },
         )
         routes['r3'] = {'route': r3, 'pickup_zones': [], 'dropoff_zones': []}

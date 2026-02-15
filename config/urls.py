@@ -25,7 +25,7 @@ urlpatterns = [
     path('api/v1/payments/', include('apps.payments.api.urls')),
 
     # Unified Search
-    path('api/v1/search/', UnifiedSearchView.as_view(), name='unified_search'),
+    path('api/v1/dashboard-search/', UnifiedSearchView.as_view(), name='unified_search'),
 
     # Language switching
     path('i18n/', include('django.conf.urls.i18n')),

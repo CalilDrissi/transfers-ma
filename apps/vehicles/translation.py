@@ -3,7 +3,7 @@ from .models import VehicleCategory, VehicleFeature, Vehicle, VehicleImage
 
 
 class VehicleCategoryTranslationOptions(TranslationOptions):
-    fields = ('name', 'description')
+    fields = ('name', 'description', 'tagline')
 
 
 class VehicleFeatureTranslationOptions(TranslationOptions):
@@ -11,7 +11,7 @@ class VehicleFeatureTranslationOptions(TranslationOptions):
 
 
 class VehicleTranslationOptions(TranslationOptions):
-    fields = ('name',)
+    fields = ('name', 'client_description', 'important_note')
 
 
 class VehicleImageTranslationOptions(TranslationOptions):

@@ -43,6 +43,40 @@
                         <small class="text-muted">{% trans "Percentage of booking total required as deposit" %}</small>
                     </div>
 
+                    <!-- Customer Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{% trans "Customer Information" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Client Notice" %}</label>
+                                <textarea name="client_notice" class="form-control" rows="2"></textarea>
+                                <small class="text-muted">{% trans "Notice shown to customers for this zone" %}</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Notice Type" %}</label>
+                                <select name="client_notice_type" class="form-select">
+                                    <option value="info" selected>{% trans "Info" %}</option>
+                                    <option value="warning">{% trans "Warning" %}</option>
+                                    <option value="success">{% trans "Success" %}</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Pickup Instructions" %}</label>
+                                <textarea name="pickup_instructions" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Area Description" %}</label>
+                                <textarea name="area_description" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Display Order" %}</label>
+                                <input type="number" name="display_order" class="form-control" value="0" min="0">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Custom Information -->
                     <div class="card mb-4">
                         <div class="card-header">

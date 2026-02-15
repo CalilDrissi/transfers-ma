@@ -216,29 +216,35 @@
         renderRouteInfo: function (route) {
             var ci = route.custom_info || {};
 
-            // Client notice
-            if (ci.client_notice) {
+            // Client notice — explicit field first, fallback to custom_info
+            var clientNotice = route.client_notice || ci.client_notice || '';
+            var clientNoticeType = route.client_notice_type || ci.client_notice_type || 'info';
+            if (clientNotice) {
                 var noticeEl = document.getElementById('tb-results-notice');
-                var noticeType = ci.client_notice_type || 'info';
-                noticeEl.className = 'tb-results__notice tb-results__notice--' + noticeType;
-                noticeEl.textContent = ci.client_notice;
+                noticeEl.className = 'tb-results__notice tb-results__notice--' + clientNoticeType;
+                noticeEl.textContent = clientNotice;
                 noticeEl.style.display = 'block';
             }
 
-            // Route info section
-            var hasInfo = ci.route_description || ci.highlights || ci.included_amenities || ci.travel_tips;
+            // Route info section — explicit fields first, fallback to custom_info
+            var routeDesc = route.route_description || ci.route_description || '';
+            var highlights = (route.highlights && route.highlights.length) ? route.highlights : ci.highlights;
+            var amenities = (route.included_amenities && route.included_amenities.length) ? route.included_amenities : ci.included_amenities;
+            var travelTips = route.travel_tips || ci.travel_tips || '';
+            var trafficInfo = route.estimated_traffic_info || ci.traffic_info || ci.estimated_traffic_info || '';
+
+            var hasInfo = routeDesc || highlights || amenities || travelTips;
             if (route.description || hasInfo) {
                 var infoEl = document.getElementById('tb-results-route-info');
                 infoEl.style.display = 'block';
 
                 // Description
-                var descText = ci.route_description || route.description || '';
+                var descText = routeDesc || route.description || '';
                 if (descText) {
                     document.getElementById('tb-results-description').textContent = descText;
                 }
 
                 // Highlights as pills
-                var highlights = ci.highlights;
                 if (highlights && highlights.length) {
                     var hlEl = document.getElementById('tb-results-highlights');
                     hlEl.innerHTML = '';
@@ -251,7 +257,6 @@
                 }
 
                 // Amenities
-                var amenities = ci.included_amenities;
                 if (amenities && amenities.length) {
                     var amEl = document.getElementById('tb-results-amenities');
                     amEl.innerHTML = '';
@@ -267,32 +272,34 @@
                 }
 
                 // Travel tips
-                if (ci.travel_tips) {
+                if (travelTips) {
                     var tipsEl = document.getElementById('tb-results-tips');
-                    document.getElementById('tb-results-tips-text').textContent = ci.travel_tips;
+                    document.getElementById('tb-results-tips-text').textContent = travelTips;
                     tipsEl.style.display = 'flex';
                 }
 
                 // Traffic info
-                if (ci.traffic_info) {
+                if (trafficInfo) {
                     var trafficEl = document.getElementById('tb-results-traffic');
-                    trafficEl.textContent = ci.traffic_info;
+                    trafficEl.textContent = trafficInfo;
                     trafficEl.style.display = 'block';
                 }
             }
 
-            // Pickup zone info
+            // Pickup zone info — explicit fields first, fallback to custom_info
             var pickupZone = route.matched_pickup_zone;
             if (pickupZone) {
                 var pzCi = pickupZone.custom_info || {};
-                if (pzCi.zone_notice || pzCi.pickup_instructions) {
+                var zoneNotice = pickupZone.client_notice || pzCi.zone_notice || pzCi.client_notice || '';
+                var pickupInstr = pickupZone.pickup_instructions || pzCi.pickup_instructions || '';
+                if (zoneNotice || pickupInstr) {
                     var pzEl = document.getElementById('tb-results-pickup-info');
                     pzEl.style.display = 'block';
-                    if (pzCi.zone_notice) {
-                        document.getElementById('tb-results-pickup-notice').textContent = pzCi.zone_notice;
+                    if (zoneNotice) {
+                        document.getElementById('tb-results-pickup-notice').textContent = zoneNotice;
                     }
-                    if (pzCi.pickup_instructions) {
-                        document.getElementById('tb-results-pickup-instructions').textContent = pzCi.pickup_instructions;
+                    if (pickupInstr) {
+                        document.getElementById('tb-results-pickup-instructions').textContent = pickupInstr;
                     }
                 }
             }
@@ -346,9 +353,9 @@
                 // Category name
                 setText(clone, '.tb-results__vehicle-category', v.category_name || '');
 
-                // Tagline from vehicle custom_info or category_description
+                // Tagline — explicit field first, fallback to custom_info, then category_description
                 var vci = v.custom_info || {};
-                var tagline = vci.tagline || v.category_description || '';
+                var tagline = v.category_tagline || vci.tagline || v.category_description || '';
                 if (tagline) {
                     setText(clone, '.tb-results__vehicle-tagline', tagline);
                 } else {
@@ -381,8 +388,8 @@
                     }
                 }
 
-                // Key features
-                var keyFeatures = vci.key_features;
+                // Key features — explicit field first, fallback to custom_info
+                var keyFeatures = (v.key_features && v.key_features.length) ? v.key_features : vci.key_features;
                 if (keyFeatures && keyFeatures.length) {
                     setText(clone, '.tb-results__vehicle-key-features', keyFeatures.join(' \u2022 '));
                 } else {
@@ -390,8 +397,8 @@
                     if (kfEl) kfEl.style.display = 'none';
                 }
 
-                // Client description
-                var clientDesc = vci.client_description || '';
+                // Client description — explicit field first, fallback to custom_info
+                var clientDesc = v.client_description || vci.client_description || '';
                 if (clientDesc) {
                     setText(clone, '.tb-results__vehicle-description', clientDesc);
                 } else {
@@ -399,11 +406,11 @@
                     if (descEl) descEl.style.display = 'none';
                 }
 
-                // Important note
-                var impNote = vci.important_note;
+                // Important note — explicit field first, fallback to custom_info
+                var impNote = v.important_note || vci.important_note || '';
                 if (impNote) {
                     var noteEl = clone.querySelector('.tb-results__vehicle-note');
-                    var noteType = vci.important_note_type || 'info';
+                    var noteType = v.important_note_type || vci.important_note_type || 'info';
                     noteEl.className = 'tb-results__vehicle-note tb-results__vehicle-note--' + noteType;
                     noteEl.textContent = impNote;
                     noteEl.style.display = 'block';
