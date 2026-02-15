@@ -49,6 +49,10 @@ class Zone(models.Model):
         help_text=_('GeoJSON polygon coordinates defining zone boundary')
     )
     is_active = models.BooleanField(_('active'), default=True)
+    deposit_percentage = models.DecimalField(
+        _('deposit percentage'), max_digits=5, decimal_places=2,
+        default=0, help_text=_('Percentage of total price required as deposit (0-100)')
+    )
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
 
@@ -255,6 +259,10 @@ class Route(models.Model):
         help_text=_('Show this route prominently on the website')
     )
     order = models.PositiveSmallIntegerField(_('display order'), default=0)
+    deposit_percentage = models.DecimalField(
+        _('deposit percentage'), max_digits=5, decimal_places=2,
+        default=0, help_text=_('Percentage of total price required as deposit (0-100)')
+    )
 
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)

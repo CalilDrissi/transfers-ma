@@ -91,7 +91,6 @@
                                                 <th>{% trans "Distance Range" %}</th>
                                                 <th>{% trans "Price" %} ({{ CURRENCY }})</th>
                                                 <th>{% trans "Cost" %} ({{ COST_CURRENCY }})</th>
-                                                <th>{% trans "Deposit" %} ({{ CURRENCY }})</th>
                                                 <th>{% trans "Min. Booking" %}</th>
                                             </tr>
                                         </thead>
@@ -107,9 +106,6 @@
                                                 </td>
                                                 <td>
                                                     <input type="number" name="zone_cost_{{ range.id }}" class="form-control form-control-sm" step="0.01" min="0" placeholder="0.00">
-                                                </td>
-                                                <td>
-                                                    <input type="number" name="zone_deposit_{{ range.id }}" class="form-control form-control-sm" step="0.01" min="0" placeholder="0.00">
                                                 </td>
                                                 <td>
                                                     <div class="input-group input-group-sm">
@@ -195,12 +191,6 @@
                                                         </div>
                                                         <div class="col-md-3">
                                                             <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Deposit" %}</span>
-                                                                <input type="number" name="route_deposit_{{ route.id }}_{{ pz.id }}_0" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div class="input-group input-group-sm">
                                                                 <span class="input-group-text">{% trans "Min." %}</span>
                                                                 <input type="number" name="route_min_hours_{{ route.id }}_{{ pz.id }}_0" class="form-control" min="0" placeholder="0">
                                                                 <span class="input-group-text">{% trans "hrs" %}</span>
@@ -237,12 +227,6 @@
                                                                 <input type="number" name="route_cost_{{ route.id }}_0_{{ dz.id }}" class="form-control" step="0.01" min="0" placeholder="0.00">
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-3">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Deposit" %}</span>
-                                                                <input type="number" name="route_deposit_{{ route.id }}_0_{{ dz.id }}" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
                                                     </div>
                                                     {% endfor %}
                                                 </div>
@@ -267,16 +251,10 @@
                                                                 <input type="number" name="route_price_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-2">
+                                                        <div class="col-md-3">
                                                             <div class="input-group input-group-sm">
                                                                 <span class="input-group-text">{% trans "Cost" %}</span>
                                                                 <input type="number" name="route_cost_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Deposit" %}</span>
-                                                                <input type="number" name="route_deposit_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
                                                             </div>
                                                         </div>
                                                         <div class="col-md-3">
@@ -299,10 +277,6 @@
                                                 <div class="col-md-3">
                                                     <label class="form-label">{% trans "Cost" %} ({{ COST_CURRENCY }})</label>
                                                     <input type="number" name="route_cost_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label">{% trans "Deposit" %} ({{ CURRENCY }})</label>
-                                                    <input type="number" name="route_deposit_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label class="form-label">{% trans "Min. Booking" %}</label>

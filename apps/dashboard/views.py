@@ -410,7 +410,6 @@ def vehicle_create(request, service_type='transfer'):
                         if key.startswith('zone_price_') and value:
                             range_id = key.replace('zone_price_', '')
                             cost_value = request.POST.get(f'zone_cost_{range_id}') or None
-                            deposit_value = request.POST.get(f'zone_deposit_{range_id}') or None
                             min_hours = request.POST.get(f'zone_min_hours_{range_id}') or None
                             try:
                                 VehicleZonePricing.objects.create(
@@ -418,7 +417,6 @@ def vehicle_create(request, service_type='transfer'):
                                     zone_distance_range_id=range_id,
                                     price=value,
                                     cost=cost_value,
-                                    deposit=deposit_value,
                                     min_booking_hours=min_hours,
                                     is_active=True
                                 )
@@ -436,10 +434,8 @@ def vehicle_create(request, service_type='transfer'):
                         if match and value:
                             route_id, pickup_zone_id, dropoff_zone_id = match.groups()
                             cost_key = f'route_cost_{route_id}_{pickup_zone_id}_{dropoff_zone_id}'
-                            deposit_key = f'route_deposit_{route_id}_{pickup_zone_id}_{dropoff_zone_id}'
                             min_hours_key = f'route_min_hours_{route_id}_{pickup_zone_id}_{dropoff_zone_id}'
                             cost_value = request.POST.get(cost_key) or None
-                            deposit_value = request.POST.get(deposit_key) or None
                             min_hours = request.POST.get(min_hours_key) or None
                             try:
                                 VehicleRoutePricing.objects.create(
@@ -449,7 +445,6 @@ def vehicle_create(request, service_type='transfer'):
                                     dropoff_zone_id=int(dropoff_zone_id) if dropoff_zone_id != '0' else None,
                                     price=value,
                                     cost=cost_value,
-                                    deposit=deposit_value,
                                     min_booking_hours=min_hours,
                                     is_active=True
                                 )
@@ -515,7 +510,6 @@ def vehicle_detail(request, pk):
             zone_distance_range_id = request.POST.get('zone_distance_range')
             price = request.POST.get('price')
             cost = request.POST.get('cost') or None
-            deposit = request.POST.get('deposit') or None
             min_booking_hours = request.POST.get('min_booking_hours') or None
 
             if zone_distance_range_id and price:
@@ -525,7 +519,6 @@ def vehicle_detail(request, pk):
                         zone_distance_range_id=zone_distance_range_id,
                         price=price,
                         cost=cost,
-                        deposit=deposit,
                         min_booking_hours=min_booking_hours,
                         is_active=True
                     )
@@ -540,7 +533,6 @@ def vehicle_detail(request, pk):
             pricing = get_object_or_404(VehicleZonePricing, pk=pricing_id, vehicle=vehicle)
             pricing.price = request.POST.get('price', pricing.price)
             pricing.cost = request.POST.get('cost') or None
-            pricing.deposit = request.POST.get('deposit') or None
             pricing.min_booking_hours = request.POST.get('min_booking_hours') or None
             pricing.save()
             messages.success(request, 'Zone pricing updated successfully.')
@@ -555,7 +547,6 @@ def vehicle_detail(request, pk):
             route_id = request.POST.get('route_id')
             price = request.POST.get('price')
             cost = request.POST.get('cost') or None
-            deposit = request.POST.get('deposit') or None
             min_booking_hours = request.POST.get('min_booking_hours') or None
 
             if route_id and price:
@@ -565,7 +556,6 @@ def vehicle_detail(request, pk):
                         route_id=route_id,
                         price=price,
                         cost=cost,
-                        deposit=deposit,
                         min_booking_hours=min_booking_hours,
                         is_active=True
                     )
@@ -580,7 +570,6 @@ def vehicle_detail(request, pk):
             pricing = get_object_or_404(VehicleRoutePricing, pk=pricing_id, vehicle=vehicle)
             pricing.price = request.POST.get('price', pricing.price)
             pricing.cost = request.POST.get('cost') or None
-            pricing.deposit = request.POST.get('deposit') or None
             pricing.min_booking_hours = request.POST.get('min_booking_hours') or None
             pricing.save()
             messages.success(request, 'Route pricing updated successfully.')
@@ -815,6 +804,7 @@ def zone_create(request):
                 slug=slug,
                 description=description,
                 color=color,
+                deposit_percentage=request.POST.get('deposit_percentage', 0) or 0,
                 is_active=True
             )
             messages.success(request, f'Zone "{name}" created successfully.')
@@ -838,6 +828,7 @@ def zone_detail(request, pk):
             zone.name = request.POST.get('name', zone.name)
             zone.description = request.POST.get('description', '')
             zone.color = request.POST.get('color', zone.color)
+            zone.deposit_percentage = request.POST.get('deposit_percentage', 0) or 0
             zone.is_active = request.POST.get('is_active') == 'on'
             zone.save()
             messages.success(request, 'Zone updated successfully.')
@@ -967,6 +958,7 @@ def route_create(request):
                 destination_radius_km=request.POST.get('destination_radius_km') or 10,
                 distance_km=distance_km,
                 estimated_duration_minutes=request.POST.get('estimated_duration_minutes') or None,
+                deposit_percentage=request.POST.get('deposit_percentage', 0) or 0,
                 is_bidirectional=True,
                 is_popular=False,
                 is_active=request.POST.get('is_active') == 'on'
@@ -1010,6 +1002,7 @@ def route_detail(request, pk):
             route.destination_radius_km = request.POST.get('destination_radius_km') or 10
             route.distance_km = request.POST.get('distance_km', route.distance_km)
             route.estimated_duration_minutes = request.POST.get('estimated_duration_minutes') or None
+            route.deposit_percentage = request.POST.get('deposit_percentage', 0) or 0
             route.is_bidirectional = request.POST.get('is_bidirectional') == 'on'
             route.is_popular = request.POST.get('is_popular') == 'on'
             route.is_active = request.POST.get('is_active') == 'on'

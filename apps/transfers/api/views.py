@@ -219,6 +219,49 @@ class TransferViewSet(viewsets.ModelViewSet):
 
         total = (base_price + extras_total) * multiplier
 
+        # Look up deposit percentage from matching Route or Zone
+        deposit_percentage = Decimal('0')
+        deposit_amount = Decimal('0')
+
+        from apps.locations.models import Route, Zone
+
+        pickup_lat = float(data['pickup_latitude'])
+        pickup_lng = float(data['pickup_longitude'])
+        dropoff_lat = float(data['dropoff_latitude'])
+        dropoff_lng = float(data['dropoff_longitude'])
+
+        # Try to match a route first
+        matched_route = None
+        for route in Route.objects.filter(is_active=True):
+            if route.origin_latitude and route.origin_longitude and route.destination_latitude and route.destination_longitude:
+                from apps.locations.services import calculate_distance_haversine
+                origin_dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.origin_latitude), float(route.origin_longitude)))
+                dest_dist = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.destination_latitude), float(route.destination_longitude)))
+                if origin_dist <= float(route.origin_radius_km) and dest_dist <= float(route.destination_radius_km):
+                    matched_route = route
+                    break
+                # Check reverse direction if bidirectional
+                if route.is_bidirectional:
+                    origin_dist_rev = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.destination_latitude), float(route.destination_longitude)))
+                    dest_dist_rev = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.origin_latitude), float(route.origin_longitude)))
+                    if origin_dist_rev <= float(route.destination_radius_km) and dest_dist_rev <= float(route.origin_radius_km):
+                        matched_route = route
+                        break
+
+        if matched_route and matched_route.deposit_percentage > 0:
+            deposit_percentage = matched_route.deposit_percentage
+        else:
+            # Try to match a zone by pickup coordinates
+            for zone in Zone.objects.filter(is_active=True, center_latitude__isnull=False):
+                from apps.locations.services import calculate_distance_haversine
+                dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(zone.center_latitude), float(zone.center_longitude)))
+                if dist <= float(zone.radius_km) and zone.deposit_percentage > 0:
+                    deposit_percentage = zone.deposit_percentage
+                    break
+
+        if deposit_percentage > 0:
+            deposit_amount = (total * deposit_percentage / Decimal('100')).quantize(Decimal('0.01'))
+
         return Response({
             'pickup_address': data['pickup_address'],
             'dropoff_address': data['dropoff_address'],
@@ -231,6 +274,8 @@ class TransferViewSet(viewsets.ModelViewSet):
             'is_round_trip': data.get('is_round_trip', False),
             'multiplier': multiplier,
             'total_price': float(total),
+            'deposit_percentage': float(deposit_percentage),
+            'deposit_amount': float(deposit_amount),
             'currency': 'MAD'
         })
 

@@ -116,6 +116,12 @@
                     <strong>{% trans "Total" %}</strong>
                     <strong class="text-primary">{{ transfer.total_price|currency }}</strong>
                 </div>
+                {% if transfer.deposit_amount %}
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-muted">{% trans "Deposit Required" %}</span>
+                    <span class="text-warning fw-bold">{{ transfer.deposit_amount|currency }}</span>
+                </div>
+                {% endif %}
             </div>
         </div>
 

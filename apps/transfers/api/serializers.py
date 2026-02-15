@@ -38,13 +38,13 @@ class TransferSerializer(serializers.ModelSerializer):
             'flight_number', 'flight_arrival_time',
             'passengers', 'luggage', 'child_seats',
             'vehicle_category', 'base_price', 'extras_price', 'discount',
-            'total_price', 'currency', 'status', 'special_requests',
+            'total_price', 'deposit_amount', 'currency', 'status', 'special_requests',
             'is_round_trip', 'return_datetime', 'booked_extras',
             'created_at'
         ]
         read_only_fields = [
             'id', 'booking_ref', 'status', 'created_at',
-            'base_price', 'extras_price', 'total_price'
+            'base_price', 'extras_price', 'total_price', 'deposit_amount'
         ]
 
 
@@ -125,6 +125,39 @@ class TransferCreateSerializer(serializers.ModelSerializer):
         # Update extras price and total
         transfer.extras_price = extras_total
         transfer.total_price = transfer.calculate_total()
+
+        # Calculate deposit amount from matching Route or Zone
+        deposit_percentage = Decimal('0')
+        if all([pickup_lat, pickup_lng, dropoff_lat, dropoff_lng]):
+            from apps.locations.models import Route, Zone
+            from apps.locations.services import calculate_distance_haversine
+
+            # Try to match a route first
+            for route in Route.objects.filter(is_active=True):
+                if route.origin_latitude and route.origin_longitude and route.destination_latitude and route.destination_longitude:
+                    origin_dist = float(calculate_distance_haversine(float(pickup_lat), float(pickup_lng), float(route.origin_latitude), float(route.origin_longitude)))
+                    dest_dist = float(calculate_distance_haversine(float(dropoff_lat), float(dropoff_lng), float(route.destination_latitude), float(route.destination_longitude)))
+                    if origin_dist <= float(route.origin_radius_km) and dest_dist <= float(route.destination_radius_km):
+                        deposit_percentage = route.deposit_percentage
+                        break
+                    if route.is_bidirectional:
+                        origin_dist_rev = float(calculate_distance_haversine(float(pickup_lat), float(pickup_lng), float(route.destination_latitude), float(route.destination_longitude)))
+                        dest_dist_rev = float(calculate_distance_haversine(float(dropoff_lat), float(dropoff_lng), float(route.origin_latitude), float(route.origin_longitude)))
+                        if origin_dist_rev <= float(route.destination_radius_km) and dest_dist_rev <= float(route.origin_radius_km):
+                            deposit_percentage = route.deposit_percentage
+                            break
+
+            if deposit_percentage == 0:
+                # Try to match a zone by pickup coordinates
+                for zone in Zone.objects.filter(is_active=True, center_latitude__isnull=False):
+                    dist = float(calculate_distance_haversine(float(pickup_lat), float(pickup_lng), float(zone.center_latitude), float(zone.center_longitude)))
+                    if dist <= float(zone.radius_km) and zone.deposit_percentage > 0:
+                        deposit_percentage = zone.deposit_percentage
+                        break
+
+        if deposit_percentage > 0:
+            transfer.deposit_amount = (transfer.total_price * deposit_percentage / Decimal('100')).quantize(Decimal('0.01'))
+
         transfer.save()
 
         # Handle round trip

@@ -245,11 +245,7 @@
                                 </div>
                             </div>
                             <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label">{% trans "Deposit" %} ({{ CURRENCY }})</label>
-                                    <input type="number" name="deposit" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                </div>
-                                <div class="col-6">
+                                <div class="col-12">
                                     <label class="form-label">{% trans "Min. Booking" %}</label>
                                     <div class="input-group">
                                         <input type="number" name="min_booking_hours" class="form-control" min="0" placeholder="0">
@@ -287,7 +283,6 @@
                                             <th>{% trans "Range" %}</th>
                                             <th>{% trans "Price" %} ({{ CURRENCY }})</th>
                                             <th>{% trans "Cost" %} ({{ COST_CURRENCY }})</th>
-                                            <th>{% trans "Deposit" %} ({{ CURRENCY }})</th>
                                             <th>{% trans "Min. Booking" %}</th>
                                             <th></th>
                                         </tr>
@@ -308,9 +303,6 @@
                                             </td>
                                             <td>
                                                     <input type="number" name="cost" class="form-control form-control-sm" value="{{ pricing.cost|default:'' }}" step="0.01" min="0" style="width: 90px;">
-                                            </td>
-                                            <td>
-                                                    <input type="number" name="deposit" class="form-control form-control-sm" value="{{ pricing.deposit|default:'' }}" step="0.01" min="0" style="width: 90px;">
                                             </td>
                                             <td>
                                                     <div class="input-group input-group-sm" style="width: 100px;">
@@ -391,11 +383,7 @@
                                 </div>
                             </div>
                             <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label">{% trans "Deposit" %} ({{ CURRENCY }})</label>
-                                    <input type="number" name="deposit" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                </div>
-                                <div class="col-6">
+                                <div class="col-12">
                                     <label class="form-label">{% trans "Min. Booking" %}</label>
                                     <div class="input-group">
                                         <input type="number" name="min_booking_hours" class="form-control" min="0" placeholder="0">
@@ -427,7 +415,6 @@
                                         <th>{% trans "Route" %}</th>
                                         <th>{% trans "Price" %} ({{ CURRENCY }})</th>
                                         <th>{% trans "Cost" %} ({{ COST_CURRENCY }})</th>
-                                        <th>{% trans "Deposit" %} ({{ CURRENCY }})</th>
                                         <th>{% trans "Min. Booking" %}</th>
                                         <th></th>
                                     </tr>
@@ -450,9 +437,6 @@
                                         </td>
                                         <td>
                                                 <input type="number" name="cost" class="form-control form-control-sm" value="{{ pricing.cost|default:'' }}" step="0.01" min="0" style="width: 90px;">
-                                        </td>
-                                        <td>
-                                                <input type="number" name="deposit" class="form-control form-control-sm" value="{{ pricing.deposit|default:'' }}" step="0.01" min="0" style="width: 90px;">
                                         </td>
                                         <td>
                                                 <div class="input-group input-group-sm" style="width: 100px;">
