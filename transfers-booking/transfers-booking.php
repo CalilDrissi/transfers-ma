@@ -20,6 +20,10 @@ define('TB_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 require_once TB_PLUGIN_DIR . 'includes/class-transfers-booking.php';
 
+// Activation / deactivation hooks for rewrite rules
+register_activation_hook(__FILE__, ['Transfers_Booking', 'activate']);
+register_deactivation_hook(__FILE__, ['Transfers_Booking', 'deactivate']);
+
 function tb_run() {
     $plugin = new Transfers_Booking();
     $plugin->run();

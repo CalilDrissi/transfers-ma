@@ -3,11 +3,12 @@ from math import radians, cos, sin, asin, sqrt
 
 from django.conf import settings
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import api_view, permission_classes as perm_classes, action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
+from apps.accounts.permissions import HasAPIKeyOrIsAuthenticated
 
 from apps.locations.models import Zone, ZonePricing, Route, RoutePickupZone, RouteDropoffZone
 from apps.locations.services import calculate_distance, DistanceCalculationError
@@ -126,10 +127,14 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
         'vehicle_pricing',
         'vehicle_pricing__vehicle',
         'vehicle_pricing__vehicle__category',
+        'vehicle_pricing__vehicle__images',
+        'vehicle_pricing__vehicle__features',
         'vehicle_pricing__pickup_zone',
         'vehicle_pricing__dropoff_zone'
     )
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        return [HasAPIKeyOrIsAuthenticated()]
     lookup_field = 'slug'
 
     def get_serializer_class(self):
@@ -436,16 +441,22 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                 'category_id': category.id,
                 'category_name': category.name,
                 'category_icon': category.icon or 'bi bi-car-front',
+                'category_description': category.description or '',
+                'category_image': category.image.url if category.image else None,
                 'passengers': category.max_passengers,
                 'luggage': category.max_luggage,
                 'price': float(price),
-                'features': []
+                'features': [],
+                'image': category.image.url if category.image else None,
+                'custom_info': {}
             })
 
         return Response({
             'id': None,
             'name': 'Custom Route',
             'pricing_type': 'calculated',
+            'custom_info': {},
+            'deposit_percentage': 0,
             'origin_name': request.query_params.get('origin_name', 'Pickup'),
             'destination_name': request.query_params.get('destination_name', 'Dropoff'),
             'distance_km': round(distance_km, 1),
@@ -509,7 +520,7 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
     },
 )
 @api_view(['GET', 'POST'])
-@permission_classes([permissions.AllowAny])
+@perm_classes([HasAPIKeyOrIsAuthenticated])
 def calculate_distance_view(request):
     """
     Calculate driving distance between two points using Google Distance Matrix API.
@@ -578,7 +589,7 @@ def calculate_distance_view(request):
     },
 )
 @api_view(['GET'])
-@permission_classes([permissions.AllowAny])
+@perm_classes([HasAPIKeyOrIsAuthenticated])
 def google_maps_config(request):
     """
     Get Google Maps API configuration for frontend use.

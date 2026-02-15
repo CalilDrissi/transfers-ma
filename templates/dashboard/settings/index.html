@@ -93,9 +93,10 @@
         </div>
     </div>
 
-    <!-- Right Column - Stripe Payment Settings -->
+    <!-- Right Column - Payment Settings -->
     <div class="col-lg-6">
-        <div class="card">
+        <!-- Stripe -->
+        <div class="card mb-4">
             <div class="card-header">
                 <i class="bi bi-credit-card me-2"></i>{% trans "Stripe Payment Settings" %}
             </div>
@@ -127,6 +128,43 @@
 
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-lg me-1"></i>{% trans "Save Stripe Settings" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- PayPal -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-paypal me-2"></i>{% trans "PayPal Payment Settings" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_paypal">
+
+                    <div class="mb-3">
+                        <label for="paypal_client_id" class="form-label">{% trans "Client ID" %}</label>
+                        <input type="text" class="form-control" id="paypal_client_id" name="paypal_client_id"
+                               value="{{ site_settings.paypal_client_id }}" placeholder="PayPal REST API Client ID">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="paypal_client_secret" class="form-label">{% trans "Client Secret" %}</label>
+                        <input type="password" class="form-control" id="paypal_client_secret" name="paypal_client_secret"
+                               value="{{ site_settings.paypal_client_secret }}" placeholder="PayPal REST API Client Secret">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="paypal_mode" class="form-label">{% trans "Mode" %}</label>
+                        <select class="form-select" id="paypal_mode" name="paypal_mode">
+                            <option value="sandbox" {% if site_settings.paypal_mode == 'sandbox' %}selected{% endif %}>Sandbox</option>
+                            <option value="live" {% if site_settings.paypal_mode == 'live' %}selected{% endif %}>Live</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Save PayPal Settings" %}
                     </button>
                 </form>
             </div>

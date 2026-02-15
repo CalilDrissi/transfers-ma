@@ -19,7 +19,7 @@ class ZoneSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'description', 'color',
             'center_latitude', 'center_longitude', 'radius_km',
-            'is_active', 'distance_ranges'
+            'is_active', 'custom_info', 'distance_ranges'
         ]
 
 
@@ -121,7 +121,7 @@ class RouteDetailSerializer(serializers.ModelSerializer):
             'origin_name', 'origin_latitude', 'origin_longitude', 'origin_radius_km',
             'destination_name', 'destination_latitude', 'destination_longitude', 'destination_radius_km',
             'distance_km', 'estimated_duration_minutes', 'duration_display',
-            'is_bidirectional', 'is_popular',
+            'is_bidirectional', 'is_popular', 'custom_info',
             'has_zones', 'pickup_zones', 'dropoff_zones',
             'vehicle_pricing'
         ]
@@ -143,7 +143,7 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
         fields = [
-            'id', 'name', 'slug', 'description',
+            'id', 'name', 'slug', 'description', 'custom_info', 'deposit_percentage',
             'origin_name', 'origin_latitude', 'origin_longitude',
             'destination_name', 'destination_latitude', 'destination_longitude',
             'distance_km', 'estimated_duration_minutes', 'duration_display',
@@ -178,18 +178,7 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                 vehicle = pricing.vehicle
                 if vehicle.id not in vehicles_seen:
                     vehicles_seen.add(vehicle.id)
-                    options.append({
-                        'vehicle_id': vehicle.id,
-                        'vehicle_name': vehicle.name,
-                        'category_id': vehicle.category.id,
-                        'category_name': vehicle.category.name,
-                        'category_icon': vehicle.category.icon,
-                        'passengers': vehicle.passengers,
-                        'luggage': vehicle.luggage,
-                        'price': float(pricing.price),
-                        'features': [f.name for f in vehicle.features.all()[:4]],
-                        'pricing_type': 'zone_specific'
-                    })
+                    options.append(self._build_vehicle_option(vehicle, pricing.price, 'zone_specific'))
 
             # If no exact match, try pickup zone only
             if not options and matched_pickup_zone:
@@ -203,18 +192,7 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                     vehicle = pricing.vehicle
                     if vehicle.id not in vehicles_seen:
                         vehicles_seen.add(vehicle.id)
-                        options.append({
-                            'vehicle_id': vehicle.id,
-                            'vehicle_name': vehicle.name,
-                            'category_id': vehicle.category.id,
-                            'category_name': vehicle.category.name,
-                            'category_icon': vehicle.category.icon,
-                            'passengers': vehicle.passengers,
-                            'luggage': vehicle.luggage,
-                            'price': float(pricing.price),
-                            'features': [f.name for f in vehicle.features.all()[:4]],
-                            'pricing_type': 'pickup_zone'
-                        })
+                        options.append(self._build_vehicle_option(vehicle, pricing.price, 'pickup_zone'))
 
             # If still no match, try dropoff zone only
             if not options and matched_dropoff_zone:
@@ -228,18 +206,7 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                     vehicle = pricing.vehicle
                     if vehicle.id not in vehicles_seen:
                         vehicles_seen.add(vehicle.id)
-                        options.append({
-                            'vehicle_id': vehicle.id,
-                            'vehicle_name': vehicle.name,
-                            'category_id': vehicle.category.id,
-                            'category_name': vehicle.category.name,
-                            'category_icon': vehicle.category.icon,
-                            'passengers': vehicle.passengers,
-                            'luggage': vehicle.luggage,
-                            'price': float(pricing.price),
-                            'features': [f.name for f in vehicle.features.all()[:4]],
-                            'pricing_type': 'dropoff_zone'
-                        })
+                        options.append(self._build_vehicle_option(vehicle, pricing.price, 'dropoff_zone'))
 
         # Fall back to default route pricing (no zones)
         if not options:
@@ -253,18 +220,7 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                 vehicle = pricing.vehicle
                 if vehicle.id not in vehicles_seen:
                     vehicles_seen.add(vehicle.id)
-                    options.append({
-                        'vehicle_id': vehicle.id,
-                        'vehicle_name': vehicle.name,
-                        'category_id': vehicle.category.id,
-                        'category_name': vehicle.category.name,
-                        'category_icon': vehicle.category.icon,
-                        'passengers': vehicle.passengers,
-                        'luggage': vehicle.luggage,
-                        'price': float(pricing.price),
-                        'features': [f.name for f in vehicle.features.all()[:4]],
-                        'pricing_type': 'route_default'
-                    })
+                    options.append(self._build_vehicle_option(vehicle, pricing.price, 'route_default'))
 
         # If still no route-specific pricing, fall back to category-based pricing
         if not options:
@@ -276,11 +232,37 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                     'category_id': category.id,
                     'category_name': category.name,
                     'category_icon': category.icon,
+                    'category_description': category.description or '',
+                    'category_image': category.image.url if category.image else None,
                     'passengers': category.max_passengers,
                     'luggage': category.max_luggage,
                     'price': max(base_price, 100),
                     'features': [],
+                    'image': category.image.url if category.image else None,
+                    'custom_info': {},
                     'pricing_type': 'calculated'
                 })
 
         return sorted(options, key=lambda x: x['price'])
+
+    def _build_vehicle_option(self, vehicle, price, pricing_type):
+        """Build a vehicle option dict with image and custom_info."""
+        primary_image = vehicle.images.filter(is_primary=True).first()
+        image_url = primary_image.image.url if primary_image else None
+        category = vehicle.category
+        return {
+            'vehicle_id': vehicle.id,
+            'vehicle_name': vehicle.name,
+            'category_id': category.id,
+            'category_name': category.name,
+            'category_icon': category.icon,
+            'category_description': category.description or '',
+            'category_image': category.image.url if category.image else None,
+            'passengers': vehicle.passengers,
+            'luggage': vehicle.luggage,
+            'price': float(price),
+            'features': [f.name for f in vehicle.features.all()[:4]],
+            'image': image_url,
+            'custom_info': vehicle.custom_info or {},
+            'pricing_type': pricing_type
+        }

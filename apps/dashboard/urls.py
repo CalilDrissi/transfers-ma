@@ -62,4 +62,13 @@ urlpatterns = [
 
     # Settings
     path('settings/', views.settings_view, name='settings'),
+
+    # API Keys
+    path('api-keys/', views.api_key_list, name='api_key_list'),
+    path('api-keys/<int:pk>/', views.api_key_detail, name='api_key_detail'),
+
+    # Coupons
+    path('coupons/', views.coupon_list, name='coupon_list'),
+    path('coupons/create/', views.coupon_create, name='coupon_create'),
+    path('coupons/<int:pk>/', views.coupon_detail, name='coupon_detail'),
 ]

@@ -39,6 +39,7 @@ LOCAL_APPS = [
     'apps.rentals',
     'apps.payments',
     'apps.dashboard',
+    'apps.notifications',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -48,6 +49,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'apps.accounts.middleware.LanguageMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -98,10 +100,13 @@ LANGUAGES = [
     ('fr', 'French'),
     ('ar', 'Arabic'),
     ('es', 'Spanish'),
+    ('de', 'German'),
+    ('it', 'Italian'),
+    ('pt', 'Portuguese'),
 ]
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
-MODELTRANSLATION_LANGUAGES = ('en', 'fr', 'ar', 'es')
+MODELTRANSLATION_LANGUAGES = ('en', 'fr', 'ar', 'es', 'de', 'it', 'pt')
 
 TIME_ZONE = 'UTC'
 USE_I18N = True
@@ -142,6 +147,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': ['apps.accounts.throttles.APIKeyRateThrottle'],
+    'DEFAULT_THROTTLE_RATES': {'anon': '30/min'},
+    'EXCEPTION_HANDLER': 'config.exception_handler.custom_exception_handler',
 }
 
 # JWT Settings
@@ -195,6 +203,19 @@ API for booking airport transfers and private transportation services in Morocco
 }
 
 # CORS Settings
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-api-key',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
     default='http://localhost:3000,http://127.0.0.1:3000',

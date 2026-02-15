@@ -213,6 +213,26 @@ class SiteSettings(models.Model):
         help_text=_('Currency for supplier costs')
     )
 
+    # PayPal Settings
+    paypal_client_id = models.CharField(
+        _('PayPal Client ID'),
+        max_length=255,
+        blank=True,
+        help_text=_('PayPal REST API Client ID')
+    )
+    paypal_client_secret = models.CharField(
+        _('PayPal Client Secret'),
+        max_length=255,
+        blank=True,
+        help_text=_('PayPal REST API Client Secret')
+    )
+    paypal_mode = models.CharField(
+        _('PayPal Mode'),
+        max_length=10,
+        default='sandbox',
+        help_text=_('sandbox or live')
+    )
+
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
 

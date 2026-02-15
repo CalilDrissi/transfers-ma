@@ -1,0 +1,42 @@
+{% extends "emails/base.html" %}
+{% block content %}
+{% if is_admin_alert %}
+<h2>New Booking Alert</h2>
+<p>A new booking has been placed.</p>
+{% else %}
+<h2>Booking Confirmed</h2>
+<p>Dear {{ customer_name|default:"Customer" }},</p>
+<p>Thank you for your booking! Your reservation has been confirmed.</p>
+{% endif %}
+
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <div class="detail-row">
+        <span class="detail-label">Booking Reference:</span>
+        <strong>{{ booking_ref }}</strong>
+    </div>
+    {% if details.pickup_address %}
+    <div class="detail-row">
+        <span class="detail-label">Pickup:</span> {{ details.pickup_address }}
+    </div>
+    {% endif %}
+    {% if details.dropoff_address %}
+    <div class="detail-row">
+        <span class="detail-label">Dropoff:</span> {{ details.dropoff_address }}
+    </div>
+    {% endif %}
+    {% if details.pickup_datetime %}
+    <div class="detail-row">
+        <span class="detail-label">Date & Time:</span> {{ details.pickup_datetime }}
+    </div>
+    {% endif %}
+    {% if details.total_price %}
+    <div class="detail-row">
+        <span class="detail-label">Total:</span> {{ details.total_price }} {{ details.currency|default:"MAD" }}
+    </div>
+    {% endif %}
+</div>
+
+{% if not is_admin_alert %}
+<p>If you have any questions, please don't hesitate to contact us.</p>
+{% endif %}
+{% endblock %}

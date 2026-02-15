@@ -53,6 +53,12 @@ class Zone(models.Model):
         _('deposit percentage'), max_digits=5, decimal_places=2,
         default=0, help_text=_('Percentage of total price required as deposit (0-100)')
     )
+    custom_info = models.JSONField(
+        _('custom information'),
+        default=dict,
+        blank=True,
+        help_text=_('Custom key-value data for this zone')
+    )
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
 
@@ -262,6 +268,12 @@ class Route(models.Model):
     deposit_percentage = models.DecimalField(
         _('deposit percentage'), max_digits=5, decimal_places=2,
         default=0, help_text=_('Percentage of total price required as deposit (0-100)')
+    )
+    custom_info = models.JSONField(
+        _('custom information'),
+        default=dict,
+        blank=True,
+        help_text=_('Custom key-value data for this route')
     )
 
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)

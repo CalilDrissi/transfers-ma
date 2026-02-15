@@ -1,0 +1,423 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap');
+
+/* =========================================
+   Booking Confirmation Page
+   ========================================= */
+
+.tb-confirmation {
+    background: #F8FAFC;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.tb-confirmation *,
+.tb-confirmation *::before,
+.tb-confirmation *::after {
+    box-sizing: border-box;
+}
+
+/* -----------------------------------------
+   Loading
+   ----------------------------------------- */
+
+.tb-confirmation__loading {
+    text-align: center;
+    padding: 80px 0;
+}
+
+.tb-confirmation__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #E2E8F0;
+    border-top-color: #2E8BFF;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: tb-confirmation-spin 0.8s linear infinite;
+}
+
+@keyframes tb-confirmation-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* -----------------------------------------
+   Error
+   ----------------------------------------- */
+
+.tb-confirmation__error {
+    text-align: center;
+    padding: 60px 0;
+}
+
+.tb-confirmation__error h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-top: 16px;
+}
+
+.tb-confirmation__error p {
+    font-size: 14px;
+    color: #64748B;
+    margin-top: 8px;
+}
+
+/* -----------------------------------------
+   Success Icon
+   ----------------------------------------- */
+
+.tb-confirmation__icon {
+    text-align: center;
+    margin-bottom: 24px;
+    animation: tb-icon-scale 0.5s ease-out forwards;
+}
+
+@keyframes tb-icon-scale {
+    0% {
+        transform: scale(0);
+    }
+    70% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.tb-confirmation__circle {
+    stroke-dasharray: 220;
+    stroke-dashoffset: 220;
+    animation: tb-circle-draw 0.6s ease-out forwards;
+}
+
+.tb-confirmation__check {
+    stroke-dasharray: 50;
+    stroke-dashoffset: 50;
+    animation: tb-check-draw 0.4s ease-out 0.5s forwards;
+}
+
+@keyframes tb-circle-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes tb-check-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* -----------------------------------------
+   Title
+   ----------------------------------------- */
+
+.tb-confirmation__title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1E293B;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+/* -----------------------------------------
+   Booking Reference
+   ----------------------------------------- */
+
+.tb-confirmation__ref {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.tb-confirmation__ref-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.tb-confirmation__ref-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1E293B;
+    letter-spacing: 2px;
+    background: #F1F5F9;
+    border-radius: 8px;
+    padding: 12px 20px;
+    display: inline-block;
+    cursor: pointer;
+    user-select: all;
+    transition: background 0.2s;
+}
+
+.tb-confirmation__ref-value:hover {
+    background: #E2E8F0;
+}
+
+.tb-confirmation__ref-copied {
+    font-size: 12px;
+    color: #10B981;
+    display: block;
+    margin-top: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tb-confirmation__ref-copied--visible {
+    opacity: 1;
+}
+
+/* -----------------------------------------
+   Info Banner
+   ----------------------------------------- */
+
+.tb-confirmation__info-banner {
+    background: #EFF6FF;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.tb-confirmation__info-banner p {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #1E40AF;
+    padding: 4px 0;
+}
+
+/* -----------------------------------------
+   Cards
+   ----------------------------------------- */
+
+.tb-confirmation__card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+}
+
+.tb-confirmation__card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+/* -----------------------------------------
+   Detail Grid
+   ----------------------------------------- */
+
+.tb-confirmation__detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.tb-confirmation__detail-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tb-confirmation__detail-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1E293B;
+    margin-top: 4px;
+}
+
+/* -----------------------------------------
+   Payment Lines
+   ----------------------------------------- */
+
+.tb-confirmation__payment-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tb-confirmation__payment-line {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #475569;
+}
+
+.tb-confirmation__payment-line--total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1E293B;
+    padding-top: 8px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.tb-confirmation__discount {
+    color: #10B981;
+}
+
+/* -----------------------------------------
+   Timeline
+   ----------------------------------------- */
+
+.tb-confirmation__timeline {
+    padding-left: 0;
+    position: relative;
+}
+
+.tb-confirmation__timeline-item {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 24px;
+    position: relative;
+}
+
+.tb-confirmation__timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.tb-confirmation__timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 36px;
+    width: 2px;
+    height: calc(100% - 36px);
+    background: #E2E8F0;
+}
+
+.tb-confirmation__timeline-item:last-child::before {
+    display: none;
+}
+
+.tb-confirmation__timeline-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #EFF6FF;
+    color: #2E8BFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.tb-confirmation__timeline-content strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1E293B;
+    display: block;
+}
+
+.tb-confirmation__timeline-content p {
+    font-size: 13px;
+    color: #64748B;
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+/* -----------------------------------------
+   Action Buttons
+   ----------------------------------------- */
+
+.tb-confirmation__actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 32px;
+}
+
+.tb-confirmation__btn {
+    height: 44px;
+    padding: 0 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.tb-confirmation__btn--outline {
+    background: #FFFFFF;
+    border: 1.5px solid #CBD5E1;
+    color: #475569;
+}
+
+.tb-confirmation__btn--outline:hover {
+    border-color: #94A3B8;
+}
+
+.tb-confirmation__btn--primary {
+    background: #2E8BFF;
+    border: none;
+    color: #FFFFFF;
+}
+
+.tb-confirmation__btn--primary:hover {
+    background: #1D6FE0;
+}
+
+/* -----------------------------------------
+   Print
+   ----------------------------------------- */
+
+@media print {
+    .tb-confirmation__actions,
+    .tb-confirmation__info-banner {
+        display: none;
+    }
+
+    .tb-confirmation__card {
+        box-shadow: none;
+        background: none;
+    }
+
+    .tb-confirmation {
+        max-width: 100%;
+    }
+}
+
+/* -----------------------------------------
+   Responsive (max-width: 768px)
+   ----------------------------------------- */
+
+@media (max-width: 768px) {
+    .tb-confirmation__detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tb-confirmation__title {
+        font-size: 22px;
+    }
+
+    .tb-confirmation__ref-value {
+        font-size: 22px;
+    }
+
+    .tb-confirmation__actions {
+        flex-direction: column;
+    }
+}

@@ -82,7 +82,7 @@ class VehicleSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'category', 'category_id', 'name', 'license_plate',
             'year', 'color', 'passengers', 'luggage', 'features', 'feature_ids',
-            'status', 'notes', 'is_active', 'daily_rate', 'weekly_rate',
+            'status', 'notes', 'custom_info', 'is_active', 'daily_rate', 'weekly_rate',
             'is_available_for_rental', 'images', 'primary_image', 'zone_pricing'
         ]
 

@@ -95,6 +95,20 @@
                         </div>
                     </div>
 
+                    <!-- Custom Information -->
+                    <div class="card mb-4 mt-4">
+                        <div class="card-header">
+                            <i class="bi bi-braces me-2"></i>Custom Information
+                        </div>
+                        <div class="card-body">
+                            <div id="customInfoPairs"></div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addCustomInfoPair()">
+                                <i class="bi bi-plus-lg me-1"></i>Add Field
+                            </button>
+                            <input type="hidden" name="custom_info" id="customInfoInput">
+                        </div>
+                    </div>
+
                     <div class="mt-4">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-2"></i>{% trans "Save Changes" %}
@@ -479,4 +493,37 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const customInfoData = JSON.parse('{{ vehicle.custom_info|escapejs }}' || '{}');
+const pairsContainer = document.getElementById('customInfoPairs');
+
+function addCustomInfoPair(key='', value='') {
+    const row = document.createElement('div');
+    row.className = 'input-group mb-2';
+    row.innerHTML = `<input type="text" class="form-control" placeholder="Key" value="${key}">
+        <input type="text" class="form-control" placeholder="Value" value="${value}">
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove(); serializeCustomInfo();">&times;</button>`;
+    row.querySelectorAll('input').forEach(i => i.addEventListener('input', serializeCustomInfo));
+    pairsContainer.appendChild(row);
+    serializeCustomInfo();
+}
+
+function serializeCustomInfo() {
+    const pairs = {};
+    pairsContainer.querySelectorAll('.input-group').forEach(row => {
+        const inputs = row.querySelectorAll('input[type=text]');
+        const k = inputs[0].value.trim();
+        const v = inputs[1].value.trim();
+        if (k) pairs[k] = v;
+    });
+    document.getElementById('customInfoInput').value = JSON.stringify(pairs);
+}
+
+// Init existing data
+Object.entries(customInfoData).forEach(([k, v]) => addCustomInfoPair(k, v));
+if (Object.keys(customInfoData).length === 0) serializeCustomInfo();
+</script>
 {% endblock %}

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from decimal import Decimal
 from apps.transfers.models import Transfer, TransferExtra, TransferExtraBooking
 from apps.vehicles.api.serializers import VehicleCategorySerializer
+from .validators import validate_phone, validate_future_datetime, validate_latitude, validate_longitude
 
 
 class TransferExtraSerializer(serializers.ModelSerializer):
@@ -54,6 +55,20 @@ class TransferCreateSerializer(serializers.ModelSerializer):
         child=serializers.DictField(),
         required=False,
         write_only=True
+    )
+    customer_phone = serializers.CharField(validators=[validate_phone])
+    pickup_datetime = serializers.DateTimeField(validators=[validate_future_datetime])
+    pickup_latitude = serializers.DecimalField(
+        max_digits=10, decimal_places=7, validators=[validate_latitude], required=False
+    )
+    pickup_longitude = serializers.DecimalField(
+        max_digits=10, decimal_places=7, validators=[validate_longitude], required=False
+    )
+    dropoff_latitude = serializers.DecimalField(
+        max_digits=10, decimal_places=7, validators=[validate_latitude], required=False
+    )
+    dropoff_longitude = serializers.DecimalField(
+        max_digits=10, decimal_places=7, validators=[validate_longitude], required=False
     )
 
     class Meta:
@@ -159,6 +174,30 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             transfer.deposit_amount = (transfer.total_price * deposit_percentage / Decimal('100')).quantize(Decimal('0.01'))
 
         transfer.save()
+
+        # Send email notifications
+        try:
+            from apps.notifications.tasks import send_booking_confirmation, send_admin_new_booking_alert
+            send_booking_confirmation.delay(
+                booking_ref=transfer.booking_ref,
+                customer_email=transfer.customer_email,
+                customer_name=transfer.customer_name,
+                booking_details={
+                    'pickup_address': transfer.pickup_address,
+                    'dropoff_address': transfer.dropoff_address,
+                    'pickup_datetime': str(transfer.pickup_datetime),
+                    'total_price': str(transfer.total_price),
+                    'currency': transfer.currency,
+                },
+            )
+            send_admin_new_booking_alert.delay(
+                booking_ref=transfer.booking_ref,
+                booking_type='transfer',
+                customer_name=transfer.customer_name,
+                total_price=str(transfer.total_price),
+            )
+        except Exception:
+            pass
 
         # Handle round trip
         if transfer.is_round_trip and transfer.return_datetime:

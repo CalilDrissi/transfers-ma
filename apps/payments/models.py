@@ -149,6 +149,22 @@ class Payment(models.Model):
         default=0
     )
 
+    # Coupon
+    coupon = models.ForeignKey(
+        'Coupon',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payments',
+        verbose_name=_('coupon'),
+    )
+    coupon_discount = models.DecimalField(
+        _('coupon discount'),
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
     # Error handling
     error_message = models.TextField(_('error message'), blank=True)
 
@@ -340,3 +356,130 @@ class Invoice(models.Model):
             created_at__year=year
         ).count() + 1
         return f"INV-{year}-{count:05d}"
+
+
+class Coupon(models.Model):
+    """Coupon/promo code for discounts."""
+
+    class DiscountType(models.TextChoices):
+        PERCENTAGE = 'percentage', _('Percentage')
+        FIXED = 'fixed', _('Fixed Amount')
+
+    class ApplicableTo(models.TextChoices):
+        ALL = 'all', _('All Bookings')
+        TRANSFER = 'transfer', _('Transfers')
+        TRIP = 'trip', _('Trips')
+        RENTAL = 'rental', _('Rentals')
+
+    code = models.CharField(_('code'), max_length=50, unique=True)
+    description = models.TextField(_('description'), blank=True)
+    discount_type = models.CharField(
+        _('discount type'),
+        max_length=20,
+        choices=DiscountType.choices,
+        default=DiscountType.PERCENTAGE,
+    )
+    discount_value = models.DecimalField(_('discount value'), max_digits=10, decimal_places=2)
+    currency = models.CharField(_('currency'), max_length=3, default='MAD')
+    min_order_amount = models.DecimalField(
+        _('minimum order amount'), max_digits=10, decimal_places=2, default=0
+    )
+    max_discount_amount = models.DecimalField(
+        _('maximum discount amount'), max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    usage_limit = models.PositiveIntegerField(_('usage limit'), null=True, blank=True)
+    usage_per_customer = models.PositiveIntegerField(_('usage per customer'), null=True, blank=True)
+    used_count = models.PositiveIntegerField(_('used count'), default=0)
+    valid_from = models.DateTimeField(_('valid from'), null=True, blank=True)
+    valid_until = models.DateTimeField(_('valid until'), null=True, blank=True)
+    applicable_to = models.CharField(
+        _('applicable to'),
+        max_length=20,
+        choices=ApplicableTo.choices,
+        default=ApplicableTo.ALL,
+    )
+    is_active = models.BooleanField(_('active'), default=True)
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('updated at'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('coupon')
+        verbose_name_plural = _('coupons')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.code
+
+    def calculate_discount(self, amount):
+        """Calculate the discount for a given amount."""
+        from decimal import Decimal
+        if self.discount_type == self.DiscountType.PERCENTAGE:
+            discount = amount * self.discount_value / Decimal('100')
+        else:
+            discount = self.discount_value
+
+        if self.max_discount_amount:
+            discount = min(discount, self.max_discount_amount)
+
+        return discount.quantize(Decimal('0.01'))
+
+    def is_valid(self, booking_type=None, amount=None, customer_email=None):
+        """Check if coupon is valid for the given context."""
+        from django.utils import timezone
+
+        if not self.is_active:
+            return False, 'Coupon is not active.'
+
+        if self.valid_from and timezone.now() < self.valid_from:
+            return False, 'Coupon is not yet valid.'
+
+        if self.valid_until and timezone.now() > self.valid_until:
+            return False, 'Coupon has expired.'
+
+        if self.usage_limit and self.used_count >= self.usage_limit:
+            return False, 'Coupon usage limit reached.'
+
+        if self.applicable_to != 'all' and booking_type and self.applicable_to != booking_type:
+            return False, f'Coupon not applicable to {booking_type} bookings.'
+
+        if amount and self.min_order_amount and amount < self.min_order_amount:
+            return False, f'Minimum order amount is {self.min_order_amount} {self.currency}.'
+
+        if customer_email and self.usage_per_customer:
+            customer_uses = CouponUsage.objects.filter(
+                coupon=self, customer_email=customer_email
+            ).count()
+            if customer_uses >= self.usage_per_customer:
+                return False, 'You have already used this coupon the maximum number of times.'
+
+        return True, 'Coupon is valid.'
+
+
+class CouponUsage(models.Model):
+    """Track coupon usage."""
+
+    coupon = models.ForeignKey(
+        Coupon,
+        on_delete=models.CASCADE,
+        related_name='usages',
+        verbose_name=_('coupon'),
+    )
+    customer_email = models.EmailField(_('customer email'))
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='coupon_usages',
+        verbose_name=_('payment'),
+    )
+    discount_applied = models.DecimalField(_('discount applied'), max_digits=10, decimal_places=2)
+    used_at = models.DateTimeField(_('used at'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('coupon usage')
+        verbose_name_plural = _('coupon usages')
+        ordering = ['-used_at']
+
+    def __str__(self):
+        return f"{self.coupon.code} - {self.customer_email}"

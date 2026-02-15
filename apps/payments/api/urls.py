@@ -10,6 +10,7 @@ router.register('invoices', views.InvoiceViewSet, basename='invoice')
 router.register('', views.PaymentViewSet, basename='payment')
 
 urlpatterns = [
+    path('coupons/validate/', views.CouponValidateView.as_view(), name='coupon_validate'),
     path('', include(router.urls)),
     path('webhooks/stripe/', views.StripeWebhookView.as_view(), name='stripe_webhook'),
     path('webhooks/paypal/', views.PayPalWebhookView.as_view(), name='paypal_webhook'),

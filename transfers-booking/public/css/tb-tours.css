@@ -1,0 +1,1013 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap');
+
+.tb-tours-listing *,
+.tb-tours-listing *::before,
+.tb-tours-listing *::after,
+.tb-tour-detail *,
+.tb-tour-detail *::before,
+.tb-tour-detail *::after {
+    box-sizing: border-box;
+}
+
+/* ========================================
+   TOURS LISTING
+   ======================================== */
+
+.tb-tours-listing {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.tb-tours-listing__header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.tb-tours-listing__title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.tb-tours-listing__subtitle {
+    font-size: 16px;
+    color: #64748B;
+    margin-top: 8px;
+}
+
+/* Filters */
+
+.tb-tours-listing__filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    padding: 16px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.tb-tours-listing__select {
+    height: 42px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 0 32px 0 12px;
+    font-size: 14px;
+    color: #334155;
+    background: #fff;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.tb-tours-listing__select:focus {
+    border-color: #2E8BFF;
+    outline: none;
+}
+
+/* Loading */
+
+.tb-tours-listing__loading {
+    text-align: center;
+    padding: 60px 0;
+}
+
+.tb-tours-listing__spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #E2E8F0;
+    border-top-color: #2E8BFF;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    animation: tb-tours-spin 0.8s linear infinite;
+}
+
+@keyframes tb-tours-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.tb-tours-listing__empty {
+    text-align: center;
+    padding: 60px 0;
+    color: #64748B;
+}
+
+/* Grid */
+
+.tb-tours-listing__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+/* Tour Card */
+
+.tb-tours-card {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s;
+}
+
+.tb-tours-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+}
+
+.tb-tours-card__image-wrap {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+}
+
+.tb-tours-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.tb-tours-card:hover .tb-tours-card__image {
+    transform: scale(1.05);
+}
+
+.tb-tours-card__badge {
+    position: absolute;
+    top: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tb-tours-card__badge--featured {
+    left: 12px;
+    background: #F59E0B;
+    color: #fff;
+}
+
+.tb-tours-card__badge--type {
+    right: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #334155;
+    backdrop-filter: blur(4px);
+}
+
+.tb-tours-card__body {
+    padding: 16px;
+}
+
+.tb-tours-card__name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 6px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tb-tours-card__description {
+    font-size: 13px;
+    color: #64748B;
+    margin-bottom: 12px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tb-tours-card__meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.tb-tours-card__meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #94A3B8;
+}
+
+.tb-tours-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid #F1F5F9;
+}
+
+.tb-tours-card__price-label {
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+.tb-tours-card__price-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.tb-tours-card__price-unit {
+    font-size: 12px;
+    color: #64748B;
+}
+
+.tb-tours-card__btn {
+    background: #2E8BFF;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.tb-tours-card__btn:hover {
+    background: #1D6FE0;
+}
+
+/* ========================================
+   TOUR DETAIL
+   ======================================== */
+
+.tb-tour-detail {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1E293B;
+}
+
+/* Loading / Error */
+
+.tb-tour-detail__loading {
+    text-align: center;
+    padding: 60px 0;
+}
+
+.tb-tour-detail__spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #E2E8F0;
+    border-top-color: #2E8BFF;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    animation: tb-tours-spin 0.8s linear infinite;
+}
+
+.tb-tour-detail__error {
+    text-align: center;
+    padding: 60px 0;
+}
+
+.tb-tour-detail__btn {
+    display: inline-block;
+    background: #2E8BFF;
+    color: #fff;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.tb-tour-detail__btn:hover {
+    background: #1D6FE0;
+}
+
+/* Hero */
+
+.tb-tour-detail__hero {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    border-radius: 0 0 20px 20px;
+}
+
+.tb-tour-detail__hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tb-tour-detail__hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent 60%);
+}
+
+.tb-tour-detail__hero-inner {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 32px;
+}
+
+.tb-tour-detail__hero-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tb-tour-detail__hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    backdrop-filter: blur(4px);
+}
+
+.tb-tour-detail__hero-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Layout */
+
+.tb-tour-detail__layout {
+    display: flex;
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 20px;
+}
+
+.tb-tour-detail__main {
+    flex: 1;
+    min-width: 0;
+}
+
+.tb-tour-detail__sidebar {
+    width: 360px;
+    flex-shrink: 0;
+}
+
+/* Quick Info */
+
+.tb-tour-detail__quick-info {
+    display: flex;
+    gap: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid #E2E8F0;
+    margin-bottom: 24px;
+}
+
+.tb-tour-detail__quick-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #475569;
+}
+
+/* Sections */
+
+.tb-tour-detail__section {
+    margin-bottom: 32px;
+}
+
+.tb-tour-detail__section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 16px;
+}
+
+.tb-tour-detail__section-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.tb-tour-detail__description {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #475569;
+}
+
+/* Highlights */
+
+.tb-tour-detail__highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tb-tour-detail__highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #F1F5F9;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #334155;
+}
+
+.tb-tour-detail__highlight-item::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310B981' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+}
+
+/* Itinerary */
+
+.tb-tour-detail__itinerary {
+    position: relative;
+}
+
+.tb-tour-detail__itinerary-stop {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 28px;
+    position: relative;
+}
+
+.tb-tour-detail__itinerary-stop::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 36px;
+    width: 2px;
+    height: calc(100% - 36px);
+    background: #E2E8F0;
+}
+
+.tb-tour-detail__itinerary-stop:last-child::before {
+    display: none;
+}
+
+.tb-tour-detail__itinerary-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #2E8BFF;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.tb-tour-detail__itinerary-content {
+    flex: 1;
+}
+
+.tb-tour-detail__itinerary-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.tb-tour-detail__itinerary-desc {
+    font-size: 13px;
+    color: #64748B;
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+.tb-tour-detail__itinerary-duration {
+    font-size: 12px;
+    color: #94A3B8;
+    margin-top: 4px;
+}
+
+/* Inclusions / Exclusions */
+
+.tb-tour-detail__incl-excl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.tb-tour-detail__incl-list,
+.tb-tour-detail__excl-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tb-tour-detail__incl-list li {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    padding: 4px 0;
+    font-size: 14px;
+    color: #334155;
+}
+
+.tb-tour-detail__incl-list li::before {
+    content: "\2713";
+    color: #10B981;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.tb-tour-detail__excl-list li {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    padding: 4px 0;
+    font-size: 14px;
+    color: #334155;
+}
+
+.tb-tour-detail__excl-list li::before {
+    content: "\2717";
+    color: #EF4444;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* Gallery */
+
+.tb-tour-detail__gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.tb-tour-detail__gallery-item {
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.tb-tour-detail__gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.tb-tour-detail__gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+/* FAQ */
+
+.tb-tour-detail__faq-item {
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.tb-tour-detail__faq-question {
+    width: 100%;
+    padding: 16px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1E293B;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.tb-tour-detail__faq-question::after {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+    transition: transform 0.3s;
+}
+
+.tb-tour-detail__faq-item--open .tb-tour-detail__faq-question::after {
+    transform: rotate(180deg);
+}
+
+.tb-tour-detail__faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.6;
+}
+
+.tb-tour-detail__faq-item--open .tb-tour-detail__faq-answer {
+    max-height: 500px;
+    padding-bottom: 16px;
+}
+
+/* Booking Card */
+
+.tb-tour-detail__booking-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 24px;
+}
+
+.tb-tour-detail__price-display {
+    margin-bottom: 20px;
+}
+
+.tb-tour-detail__price-from {
+    font-size: 12px;
+    color: #94A3B8;
+}
+
+.tb-tour-detail__price-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.tb-tour-detail__price-currency {
+    font-size: 16px;
+    font-weight: 500;
+    color: #64748B;
+}
+
+.tb-tour-detail__price-unit {
+    font-size: 13px;
+    color: #64748B;
+}
+
+.tb-tour-detail__book-field {
+    margin-bottom: 16px;
+}
+
+.tb-tour-detail__book-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.tb-tour-detail__book-input {
+    width: 100%;
+    height: 44px;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: border-color 0.2s;
+}
+
+.tb-tour-detail__book-input:focus {
+    border-color: #2E8BFF;
+    outline: none;
+}
+
+.tb-tour-detail__pax-row {
+    display: flex;
+    gap: 16px;
+}
+
+.tb-tour-detail__pax-group {
+    flex: 1;
+}
+
+.tb-tour-detail__pax-label {
+    font-size: 13px;
+    color: #64748B;
+    margin-bottom: 4px;
+}
+
+.tb-tour-detail__stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tb-tour-detail__stepper-btn {
+    width: 36px;
+    height: 36px;
+    background: #F8FAFC;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tb-tour-detail__stepper-btn:hover {
+    background: #E2E8F0;
+}
+
+.tb-tour-detail__stepper-value {
+    flex: 1;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    min-width: 32px;
+}
+
+/* Toggle */
+
+.tb-tour-detail__toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.tb-tour-detail__toggle-input {
+    display: none;
+}
+
+.tb-tour-detail__toggle-slider {
+    width: 44px;
+    height: 24px;
+    background: #CBD5E1;
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.tb-tour-detail__toggle-slider::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s;
+}
+
+.tb-tour-detail__toggle-input:checked + .tb-tour-detail__toggle-slider {
+    background: #2E8BFF;
+}
+
+.tb-tour-detail__toggle-input:checked + .tb-tour-detail__toggle-slider::after {
+    transform: translateX(20px);
+}
+
+/* Total */
+
+.tb-tour-detail__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-top: 1px solid #E2E8F0;
+    margin-bottom: 16px;
+}
+
+.tb-tour-detail__total-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.tb-tour-detail__total-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+/* Book Button */
+
+.tb-tour-detail__book-btn {
+    width: 100%;
+    height: 48px;
+    background: #2E8BFF;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.tb-tour-detail__book-btn:hover {
+    background: #1D6FE0;
+    transform: translateY(-1px);
+}
+
+/* Trust */
+
+.tb-tour-detail__trust {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.tb-tour-detail__trust-item {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    font-size: 12px;
+    color: #64748B;
+    padding: 3px 0;
+}
+
+/* Lightbox */
+
+.tb-tour-detail__lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tb-tour-detail__lightbox-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.tb-tour-detail__lightbox-img {
+    max-width: 90vw;
+    max-height: 80vh;
+    object-fit: contain;
+    z-index: 1;
+    border-radius: 4px;
+}
+
+.tb-tour-detail__lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 32px;
+    cursor: pointer;
+}
+
+.tb-tour-detail__lightbox-prev,
+.tb-tour-detail__lightbox-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tb-tour-detail__lightbox-prev {
+    left: 16px;
+}
+
+.tb-tour-detail__lightbox-next {
+    right: 16px;
+}
+
+.tb-tour-detail__lightbox-prev:hover,
+.tb-tour-detail__lightbox-next:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile Bottom Bar */
+
+.tb-tour-detail__mobile-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #fff;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding: 12px 16px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tb-tour-detail__mobile-price-label {
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+.tb-tour-detail__mobile-price-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.tb-tour-detail__mobile-book-btn {
+    background: #2E8BFF;
+    color: #fff;
+    padding: 10px 28px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (min-width: 769px) {
+    .tb-tour-detail__mobile-bar {
+        display: none !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .tb-tours-listing__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .tb-tours-listing__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tb-tour-detail__hero {
+        height: 280px;
+    }
+
+    .tb-tour-detail__hero-title {
+        font-size: 24px;
+    }
+
+    .tb-tour-detail__layout {
+        flex-direction: column;
+    }
+
+    .tb-tour-detail__sidebar {
+        width: 100%;
+        display: none;
+    }
+
+    .tb-tour-detail__mobile-bar {
+        display: flex;
+    }
+
+    .tb-tour-detail__incl-excl {
+        grid-template-columns: 1fr;
+    }
+
+    .tb-tour-detail__gallery {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

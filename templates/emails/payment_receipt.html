@@ -1,0 +1,30 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Payment Receipt</h2>
+<p>Dear {{ customer_name|default:"Customer" }},</p>
+<p>We have received your payment. Here are the details:</p>
+
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <div class="detail-row">
+        <span class="detail-label">Payment Reference:</span>
+        <strong>{{ payment_ref }}</strong>
+    </div>
+    {% if details.amount %}
+    <div class="detail-row">
+        <span class="detail-label">Amount:</span> {{ details.amount }} {{ details.currency|default:"MAD" }}
+    </div>
+    {% endif %}
+    {% if details.gateway %}
+    <div class="detail-row">
+        <span class="detail-label">Payment Method:</span> {{ details.gateway }}
+    </div>
+    {% endif %}
+    {% if details.booking_ref %}
+    <div class="detail-row">
+        <span class="detail-label">Booking Reference:</span> {{ details.booking_ref }}
+    </div>
+    {% endif %}
+</div>
+
+<p>Thank you for choosing {{ site_name }}.</p>
+{% endblock %}

@@ -107,6 +107,12 @@ class Vehicle(models.Model):
         default=Status.AVAILABLE
     )
     notes = models.TextField(_('notes'), blank=True)
+    custom_info = models.JSONField(
+        _('custom information'),
+        default=dict,
+        blank=True,
+        help_text=_('Custom key-value data for this vehicle')
+    )
     is_active = models.BooleanField(_('active'), default=True)
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from apps.transfers.api.search import UnifiedSearchView
 
 urlpatterns = [
     # Django Admin
@@ -22,6 +23,9 @@ urlpatterns = [
     path('api/v1/trips/', include('apps.trips.api.urls')),
     path('api/v1/rentals/', include('apps.rentals.api.urls')),
     path('api/v1/payments/', include('apps.payments.api.urls')),
+
+    # Unified Search
+    path('api/v1/search/', UnifiedSearchView.as_view(), name='unified_search'),
 
     # Language switching
     path('i18n/', include('django.conf.urls.i18n')),

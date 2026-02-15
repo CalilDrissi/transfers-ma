@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 from decimal import Decimal
+from apps.accounts.permissions import HasAPIKeyOrIsAuthenticated
 from apps.transfers.models import Transfer, TransferExtra
 from .serializers import (
     TransferSerializer,
@@ -79,7 +80,7 @@ class TransferViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['create', 'quote']:
-            return [permissions.AllowAny()]
+            return [HasAPIKeyOrIsAuthenticated()]
         if self.action in ['list', 'retrieve']:
             return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
@@ -330,6 +331,18 @@ class TransferViewSet(viewsets.ModelViewSet):
 
         transfer.status = new_status
         transfer.save()
+
+        # Send status update email
+        try:
+            from apps.notifications.tasks import send_status_update
+            send_status_update.delay(
+                booking_ref=transfer.booking_ref,
+                customer_email=transfer.customer_email,
+                customer_name=transfer.customer_name,
+                new_status=new_status,
+            )
+        except Exception:
+            pass
 
         return Response(TransferSerializer(transfer).data)
 

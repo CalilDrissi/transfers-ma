@@ -1,0 +1,13 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Booking Status Update</h2>
+<p>Dear {{ customer_name|default:"Customer" }},</p>
+<p>Your booking <strong>{{ booking_ref }}</strong> has been updated.</p>
+
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
+    <p style="margin: 0; font-size: 14px; color: #666;">New Status</p>
+    <p style="margin: 8px 0 0; font-size: 20px; font-weight: 700; text-transform: capitalize;">{{ new_status }}</p>
+</div>
+
+<p>If you have any questions about this update, please contact us.</p>
+{% endblock %}

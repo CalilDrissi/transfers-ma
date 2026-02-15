@@ -1,0 +1,111 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "API Keys" %}{% endblock %}
+{% block page_title %}{% trans "API Keys" %}{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createKeyModal">
+    <i class="bi bi-plus-lg me-1"></i>{% trans "Create API Key" %}
+</button>
+{% endblock %}
+
+{% block content %}
+{% if new_key %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <h5 class="alert-heading"><i class="bi bi-check-circle me-2"></i>{% trans "API Key Created!" %}</h5>
+    <p>{% trans "Copy your API key now. It will not be shown again." %}</p>
+    <div class="input-group mb-2" style="max-width: 600px;">
+        <input type="text" class="form-control font-monospace" value="{{ new_key }}" id="newKeyInput" readonly>
+        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('newKeyInput').value); this.innerHTML='<i class=\'bi bi-check\'></i> Copied!';">
+            <i class="bi bi-clipboard"></i> {% trans "Copy" %}
+        </button>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        {% if api_keys %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Key" %}</th>
+                        <th>{% trans "Tier" %}</th>
+                        <th>{% trans "Rate Limit" %}</th>
+                        <th>{% trans "Last Used" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key in api_keys %}
+                    <tr>
+                        <td><strong>{{ key.name }}</strong></td>
+                        <td><code>{{ key.prefix }}...</code></td>
+                        <td><span class="badge bg-{% if key.tier == 'premium' %}warning{% elif key.tier == 'standard' %}primary{% else %}secondary{% endif %}">{{ key.get_tier_display }}</span></td>
+                        <td>{{ key.rate_limit }}/min</td>
+                        <td>{% if key.last_used_at %}{{ key.last_used_at|timesince }} ago{% else %}<span class="text-muted">Never</span>{% endif %}</td>
+                        <td>
+                            {% if key.is_active %}
+                            <span class="badge bg-success">{% trans "Active" %}</span>
+                            {% else %}
+                            <span class="badge bg-danger">{% trans "Revoked" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'dashboard:api_key_detail' pk=key.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-key" style="font-size: 3rem;"></i>
+            <p class="mt-3">{% trans "No API keys yet. Create one to get started." %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Create Key Modal -->
+<div class="modal fade" id="createKeyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_key">
+                <div class="modal-header">
+                    <h5 class="modal-title">{% trans "Create API Key" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="key_name" class="form-label">{% trans "Name" %}</label>
+                        <input type="text" class="form-control" id="key_name" name="name" required placeholder="e.g. WordPress Plugin">
+                    </div>
+                    <div class="mb-3">
+                        <label for="key_tier" class="form-label">{% trans "Tier" %}</label>
+                        <select class="form-select" id="key_tier" name="tier">
+                            <option value="free">Free (30 req/min)</option>
+                            <option value="standard" selected>Standard (100 req/min)</option>
+                            <option value="premium">Premium (500 req/min)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Create Key" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,8 +1,9 @@
 from .base import PaymentGatewayBase
 from .stripe_gateway import StripeGateway
 from .paypal_gateway import PayPalGateway
+from .cash_gateway import CashGateway
 
-__all__ = ['PaymentGatewayBase', 'StripeGateway', 'PayPalGateway', 'get_gateway']
+__all__ = ['PaymentGatewayBase', 'StripeGateway', 'PayPalGateway', 'CashGateway', 'get_gateway']
 
 
 def get_gateway(gateway_type: str) -> PaymentGatewayBase:
@@ -16,6 +17,7 @@ def get_gateway(gateway_type: str) -> PaymentGatewayBase:
     gateways = {
         'stripe': StripeGateway,
         'paypal': PayPalGateway,
+        'cash': CashGateway,
     }
 
     gateway_class = gateways.get(gateway_type)

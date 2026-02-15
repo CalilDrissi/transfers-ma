@@ -10,15 +10,21 @@ defined('ABSPATH') || exit;
 class TB_API_Proxy {
 
     private $allowed_endpoints = [
-        'google_maps_config' => ['method' => 'GET',  'path' => '/locations/google-maps-config/'],
-        'get_pricing'        => ['method' => 'GET',  'path' => '/locations/routes/get_pricing/'],
-        'get_extras'         => ['method' => 'GET',  'path' => '/transfers/extras/'],
-        'get_categories'     => ['method' => 'GET',  'path' => '/vehicles/categories/'],
-        'get_quote'          => ['method' => 'POST', 'path' => '/transfers/quote/'],
-        'create_booking'     => ['method' => 'POST', 'path' => '/transfers/'],
-        'create_payment'     => ['method' => 'POST', 'path' => '/payments/'],
-        'confirm_payment'    => ['method' => 'POST', 'path' => '/payments/confirm/'],
-        'get_gateways'       => ['method' => 'GET',  'path' => '/payments/gateways/'],
+        'google_maps_config'  => ['method' => 'GET',  'path' => '/locations/google-maps-config/'],
+        'get_pricing'         => ['method' => 'GET',  'path' => '/locations/routes/get_pricing/'],
+        'get_extras'          => ['method' => 'GET',  'path' => '/transfers/extras/'],
+        'get_categories'      => ['method' => 'GET',  'path' => '/vehicles/categories/'],
+        'search_transfers'    => ['method' => 'GET',  'path' => '/search/'],
+        'create_booking'      => ['method' => 'POST', 'path' => '/transfers/'],
+        'get_booking_by_ref'  => ['method' => 'GET',  'path' => '/transfers/by-ref/', 'dynamic' => true],
+        'create_payment'      => ['method' => 'POST', 'path' => '/payments/'],
+        'confirm_payment'     => ['method' => 'POST', 'path' => '/payments/confirm/'],
+        'get_gateways'        => ['method' => 'GET',  'path' => '/payments/gateways/'],
+        'validate_coupon'     => ['method' => 'POST', 'path' => '/payments/coupons/validate/'],
+        'get_trips'           => ['method' => 'GET',  'path' => '/trips/'],
+        'get_trip_detail'     => ['method' => 'GET',  'path' => '/trips/', 'dynamic' => true],
+        'get_trip_schedules'  => ['method' => 'GET',  'path' => '/trips/', 'dynamic' => true],
+        'create_trip_booking' => ['method' => 'POST', 'path' => '/trips/bookings/'],
     ];
 
     public function handle_request() {
@@ -36,6 +42,21 @@ class TB_API_Proxy {
         $base_url = rtrim(TB_Settings::get('tb_api_base_url'), '/');
         $url = $base_url . '/api/v1' . $endpoint['path'];
 
+        // Handle dynamic path suffix (e.g. /transfers/by-ref/{ref}/, /trips/{slug}/)
+        if (!empty($endpoint['dynamic'])) {
+            $raw_params_check = isset($_POST['params']) ? wp_unslash($_POST['params']) : '{}';
+            $params_check = json_decode($raw_params_check, true);
+            if (is_array($params_check) && !empty($params_check['_path_suffix'])) {
+                $path_suffix = sanitize_text_field($params_check['_path_suffix']);
+                // Only allow safe characters in path suffix
+                $path_suffix = preg_replace('/[^a-zA-Z0-9\-_\/.]/', '', $path_suffix);
+                $url = rtrim($url, '/') . '/' . ltrim($path_suffix, '/');
+                if (substr($url, -1) !== '/') {
+                    $url .= '/';
+                }
+            }
+        }
+
         // Parse parameters
         $raw_params = isset($_POST['params']) ? wp_unslash($_POST['params']) : '{}';
         $params = json_decode($raw_params, true);
@@ -43,15 +64,23 @@ class TB_API_Proxy {
             $params = [];
         }
         $params = $this->sanitize_params($params);
+        unset($params['_path_suffix']);
 
         // Build request
         $args = [
             'timeout' => 30,
             'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept'       => 'application/json',
+                'Content-Type'    => 'application/json',
+                'Accept'          => 'application/json',
+                'Accept-Language' => $this->get_current_language(),
             ],
         ];
+
+        // Add API key if configured
+        $api_key = TB_Settings::get('tb_api_key');
+        if ($api_key) {
+            $args['headers']['X-API-Key'] = $api_key;
+        }
 
         if ($endpoint['method'] === 'GET') {
             $url = add_query_arg($params, $url);
@@ -74,6 +103,58 @@ class TB_API_Proxy {
         } else {
             wp_send_json_error($body ?: ['message' => 'API request failed.'], $status_code);
         }
+    }
+
+    /**
+     * Test API connection. Called via AJAX from admin settings page.
+     */
+    public function test_connection() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized.'], 403);
+        }
+        check_ajax_referer('tb_api_nonce', 'nonce');
+
+        $base_url = rtrim(TB_Settings::get('tb_api_base_url'), '/');
+        $url = $base_url . '/api/v1/payments/gateways/';
+
+        $args = [
+            'timeout' => 15,
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+        ];
+
+        $api_key = TB_Settings::get('tb_api_key');
+        if ($api_key) {
+            $args['headers']['X-API-Key'] = $api_key;
+        }
+
+        $response = wp_remote_get($url, $args);
+
+        if (is_wp_error($response)) {
+            wp_send_json_error(['message' => $response->get_error_message()]);
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        if ($status_code >= 200 && $status_code < 300) {
+            wp_send_json_success(['message' => 'Connection successful! API is reachable.']);
+        } else {
+            wp_send_json_error(['message' => 'API returned status ' . $status_code . '.']);
+        }
+    }
+
+    private function get_current_language() {
+        // WPML
+        if (defined('ICL_LANGUAGE_CODE')) {
+            return ICL_LANGUAGE_CODE;
+        }
+        // Polylang
+        if (function_exists('pll_current_language')) {
+            return pll_current_language('slug');
+        }
+        // Fallback to WordPress locale (e.g. fr_FR → fr)
+        $locale = determine_locale();
+        return substr($locale, 0, 2);
     }
 
     private function sanitize_params($params) {

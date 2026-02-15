@@ -1,0 +1,664 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap');
+
+/* ==========================================================================
+   Search Widget - Base
+   ========================================================================== */
+
+.tb-search-widget *,
+.tb-search-widget *::before,
+.tb-search-widget *::after {
+    box-sizing: border-box;
+}
+
+.tb-search-widget {
+    width: 100%;
+    padding: 24px;
+    border-radius: 16px;
+    position: relative;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+.tb-search-widget--dark {
+    background: linear-gradient(135deg, #0a1628, #162544, #0d1f3c);
+}
+
+.tb-search-widget--dark .tb-search-widget__tab {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.tb-search-widget--dark .tb-search-widget__tab--active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tb-search-widget--dark .tb-search-widget__headline {
+    color: #ffffff;
+}
+
+.tb-search-widget--dark .tb-search-widget__badge {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.tb-search-widget--dark .tb-search-widget__bar {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================================
+   Light Theme
+   ========================================================================== */
+
+.tb-search-widget--light {
+    background: transparent;
+}
+
+.tb-search-widget--light .tb-search-widget__tab {
+    color: #64748B;
+}
+
+.tb-search-widget--light .tb-search-widget__tab--active {
+    color: #1E293B;
+    background: #F1F5F9;
+}
+
+.tb-search-widget--light .tb-search-widget__headline {
+    color: #1E293B;
+}
+
+.tb-search-widget--light .tb-search-widget__badge {
+    color: #64748B;
+}
+
+.tb-search-widget--light .tb-search-widget__bar {
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.tb-search-widget__tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.tb-search-widget__tab {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    font-family: inherit;
+}
+
+.tb-search-widget__tab svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ==========================================================================
+   Headline
+   ========================================================================== */
+
+.tb-search-widget__headline {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+.tb-search-widget__form {
+    display: none;
+}
+
+.tb-search-widget__form--active {
+    display: block;
+}
+
+/* ==========================================================================
+   Horizontal Layout
+   ========================================================================== */
+
+.tb-search-widget--horizontal .tb-search-widget__bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 50px;
+    padding: 4px 4px 4px 20px;
+}
+
+.tb-search-widget--horizontal .tb-search-widget__fields {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 12px;
+    position: relative;
+}
+
+.tb-search-widget--horizontal .tb-search-widget__divider {
+    width: 1px;
+    height: 24px;
+    background: #E2E8F0;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Vertical Layout
+   ========================================================================== */
+
+.tb-search-widget--vertical .tb-search-widget__bar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.tb-search-widget--vertical .tb-search-widget__fields {
+    width: 100%;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.tb-search-widget--vertical .tb-search-widget__fields:focus-within {
+    border-color: #2E8BFF;
+    box-shadow: 0 0 0 3px rgba(46, 139, 255, 0.1);
+}
+
+.tb-search-widget--vertical .tb-search-widget__divider {
+    display: none;
+}
+
+.tb-search-widget--vertical .tb-search-widget__search-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ==========================================================================
+   Field Labels & Inputs
+   ========================================================================== */
+
+.tb-search-widget__label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    display: block;
+}
+
+.tb-search-widget__input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #1E293B;
+    width: 100%;
+    outline: none;
+    font-family: inherit;
+    padding: 0;
+}
+
+.tb-search-widget__input::placeholder {
+    color: #94A3B8;
+}
+
+/* ==========================================================================
+   Field Layout
+   ========================================================================== */
+
+.tb-search-widget__field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.tb-search-widget__field-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94A3B8;
+}
+
+.tb-search-widget__field-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.tb-search-widget__field--from .tb-search-widget__field-icon {
+    color: #2E8BFF;
+}
+
+.tb-search-widget__field--to .tb-search-widget__field-icon {
+    color: #EF4444;
+}
+
+/* ==========================================================================
+   Add / Remove Return
+   ========================================================================== */
+
+.tb-search-widget__add-return {
+    border: dashed 1px #2E8BFF;
+    border-radius: 20px;
+    color: #2E8BFF;
+    font-size: 12px;
+    padding: 6px 12px;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.tb-search-widget__remove-return {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: none;
+    color: #94A3B8;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* ==========================================================================
+   Search Button
+   ========================================================================== */
+
+.tb-search-widget__search-btn {
+    background: #2E8BFF;
+    color: #ffffff;
+    border: none;
+    border-radius: 40px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.tb-search-widget__search-btn:hover {
+    background: #1a6fd4;
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Counter Button
+   ========================================================================== */
+
+.tb-search-widget__counter-btn {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #1E293B;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    font-family: inherit;
+    width: 100%;
+    text-align: left;
+}
+
+.tb-search-widget__counter-btn svg {
+    color: #94A3B8;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Dropdowns
+   ========================================================================== */
+
+.tb-search-widget__dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 220px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    padding: 16px;
+    display: none;
+}
+
+.tb-search-widget__dropdown--open {
+    display: block;
+}
+
+.tb-search-widget__dropdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.tb-search-widget__dropdown-label {
+    font-size: 14px;
+    color: #1E293B;
+}
+
+.tb-search-widget__stepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tb-search-widget__stepper-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #E2E8F0;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #1E293B;
+    transition: 0.2s;
+}
+
+.tb-search-widget__stepper-btn:hover {
+    border-color: #2E8BFF;
+    color: #2E8BFF;
+}
+
+.tb-search-widget__stepper-btn[data-at-limit] {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.tb-search-widget__stepper-value {
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* ==========================================================================
+   Autocomplete
+   ========================================================================== */
+
+.tb-search-widget__autocomplete {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    min-width: 280px;
+    background: #ffffff;
+    border-radius: 12px;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    z-index: 200;
+    display: none;
+    padding: 4px;
+}
+
+.tb-search-widget__autocomplete--open {
+    display: block;
+}
+
+.tb-search-widget__autocomplete-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1E293B;
+    transition: 0.15s;
+}
+
+.tb-search-widget__autocomplete-item:hover {
+    background: #F1F5F9;
+}
+
+.tb-search-widget__autocomplete-item:active {
+    background: #EBF5FF;
+}
+
+/* ==========================================================================
+   Badges
+   ========================================================================== */
+
+.tb-search-widget__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+    justify-content: center;
+}
+
+.tb-search-widget__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tb-search-widget__badge--cancel svg {
+    color: #10B981;
+}
+
+.tb-search-widget__badge--rating svg {
+    color: #F59E0B;
+}
+
+.tb-search-widget__badge--secure svg {
+    color: #3B82F6;
+}
+
+/* ==========================================================================
+   Return Date
+   ========================================================================== */
+
+.tb-search-widget__return-toggle {
+    display: flex;
+    align-items: center;
+}
+
+.tb-search-widget__return-date {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+/* ==========================================================================
+   Datetime-local & Select Inputs
+   ========================================================================== */
+
+.tb-search-widget__input[type="datetime-local"],
+.tb-search-widget__input[type="date"],
+.tb-search-widget__input[type="time"] {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #1E293B;
+    width: 100%;
+    outline: none;
+    font-family: inherit;
+    padding: 0;
+}
+
+.tb-search-widget__select {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #1E293B;
+    width: 100%;
+    outline: none;
+    font-family: inherit;
+    padding: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394A3B8' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+    background-size: 12px;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   Validation
+   ========================================================================== */
+
+.tb-search-widget__field--invalid .tb-search-widget__input {
+    border-color: #EF4444;
+}
+
+.tb-search-widget--vertical .tb-search-widget__field--invalid .tb-search-widget__input {
+    border-color: #EF4444;
+}
+
+.tb-search-widget--horizontal .tb-search-widget__field--invalid {
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: 8px;
+}
+
+.tb-search-widget__bar--shake {
+    animation: tb-shake 0.4s ease;
+}
+
+@keyframes tb-shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-8px);
+    }
+    75% {
+        transform: translateX(8px);
+    }
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+.tb-search-widget__input:focus-visible,
+.tb-search-widget__select:focus-visible,
+.tb-search-widget__tab:focus-visible,
+.tb-search-widget__search-btn:focus-visible,
+.tb-search-widget__counter-btn:focus-visible,
+.tb-search-widget__stepper-btn:focus-visible,
+.tb-search-widget__add-return:focus-visible,
+.tb-search-widget__remove-return:focus-visible {
+    outline: 2px solid #2E8BFF;
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__input,
+.tb-search-widget[dir="rtl"] .tb-search-widget__select,
+.tb-search-widget[dir="rtl"] .tb-search-widget__counter-btn {
+    text-align: right;
+}
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__dropdown {
+    left: auto;
+    right: 0;
+}
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__autocomplete {
+    left: auto;
+    right: 0;
+}
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__field {
+    flex-direction: row-reverse;
+}
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__field-icon {
+    margin-left: 8px;
+    margin-right: 0;
+}
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__tab {
+    flex-direction: row-reverse;
+}
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__badge {
+    flex-direction: row-reverse;
+}
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__add-return {
+    flex-direction: row-reverse;
+}
+
+.tb-search-widget[dir="rtl"] .tb-search-widget__select {
+    padding-right: 0;
+    padding-left: 20px;
+    background-position: left 0 center;
+}
+
+/* ==========================================================================
+   Responsive (max-width: 768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .tb-search-widget--horizontal .tb-search-widget__bar {
+        flex-direction: column;
+        border-radius: 16px;
+        padding: 16px;
+    }
+
+    .tb-search-widget--horizontal .tb-search-widget__fields {
+        width: 100%;
+    }
+
+    .tb-search-widget--horizontal .tb-search-widget__divider {
+        display: none;
+    }
+
+    .tb-search-widget--horizontal .tb-search-widget__search-btn {
+        width: 100%;
+        justify-content: center;
+        border-radius: 12px;
+    }
+
+    .tb-search-widget--horizontal .tb-search-widget__add-return {
+        flex-wrap: wrap;
+    }
+}

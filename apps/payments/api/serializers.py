@@ -35,8 +35,9 @@ class CreatePaymentSerializer(serializers.Serializer):
     )
     booking_id = serializers.IntegerField()
     gateway_type = serializers.ChoiceField(
-        choices=['stripe', 'paypal']
+        choices=['stripe', 'paypal', 'cash']
     )
+    coupon_code = serializers.CharField(required=False, allow_blank=True)
     return_url = serializers.URLField(required=False)
     cancel_url = serializers.URLField(required=False)
 

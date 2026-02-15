@@ -11,6 +11,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from apps.accounts.models import User, SiteSettings
+from apps.accounts.api_keys import APIKey
 from apps.transfers.models import Transfer
 from apps.trips.models import (
     TripBooking, Trip, TripImage, TripHighlight, TripItineraryStop,
@@ -19,7 +20,7 @@ from apps.trips.models import (
 from apps.rentals.models import Rental
 from apps.vehicles.models import Vehicle, VehicleCategory, VehicleFeature, VehicleZonePricing, VehicleImage
 from apps.locations.models import Zone, ZoneDistanceRange, Route, VehicleRoutePricing, RoutePickupZone, RouteDropoffZone
-from apps.payments.models import Payment
+from apps.payments.models import Payment, Coupon
 
 
 def is_admin(user):
@@ -384,6 +385,14 @@ def vehicle_create(request, service_type='transfer'):
 
         if all([category_id, name, passengers, luggage]):
             try:
+                import json as json_mod
+                custom_info = {}
+                custom_info_raw = request.POST.get('custom_info', '{}')
+                try:
+                    custom_info = json_mod.loads(custom_info_raw) if custom_info_raw else {}
+                except (json_mod.JSONDecodeError, ValueError):
+                    pass
+
                 vehicle = Vehicle.objects.create(
                     category_id=category_id,
                     name=name,
@@ -393,6 +402,7 @@ def vehicle_create(request, service_type='transfer'):
                     daily_rate=daily_rate,
                     weekly_rate=weekly_rate,
                     service_type=service_type,
+                    custom_info=custom_info,
                     status='available',
                     is_active=True
                 )
@@ -492,6 +502,7 @@ def vehicle_detail(request, pk):
         action = request.POST.get('action')
 
         if action == 'update_vehicle':
+            import json as json_mod
             vehicle.category_id = request.POST.get('category')
             vehicle.name = request.POST.get('name')
             vehicle.passengers = request.POST.get('passengers')
@@ -502,6 +513,11 @@ def vehicle_detail(request, pk):
             vehicle.weekly_rate = request.POST.get('weekly_rate') or None
             vehicle.is_active = request.POST.get('is_active') == 'on'
             vehicle.notes = request.POST.get('notes', '')
+            custom_info_raw = request.POST.get('custom_info', '{}')
+            try:
+                vehicle.custom_info = json_mod.loads(custom_info_raw) if custom_info_raw else {}
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
 
             vehicle.save()
             messages.success(request, 'Vehicle updated successfully.')
@@ -799,12 +815,22 @@ def zone_create(request):
                 slug = f"{base_slug}-{counter}"
                 counter += 1
 
+            # Parse custom_info JSON
+            import json
+            custom_info = {}
+            custom_info_raw = request.POST.get('custom_info', '{}')
+            try:
+                custom_info = json.loads(custom_info_raw) if custom_info_raw else {}
+            except (json.JSONDecodeError, ValueError):
+                pass
+
             zone = Zone.objects.create(
                 name=name,
                 slug=slug,
                 description=description,
                 color=color,
                 deposit_percentage=request.POST.get('deposit_percentage', 0) or 0,
+                custom_info=custom_info,
                 is_active=True
             )
             messages.success(request, f'Zone "{name}" created successfully.')
@@ -825,11 +851,17 @@ def zone_detail(request, pk):
         action = request.POST.get('action')
 
         if action == 'update_zone':
+            import json
             zone.name = request.POST.get('name', zone.name)
             zone.description = request.POST.get('description', '')
             zone.color = request.POST.get('color', zone.color)
             zone.deposit_percentage = request.POST.get('deposit_percentage', 0) or 0
             zone.is_active = request.POST.get('is_active') == 'on'
+            custom_info_raw = request.POST.get('custom_info', '{}')
+            try:
+                zone.custom_info = json.loads(custom_info_raw) if custom_info_raw else {}
+            except (json.JSONDecodeError, ValueError):
+                pass
             zone.save()
             messages.success(request, 'Zone updated successfully.')
 
@@ -944,6 +976,14 @@ def route_create(request):
                 slug = f"{base_slug}-{counter}"
                 counter += 1
 
+            import json as json_mod
+            custom_info = {}
+            custom_info_raw = request.POST.get('custom_info', '{}')
+            try:
+                custom_info = json_mod.loads(custom_info_raw) if custom_info_raw else {}
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
+
             route = Route.objects.create(
                 name=name,
                 slug=slug,
@@ -959,6 +999,7 @@ def route_create(request):
                 distance_km=distance_km,
                 estimated_duration_minutes=request.POST.get('estimated_duration_minutes') or None,
                 deposit_percentage=request.POST.get('deposit_percentage', 0) or 0,
+                custom_info=custom_info,
                 is_bidirectional=True,
                 is_popular=False,
                 is_active=request.POST.get('is_active') == 'on'
@@ -990,6 +1031,7 @@ def route_detail(request, pk):
         action = request.POST.get('action')
 
         if action == 'update_route':
+            import json as json_mod
             route.name = request.POST.get('name', route.name)
             route.description = request.POST.get('description', '')
             route.origin_name = request.POST.get('origin_name', route.origin_name)
@@ -1003,6 +1045,11 @@ def route_detail(request, pk):
             route.distance_km = request.POST.get('distance_km', route.distance_km)
             route.estimated_duration_minutes = request.POST.get('estimated_duration_minutes') or None
             route.deposit_percentage = request.POST.get('deposit_percentage', 0) or 0
+            custom_info_raw = request.POST.get('custom_info', '{}')
+            try:
+                route.custom_info = json_mod.loads(custom_info_raw) if custom_info_raw else {}
+            except (json_mod.JSONDecodeError, ValueError):
+                pass
             route.is_bidirectional = request.POST.get('is_bidirectional') == 'on'
             route.is_popular = request.POST.get('is_popular') == 'on'
             route.is_active = request.POST.get('is_active') == 'on'
@@ -1280,6 +1327,13 @@ def settings_view(request):
             site_settings.stripe_webhook_secret = request.POST.get('stripe_webhook_secret', '')
             site_settings.save()
             messages.success(request, 'Stripe settings updated successfully.')
+
+        elif action == 'update_paypal':
+            site_settings.paypal_client_id = request.POST.get('paypal_client_id', '')
+            site_settings.paypal_client_secret = request.POST.get('paypal_client_secret', '')
+            site_settings.paypal_mode = request.POST.get('paypal_mode', 'sandbox')
+            site_settings.save()
+            messages.success(request, 'PayPal settings updated successfully.')
 
         elif action == 'update_general':
             site_settings.site_name = request.POST.get('site_name', site_settings.site_name)
@@ -1605,3 +1659,161 @@ def trip_preview(request, pk):
         'trip': trip,
         'related_trips': related,
     })
+
+
+# API Key Views
+@login_required
+@user_passes_test(is_admin)
+def api_key_list(request):
+    """List and create API keys."""
+    new_key = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create_key':
+            name = request.POST.get('name', '').strip()
+            tier = request.POST.get('tier', 'standard')
+
+            if name:
+                raw_key, hashed_key, prefix = APIKey.generate_key()
+                rate_limits = {'free': 30, 'standard': 100, 'premium': 500}
+                APIKey.objects.create(
+                    name=name,
+                    key=hashed_key,
+                    prefix=prefix,
+                    owner=request.user,
+                    tier=tier,
+                    rate_limit=rate_limits.get(tier, 100),
+                )
+                new_key = raw_key
+                messages.success(request, f'API key "{name}" created successfully.')
+            else:
+                messages.error(request, 'Key name is required.')
+
+    api_keys = APIKey.objects.filter(owner=request.user).order_by('-created_at')
+    if request.user.is_superuser:
+        api_keys = APIKey.objects.all().order_by('-created_at')
+
+    context = {
+        'api_keys': api_keys,
+        'new_key': new_key,
+    }
+    return render(request, 'dashboard/api_keys/list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def api_key_detail(request, pk):
+    """Edit/revoke/delete an API key."""
+    api_key = get_object_or_404(APIKey, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_key':
+            api_key.name = request.POST.get('name', api_key.name)
+            api_key.tier = request.POST.get('tier', api_key.tier)
+            api_key.rate_limit = int(request.POST.get('rate_limit', api_key.rate_limit))
+            api_key.is_active = request.POST.get('is_active') == 'on'
+
+            origins_raw = request.POST.get('allowed_origins', '')
+            api_key.allowed_origins = [o.strip() for o in origins_raw.split(',') if o.strip()] if origins_raw.strip() else []
+
+            api_key.save()
+            messages.success(request, 'API key updated successfully.')
+
+        elif action == 'revoke':
+            api_key.is_active = False
+            api_key.save()
+            messages.success(request, 'API key revoked.')
+
+        elif action == 'delete_key':
+            api_key.delete()
+            messages.success(request, 'API key deleted.')
+            return redirect('dashboard:api_key_list')
+
+        return redirect('dashboard:api_key_detail', pk=pk)
+
+    context = {
+        'api_key': api_key,
+    }
+    return render(request, 'dashboard/api_keys/detail.html', context)
+
+
+# Coupon Views
+@login_required
+@user_passes_test(is_admin)
+def coupon_list(request):
+    """List all coupons."""
+    coupons = Coupon.objects.all().order_by('-created_at')
+    context = {'coupons': coupons}
+    return render(request, 'dashboard/coupons/list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def coupon_create(request):
+    """Create a new coupon."""
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip().upper()
+        if code:
+            from django.utils.dateparse import parse_datetime
+            coupon = Coupon.objects.create(
+                code=code,
+                description=request.POST.get('description', ''),
+                discount_type=request.POST.get('discount_type', 'percentage'),
+                discount_value=request.POST.get('discount_value', 0),
+                currency=request.POST.get('currency', 'MAD'),
+                min_order_amount=request.POST.get('min_order_amount') or 0,
+                max_discount_amount=request.POST.get('max_discount_amount') or None,
+                usage_limit=request.POST.get('usage_limit') or None,
+                usage_per_customer=request.POST.get('usage_per_customer') or None,
+                valid_from=parse_datetime(request.POST.get('valid_from', '')) if request.POST.get('valid_from') else None,
+                valid_until=parse_datetime(request.POST.get('valid_until', '')) if request.POST.get('valid_until') else None,
+                applicable_to=request.POST.get('applicable_to', 'all'),
+                is_active=True,
+            )
+            messages.success(request, f'Coupon "{code}" created successfully.')
+            return redirect('dashboard:coupon_detail', pk=coupon.pk)
+        else:
+            messages.error(request, 'Coupon code is required.')
+
+    return render(request, 'dashboard/coupons/create.html')
+
+
+@login_required
+@user_passes_test(is_admin)
+def coupon_detail(request, pk):
+    """Edit/delete a coupon."""
+    coupon = get_object_or_404(Coupon, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_coupon':
+            from django.utils.dateparse import parse_datetime
+            coupon.code = request.POST.get('code', coupon.code).strip().upper()
+            coupon.description = request.POST.get('description', '')
+            coupon.discount_type = request.POST.get('discount_type', coupon.discount_type)
+            coupon.discount_value = request.POST.get('discount_value', coupon.discount_value)
+            coupon.currency = request.POST.get('currency', coupon.currency)
+            coupon.min_order_amount = request.POST.get('min_order_amount') or 0
+            coupon.max_discount_amount = request.POST.get('max_discount_amount') or None
+            coupon.usage_limit = request.POST.get('usage_limit') or None
+            coupon.usage_per_customer = request.POST.get('usage_per_customer') or None
+            coupon.valid_from = parse_datetime(request.POST.get('valid_from', '')) if request.POST.get('valid_from') else None
+            coupon.valid_until = parse_datetime(request.POST.get('valid_until', '')) if request.POST.get('valid_until') else None
+            coupon.applicable_to = request.POST.get('applicable_to', coupon.applicable_to)
+            coupon.is_active = request.POST.get('is_active') == 'on'
+            coupon.save()
+            messages.success(request, 'Coupon updated successfully.')
+
+        elif action == 'delete_coupon':
+            coupon.delete()
+            messages.success(request, 'Coupon deleted.')
+            return redirect('dashboard:coupon_list')
+
+        return redirect('dashboard:coupon_detail', pk=pk)
+
+    context = {'coupon': coupon}
+    return render(request, 'dashboard/coupons/detail.html', context)

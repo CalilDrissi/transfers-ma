@@ -1,0 +1,994 @@
+# Spanish (Spain) translation for Transfers Booking plugin.
+# Copyright (C) 2024 Transfers.ma
+# This file is distributed under the same license as the Transfers Booking plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Transfers Booking 1.0.0\n"
+"Report-Msgid-Bugs-To: https://transfers.ma\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-02-15 00:00+0100\n"
+"Last-Translator: Transfers.ma <contact@transfers.ma>\n"
+"Language-Team: Spanish <es@transfers.ma>\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Transfers.ma\n"
+"X-Domain: transfers-booking\n"
+
+#. Plugin Name of the plugin
+msgid "Transfers.ma Booking"
+msgstr "Transfers.ma Reservas"
+
+#. ==========================================
+#. ADMIN — Settings page
+#. ==========================================
+
+#: admin/class-tb-admin.php
+msgid "Transfers Booking"
+msgstr "Reservas de Transfers"
+
+#: admin/class-tb-admin.php
+msgid "API Connection"
+msgstr "Conexión API"
+
+#: admin/class-tb-admin.php
+msgid "Configure the connection to your Transfers.ma backend API."
+msgstr "Configure la conexión a su API backend de Transfers.ma."
+
+#: admin/class-tb-admin.php
+msgid "API Base URL"
+msgstr "URL base de la API"
+
+#: admin/class-tb-admin.php
+msgid "Google Maps API Key"
+msgstr "Clave API de Google Maps"
+
+#: admin/class-tb-admin.php
+msgid "Leave empty to fetch from the API automatically."
+msgstr "Déjelo vacío para obtenerla automáticamente de la API."
+
+#: admin/class-tb-admin.php
+msgid "Payment Settings"
+msgstr "Configuración de pagos"
+
+#: admin/class-tb-admin.php
+msgid "Configure Stripe payment integration."
+msgstr "Configure la integración de pagos con Stripe."
+
+#: admin/class-tb-admin.php
+msgid "Stripe Publishable Key"
+msgstr "Clave pública de Stripe"
+
+#: admin/class-tb-admin.php
+msgid "Starts with pk_"
+msgstr "Comienza con pk_"
+
+#: admin/class-tb-admin.php
+msgid "Appearance"
+msgstr "Apariencia"
+
+#: admin/class-tb-admin.php
+msgid "Customize the look of the booking widget."
+msgstr "Personalice la apariencia del widget de reservas."
+
+#: admin/class-tb-admin.php
+msgid "Primary Color"
+msgstr "Color principal"
+
+#: admin/class-tb-admin.php
+msgid "Accent Color"
+msgstr "Color de acento"
+
+#: admin/class-tb-admin.php
+msgid "Currency Symbol"
+msgstr "Símbolo de moneda"
+
+#: admin/class-tb-admin.php
+msgid "Currency Position"
+msgstr "Posición de la moneda"
+
+#: admin/class-tb-admin.php
+msgid "Before amount"
+msgstr "Antes del monto"
+
+#: admin/class-tb-admin.php
+msgid "After amount"
+msgstr "Después del monto"
+
+#: admin/class-tb-admin.php
+msgid "Features"
+msgstr "Funcionalidades"
+
+#: admin/class-tb-admin.php
+msgid "Enable or disable booking form features."
+msgstr "Active o desactive funcionalidades del formulario de reserva."
+
+#: admin/class-tb-admin.php
+msgid "Enable Round Trip"
+msgstr "Activar ida y vuelta"
+
+#: admin/class-tb-admin.php
+msgid "Enable Flight Number"
+msgstr "Activar número de vuelo"
+
+#: admin/class-tb-admin.php
+msgid "Page URLs"
+msgstr "URLs de páginas"
+
+#: admin/class-tb-admin.php
+msgid "Set the URLs for booking flow pages."
+msgstr "Establezca las URLs de las páginas del proceso de reserva."
+
+#: admin/class-tb-admin.php
+msgid "Results Page URL"
+msgstr "URL de la página de resultados"
+
+#: admin/class-tb-admin.php
+msgid "Page with [transfers_results] shortcode. Default: /book-transfer/"
+msgstr "Página con el shortcode [transfers_results]. Por defecto: /book-transfer/"
+
+#: admin/class-tb-admin.php
+msgid "Tours Page URL"
+msgstr "URL de la página de tours"
+
+#: admin/class-tb-admin.php
+msgid "Tours listing page. Default: /tours/"
+msgstr "Página de listado de tours. Por defecto: /tours/"
+
+#: admin/class-tb-admin.php
+msgid "Checkout Page URL"
+msgstr "URL de la página de pago"
+
+#: admin/class-tb-admin.php
+msgid "Checkout page. Default: /checkout/"
+msgstr "Página de pago. Por defecto: /checkout/"
+
+#: admin/class-tb-admin.php
+msgid "Confirmation Page URL"
+msgstr "URL de la página de confirmación"
+
+#: admin/class-tb-admin.php
+msgid "Booking confirmed page. Default: /booking-confirmed/"
+msgstr "Página de confirmación de reserva. Por defecto: /booking-confirmed/"
+
+#: admin/partials/settings-page.php
+msgid "Transfers.ma Booking Settings"
+msgstr "Configuración de Transfers.ma Reservas"
+
+#: admin/partials/settings-page.php
+msgid "Configure the booking widget. Use the shortcode"
+msgstr "Configure el widget de reservas. Use el shortcode"
+
+#: admin/partials/settings-page.php
+msgid "to embed the booking form on any page."
+msgstr "para insertar el formulario de reserva en cualquier página."
+
+#. ==========================================
+#. JS CONFIG — i18n strings passed to JavaScript
+#. ==========================================
+
+#: public/class-tb-public.php
+msgid "Airport Pickup"
+msgstr "Recogida en aeropuerto"
+
+#: public/class-tb-public.php
+msgid "Airport Drop-off"
+msgstr "Traslado al aeropuerto"
+
+#: public/class-tb-public.php
+msgid "City to City"
+msgstr "Ciudad a ciudad"
+
+#: public/class-tb-public.php
+msgid "Port Transfer"
+msgstr "Traslado portuario"
+
+#: public/class-tb-public.php
+msgid "Select pickup location"
+msgstr "Seleccione el lugar de recogida"
+
+#: public/class-tb-public.php
+msgid "Select drop-off location"
+msgstr "Seleccione el lugar de destino"
+
+#: public/class-tb-public.php
+msgid "Please select a transfer type"
+msgstr "Por favor seleccione un tipo de traslado"
+
+#: public/class-tb-public.php
+msgid "Please select date and time"
+msgstr "Por favor seleccione fecha y hora"
+
+#: public/class-tb-public.php
+msgid "Please select a vehicle"
+msgstr "Por favor seleccione un vehículo"
+
+#: public/class-tb-public.php
+msgid "This field is required"
+msgstr "Este campo es obligatorio"
+
+#: public/class-tb-public.php
+msgid "Please enter a valid email"
+msgstr "Por favor introduzca un email válido"
+
+#: public/class-tb-public.php
+msgid "Please enter a valid phone number"
+msgstr "Por favor introduzca un número de teléfono válido"
+
+#: public/class-tb-public.php
+msgid "Loading..."
+msgstr "Cargando..."
+
+#: public/class-tb-public.php
+msgid "Processing..."
+msgstr "Procesando..."
+
+#: public/class-tb-public.php
+msgid "No vehicles available for this route."
+msgstr "No hay vehículos disponibles para esta ruta."
+
+#: public/class-tb-public.php
+msgid "Something went wrong. Please try again."
+msgstr "Algo salió mal. Por favor inténtelo de nuevo."
+
+#: public/class-tb-public.php
+msgid "Payment failed. Please try again."
+msgstr "El pago ha fallado. Por favor inténtelo de nuevo."
+
+#: public/class-tb-public.php
+msgid "Distance"
+msgstr "Distancia"
+
+#: public/class-tb-public.php
+msgid "Est. Duration"
+msgstr "Duración est."
+
+#: public/class-tb-public.php
+msgid "passengers"
+msgstr "pasajeros"
+
+#: public/class-tb-public.php
+msgid "bags"
+msgstr "maletas"
+
+#: public/class-tb-public.php
+msgid "total price"
+msgstr "precio total"
+
+#: public/class-tb-public.php
+msgid "/each"
+msgstr "/unidad"
+
+#: public/class-tb-public.php
+msgid "Return date is required for round trips"
+msgstr "La fecha de regreso es obligatoria para viajes de ida y vuelta"
+
+#: public/class-tb-public.php
+msgid "Passenger"
+msgstr "Pasajero"
+
+#: public/class-tb-public.php
+msgid "Bag"
+msgstr "Maleta"
+
+#: public/class-tb-public.php
+msgid "Participant"
+msgstr "Participante"
+
+#: public/class-tb-public.php
+msgid "or similar"
+msgstr "o similar"
+
+#: public/class-tb-public.php
+msgid "Deposit"
+msgstr "Depósito"
+
+#: public/class-tb-public.php
+msgid "Invalid coupon code"
+msgstr "Código de cupón inválido"
+
+#: public/class-tb-public.php
+msgid "Please select a payment method"
+msgstr "Por favor seleccione un método de pago"
+
+#: public/class-tb-public.php
+msgid "Pay full amount"
+msgstr "Pagar el monto total"
+
+#: public/class-tb-public.php
+msgid "Pay deposit only"
+msgstr "Pagar solo el depósito"
+
+#: public/class-tb-public.php
+msgid "deposit"
+msgstr "depósito"
+
+#: public/class-tb-public.php
+msgid "Remaining"
+msgstr "Restante"
+
+#: public/class-tb-public.php
+msgid "to driver"
+msgstr "al conductor"
+
+#: public/class-tb-public.php
+msgid "Pay Cash to Driver"
+msgstr "Pagar en efectivo al conductor"
+
+#: public/class-tb-public.php
+msgid "Pay the full amount to your driver in cash"
+msgstr "Pague el monto total a su conductor en efectivo"
+
+#: public/class-tb-public.php
+msgid "Pay with PayPal"
+msgstr "Pagar con PayPal"
+
+#: public/class-tb-public.php
+msgid "Click below to pay with PayPal."
+msgstr "Haga clic a continuación para pagar con PayPal."
+
+#: public/class-tb-public.php
+msgid "Booking not found"
+msgstr "Reserva no encontrada"
+
+#: public/class-tb-public.php
+msgid "days"
+msgstr "días"
+
+#: public/class-tb-public.php
+msgid "day"
+msgstr "día"
+
+#: public/class-tb-public.php
+msgid "group"
+msgstr "grupo"
+
+#: public/class-tb-public.php
+msgid "person"
+msgstr "persona"
+
+#. ==========================================
+#. BOOKING WIDGET — 3-step wizard
+#. ==========================================
+
+#: public/partials/booking-widget.php
+msgid "Route"
+msgstr "Ruta"
+
+#: public/partials/booking-widget.php
+msgid "Vehicle"
+msgstr "Vehículo"
+
+#: public/partials/booking-widget.php
+msgid "Payment"
+msgstr "Pago"
+
+#: public/partials/step-1.php
+msgid "Book Your Transfer"
+msgstr "Reserve su traslado"
+
+#: public/partials/step-1.php
+msgid "Transfer Type"
+msgstr "Tipo de traslado"
+
+#: public/partials/step-1.php
+msgid "Select type..."
+msgstr "Seleccione tipo..."
+
+#: public/partials/step-1.php
+msgid "Pickup Location"
+msgstr "Lugar de recogida"
+
+#: public/partials/step-1.php
+msgid "City, airport, or hotel..."
+msgstr "Ciudad, aeropuerto u hotel..."
+
+#: public/partials/step-1.php
+msgid "Drop-off Location"
+msgstr "Lugar de destino"
+
+#: public/partials/step-1.php
+msgid "Date & Time"
+msgstr "Fecha y hora"
+
+#: public/partials/step-1.php
+msgid "Passengers"
+msgstr "Pasajeros"
+
+#: public/partials/step-1.php
+msgid "Round trip"
+msgstr "Ida y vuelta"
+
+#: public/partials/step-1.php
+msgid "Return Date & Time"
+msgstr "Fecha y hora de regreso"
+
+#: public/partials/step-1.php
+msgid "Flight Number"
+msgstr "Número de vuelo"
+
+#: public/partials/step-1.php
+msgid "e.g. AT 1234"
+msgstr "ej. AT 1234"
+
+#: public/partials/step-1.php
+msgid "Search Vehicles"
+msgstr "Buscar vehículos"
+
+#: public/partials/step-2.php
+msgid "Back to search"
+msgstr "Volver a la búsqueda"
+
+#: public/partials/step-2.php
+msgid "Choose your vehicle"
+msgstr "Elija su vehículo"
+
+#: public/partials/step-2.php
+msgid "Loading vehicles..."
+msgstr "Cargando vehículos..."
+
+#: public/partials/step-2.php
+msgid "Add extras"
+msgstr "Añadir extras"
+
+#: public/partials/step-2.php
+msgid "Optional services to enhance your journey"
+msgstr "Servicios opcionales para mejorar su viaje"
+
+#: public/partials/step-2.php
+msgid "Booking Summary"
+msgstr "Resumen de reserva"
+
+#: public/partials/step-2.php
+msgid "Date"
+msgstr "Fecha"
+
+#: public/partials/step-2.php
+msgid "Not selected"
+msgstr "No seleccionado"
+
+#: public/partials/step-2.php
+msgid "Total"
+msgstr "Total"
+
+#: public/partials/step-2.php
+msgid "Continue"
+msgstr "Continuar"
+
+#: public/partials/step-3.php
+msgid "Back to vehicle"
+msgstr "Volver al vehículo"
+
+#: public/partials/step-3.php
+msgid "Passenger Details"
+msgstr "Datos del pasajero"
+
+#: public/partials/step-3.php
+msgid "Full Name"
+msgstr "Nombre completo"
+
+#: public/partials/step-3.php
+msgid "John Doe"
+msgstr "Juan Pérez"
+
+#: public/partials/step-3.php
+msgid "Email"
+msgstr "Email"
+
+#: public/partials/step-3.php
+msgid "john@example.com"
+msgstr "juan@ejemplo.com"
+
+#: public/partials/step-3.php
+msgid "Phone"
+msgstr "Teléfono"
+
+#: public/partials/step-3.php
+msgid "+212 600 000 000"
+msgstr "+212 600 000 000"
+
+#: public/partials/step-3.php
+msgid "Special Requests"
+msgstr "Peticiones especiales"
+
+#: public/partials/step-3.php
+msgid "Optional"
+msgstr "Opcional"
+
+#: public/partials/step-3.php
+msgid "Pay Now"
+msgstr "Pagar ahora"
+
+#: public/partials/step-3.php
+msgid "Confirm Payment"
+msgstr "Confirmar pago"
+
+#: public/partials/step-3.php
+msgid "Order Summary"
+msgstr "Resumen del pedido"
+
+#: public/partials/confirmation.php
+msgid "Booking Confirmed!"
+msgstr "¡Reserva confirmada!"
+
+#: public/partials/confirmation.php
+msgid "Your transfer has been successfully booked."
+msgstr "Su traslado ha sido reservado con éxito."
+
+#: public/partials/confirmation.php
+msgid "Confirmation email sent to"
+msgstr "Email de confirmación enviado a"
+
+#: public/partials/confirmation.php
+msgid "Book Another Transfer"
+msgstr "Reservar otro traslado"
+
+#. ==========================================
+#. SEARCH WIDGET
+#. ==========================================
+
+#: public/partials/search-widget.php
+msgid "Transfers"
+msgstr "Traslados"
+
+#: public/partials/search-widget.php
+msgid "By the Hour"
+msgstr "Por horas"
+
+#: public/partials/search-widget.php
+msgid "Day Trips"
+msgstr "Excursiones"
+
+#: public/partials/search-widget.php
+msgid "From"
+msgstr "Desde"
+
+#: public/partials/search-widget.php
+msgid "Airport, hotel, address..."
+msgstr "Aeropuerto, hotel, dirección..."
+
+#: public/partials/search-widget.php
+msgid "To"
+msgstr "Hasta"
+
+#: public/partials/search-widget.php
+msgid "Return"
+msgstr "Regreso"
+
+#: public/partials/search-widget.php
+msgid "Add return"
+msgstr "Añadir regreso"
+
+#: public/partials/search-widget.php
+msgid "Adults"
+msgstr "Adultos"
+
+#: public/partials/search-widget.php
+msgid "Children"
+msgstr "Niños"
+
+#: public/partials/search-widget.php
+msgid "2 Adults"
+msgstr "2 Adultos"
+
+#: public/partials/search-widget.php
+msgid "Luggage"
+msgstr "Equipaje"
+
+#: public/partials/search-widget.php
+msgid "2 Bags"
+msgstr "2 Maletas"
+
+#: public/partials/search-widget.php
+msgid "Checked bags"
+msgstr "Equipaje facturado"
+
+#: public/partials/search-widget.php
+msgid "Hand luggage"
+msgstr "Equipaje de mano"
+
+#: public/partials/search-widget.php
+msgid "Search"
+msgstr "Buscar"
+
+#: public/partials/search-widget.php
+msgid "City"
+msgstr "Ciudad"
+
+#: public/partials/search-widget.php
+msgid "Select a city..."
+msgstr "Seleccione una ciudad..."
+
+#: public/partials/search-widget.php
+msgid "Hours"
+msgstr "Horas"
+
+#: public/partials/search-widget.php
+msgid "hours"
+msgstr "horas"
+
+#: public/partials/search-widget.php
+msgid "Participants"
+msgstr "Participantes"
+
+#: public/partials/search-widget.php
+msgid "Departure City"
+msgstr "Ciudad de salida"
+
+#: public/partials/search-widget.php
+msgid "Free cancellation 24h"
+msgstr "Cancelación gratuita 24h"
+
+#: public/partials/search-widget.php
+msgid "4.9/5 Google"
+msgstr "4.9/5 Google"
+
+#: public/partials/search-widget.php
+msgid "Secure payment"
+msgstr "Pago seguro"
+
+#. ==========================================
+#. RESULTS PAGE
+#. ==========================================
+
+#: public/partials/results-page.php
+msgid "Modify"
+msgstr "Modificar"
+
+#: public/partials/results-page.php
+msgid "Update Search"
+msgstr "Actualizar búsqueda"
+
+#: public/partials/results-page.php
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: public/partials/results-page.php
+msgid "Searching for available vehicles..."
+msgstr "Buscando vehículos disponibles..."
+
+#: public/partials/results-page.php
+msgid "No vehicles available for this route. Try a different route or date."
+msgstr "No hay vehículos disponibles para esta ruta. Pruebe otra ruta o fecha."
+
+#: public/partials/results-page.php
+msgid "Back to Search"
+msgstr "Volver a la búsqueda"
+
+#: public/partials/results-page.php
+msgid "Popular"
+msgstr "Popular"
+
+#: public/partials/results-page.php
+msgid "Book Now"
+msgstr "Reservar ahora"
+
+#: public/partials/results-page.php
+msgid "Add Extras"
+msgstr "Añadir extras"
+
+#. ==========================================
+#. CHECKOUT PAGE
+#. ==========================================
+
+#: public/partials/checkout-page.php
+msgid "Back to vehicles"
+msgstr "Volver a los vehículos"
+
+#: public/partials/checkout-page.php
+msgid "Email Address"
+msgstr "Dirección de email"
+
+#: public/partials/checkout-page.php
+msgid "Phone Number"
+msgstr "Número de teléfono"
+
+#: public/partials/checkout-page.php
+msgid "e.g. RAM 205"
+msgstr "ej. RAM 205"
+
+#: public/partials/checkout-page.php
+msgid "Pickup Details"
+msgstr "Detalles de recogida"
+
+#: public/partials/checkout-page.php
+msgid "Exact Pickup Address"
+msgstr "Dirección exacta de recogida"
+
+#: public/partials/checkout-page.php
+msgid "Hotel name, address, or landmark"
+msgstr "Nombre del hotel, dirección o punto de referencia"
+
+#: public/partials/checkout-page.php
+msgid "Child seat, wheelchair, extra stops..."
+msgstr "Silla infantil, silla de ruedas, paradas adicionales..."
+
+#: public/partials/checkout-page.php
+msgid "Promo Code"
+msgstr "Código promocional"
+
+#: public/partials/checkout-page.php
+msgid "Enter promo code"
+msgstr "Introduzca el código promocional"
+
+#: public/partials/checkout-page.php
+msgid "Apply"
+msgstr "Aplicar"
+
+#: public/partials/checkout-page.php
+msgid "Remove"
+msgstr "Eliminar"
+
+#: public/partials/checkout-page.php
+msgid "Payment Method"
+msgstr "Método de pago"
+
+#: public/partials/checkout-page.php
+msgid "Loading payment methods..."
+msgstr "Cargando métodos de pago..."
+
+#: public/partials/checkout-page.php
+msgid "Pay the full amount directly to your driver in cash (MAD). Your booking will be confirmed immediately."
+msgstr "Pague el monto total directamente a su conductor en efectivo (MAD). Su reserva será confirmada inmediatamente."
+
+#: public/partials/checkout-page.php
+msgid "Complete Booking"
+msgstr "Completar reserva"
+
+#: public/partials/checkout-page.php
+msgid "Secure, encrypted payment"
+msgstr "Pago seguro y encriptado"
+
+#: public/partials/checkout-page.php
+msgid "Base fare"
+msgstr "Tarifa base"
+
+#: public/partials/checkout-page.php
+msgid "Pay now (deposit)"
+msgstr "Pagar ahora (depósito)"
+
+#: public/partials/checkout-page.php
+msgid "Due to driver"
+msgstr "A pagar al conductor"
+
+#: public/partials/checkout-page.php
+msgid "Free cancellation 24h before"
+msgstr "Cancelación gratuita 24h antes"
+
+#: public/partials/checkout-page.php
+msgid "WhatsApp confirmation"
+msgstr "Confirmación por WhatsApp"
+
+#: public/partials/checkout-page.php
+msgid "Licensed, insured drivers"
+msgstr "Conductores con licencia y seguro"
+
+#. ==========================================
+#. CONFIRMATION PAGE
+#. ==========================================
+
+#: public/partials/confirmation-page.php
+msgid "Loading booking details..."
+msgstr "Cargando detalles de la reserva..."
+
+#: public/partials/confirmation-page.php
+msgid "Booking Not Found"
+msgstr "Reserva no encontrada"
+
+#: public/partials/confirmation-page.php
+msgid "We could not find this booking. Please check your reference number."
+msgstr "No pudimos encontrar esta reserva. Por favor verifique su número de referencia."
+
+#: public/partials/confirmation-page.php
+msgid "Back to Home"
+msgstr "Volver al inicio"
+
+#: public/partials/confirmation-page.php
+msgid "Booking Reference"
+msgstr "Referencia de reserva"
+
+#: public/partials/confirmation-page.php
+msgid "Click to copy"
+msgstr "Clic para copiar"
+
+#: public/partials/confirmation-page.php
+msgid "Copied!"
+msgstr "¡Copiado!"
+
+#: public/partials/confirmation-page.php
+msgid "A confirmation email has been sent to your inbox."
+msgstr "Se ha enviado un email de confirmación a su bandeja de entrada."
+
+#: public/partials/confirmation-page.php
+msgid "Your driver will contact you via WhatsApp before the trip."
+msgstr "Su conductor le contactará por WhatsApp antes del viaje."
+
+#: public/partials/confirmation-page.php
+msgid "Booking Details"
+msgstr "Detalles de la reserva"
+
+#: public/partials/confirmation-page.php
+msgid "Discount"
+msgstr "Descuento"
+
+#: public/partials/confirmation-page.php
+msgid "Paid online"
+msgstr "Pagado en línea"
+
+#: public/partials/confirmation-page.php
+msgid "What's Next"
+msgstr "Próximos pasos"
+
+#: public/partials/confirmation-page.php
+msgid "Check your email"
+msgstr "Revise su email"
+
+#: public/partials/confirmation-page.php
+msgid "You will receive a confirmation email with all details and your driver's contact."
+msgstr "Recibirá un email de confirmación con todos los detalles y el contacto de su conductor."
+
+#: public/partials/confirmation-page.php
+msgid "Driver contacts you"
+msgstr "El conductor le contacta"
+
+#: public/partials/confirmation-page.php
+msgid "24 hours before your pickup, your driver will send you a WhatsApp message with their details."
+msgstr "24 horas antes de su recogida, su conductor le enviará un mensaje de WhatsApp con sus datos."
+
+#: public/partials/confirmation-page.php
+msgid "Meet your driver"
+msgstr "Conozca a su conductor"
+
+#: public/partials/confirmation-page.php
+msgid "Your driver will meet you at the pickup point with a name sign. Sit back and enjoy the ride!"
+msgstr "Su conductor le esperará en el punto de recogida con un cartel con su nombre. ¡Relájese y disfrute del viaje!"
+
+#: public/partials/confirmation-page.php
+msgid "Print"
+msgstr "Imprimir"
+
+#. ==========================================
+#. TOURS LISTING
+#. ==========================================
+
+#: public/partials/tours/tour-listing.php
+msgid "Day Trips & Tours"
+msgstr "Excursiones y tours"
+
+#: public/partials/tours/tour-listing.php
+msgid "Discover Morocco with our curated experiences"
+msgstr "Descubra Marruecos con nuestras experiencias seleccionadas"
+
+#: public/partials/tours/tour-listing.php
+msgid "All Types"
+msgstr "Todos los tipos"
+
+#: public/partials/tours/tour-listing.php
+msgid "Day Trip"
+msgstr "Excursión de un día"
+
+#: public/partials/tours/tour-listing.php
+msgid "Half Day"
+msgstr "Medio día"
+
+#: public/partials/tours/tour-listing.php
+msgid "Multi-Day"
+msgstr "Varios días"
+
+#: public/partials/tours/tour-listing.php
+msgid "Private"
+msgstr "Privado"
+
+#: public/partials/tours/tour-listing.php
+msgid "Group"
+msgstr "Grupo"
+
+#: public/partials/tours/tour-listing.php
+msgid "All Cities"
+msgstr "Todas las ciudades"
+
+#: public/partials/tours/tour-listing.php
+msgid "Any Price"
+msgstr "Cualquier precio"
+
+#: public/partials/tours/tour-listing.php
+msgid "Under 500 MAD"
+msgstr "Menos de 500 MAD"
+
+#: public/partials/tours/tour-listing.php
+msgid "Over 2,000 MAD"
+msgstr "Más de 2.000 MAD"
+
+#: public/partials/tours/tour-listing.php
+msgid "Featured"
+msgstr "Destacado"
+
+#: public/partials/tours/tour-listing.php
+msgid "Price: Low to High"
+msgstr "Precio: menor a mayor"
+
+#: public/partials/tours/tour-listing.php
+msgid "Price: High to Low"
+msgstr "Precio: mayor a menor"
+
+#: public/partials/tours/tour-listing.php
+msgid "Name A-Z"
+msgstr "Nombre A-Z"
+
+#: public/partials/tours/tour-listing.php
+msgid "Loading tours..."
+msgstr "Cargando tours..."
+
+#: public/partials/tours/tour-listing.php
+msgid "No tours found matching your criteria."
+msgstr "No se encontraron tours que coincidan con sus criterios."
+
+#: public/partials/tours/tour-listing.php
+msgid "View Details"
+msgstr "Ver detalles"
+
+#. ==========================================
+#. TOUR DETAIL
+#. ==========================================
+
+#: public/partials/tours/tour-detail.php
+msgid "Loading tour details..."
+msgstr "Cargando detalles del tour..."
+
+#: public/partials/tours/tour-detail.php
+msgid "Tour Not Found"
+msgstr "Tour no encontrado"
+
+#: public/partials/tours/tour-detail.php
+msgid "This tour could not be found or is no longer available."
+msgstr "Este tour no se ha encontrado o ya no está disponible."
+
+#: public/partials/tours/tour-detail.php
+msgid "Browse All Tours"
+msgstr "Ver todos los tours"
+
+#: public/partials/tours/tour-detail.php
+msgid "About This Tour"
+msgstr "Acerca de este tour"
+
+#: public/partials/tours/tour-detail.php
+msgid "Highlights"
+msgstr "Destacados"
+
+#: public/partials/tours/tour-detail.php
+msgid "Itinerary"
+msgstr "Itinerario"
+
+#: public/partials/tours/tour-detail.php
+msgid "What's Included"
+msgstr "Qué incluye"
+
+#: public/partials/tours/tour-detail.php
+msgid "Not Included"
+msgstr "No incluye"
+
+#: public/partials/tours/tour-detail.php
+msgid "Gallery"
+msgstr "Galería"
+
+#: public/partials/tours/tour-detail.php
+msgid "FAQ"
+msgstr "Preguntas frecuentes"
+
+#: public/partials/tours/tour-detail.php
+msgid "Private Tour"
+msgstr "Tour privado"
+
+#: public/partials/tours/tour-detail.php
+msgid "Book This Tour"
+msgstr "Reservar este tour"
+
+#: public/partials/tours/tour-detail.php
+msgid "Licensed local guides"
+msgstr "Guías locales con licencia"
+
+#: public/partials/tours/tour-detail.php
+msgid "Instant confirmation"
+msgstr "Confirmación instantánea"

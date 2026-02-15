@@ -38,21 +38,39 @@ class TB_Admin {
         );
 
         $this->add_field('tb_api_base_url', __('API Base URL', 'transfers-booking'), 'tb_api_section', 'url');
+        $this->add_field('tb_api_key', __('API Key', 'transfers-booking'), 'tb_api_section', 'password',
+            __('Your Transfers.ma API key. Generate one in the Django dashboard.', 'transfers-booking'));
         $this->add_field('tb_google_maps_api_key', __('Google Maps API Key', 'transfers-booking'), 'tb_api_section', 'text',
             __('Leave empty to fetch from the API automatically.', 'transfers-booking'));
+
+        // Test Connection button (rendered after section)
+        add_settings_field(
+            'tb_test_connection',
+            __('Test Connection', 'transfers-booking'),
+            function () {
+                echo '<button type="button" id="tb-test-connection" class="button button-secondary">';
+                esc_html_e('Test Connection', 'transfers-booking');
+                echo '</button>';
+                echo '<span id="tb-test-result" style="margin-left:10px;"></span>';
+            },
+            'transfers-booking',
+            'tb_api_section'
+        );
 
         // Payment Settings
         add_settings_section(
             'tb_payment_section',
             __('Payment Settings', 'transfers-booking'),
             function () {
-                echo '<p>' . esc_html__('Configure Stripe payment integration.', 'transfers-booking') . '</p>';
+                echo '<p>' . esc_html__('Configure payment gateway credentials.', 'transfers-booking') . '</p>';
             },
             'transfers-booking'
         );
 
         $this->add_field('tb_stripe_publishable_key', __('Stripe Publishable Key', 'transfers-booking'), 'tb_payment_section', 'text',
             __('Starts with pk_', 'transfers-booking'));
+        $this->add_field('tb_paypal_client_id', __('PayPal Client ID', 'transfers-booking'), 'tb_payment_section', 'text',
+            __('PayPal app client ID for the JS SDK.', 'transfers-booking'));
 
         // Appearance Settings
         add_settings_section(
@@ -84,6 +102,25 @@ class TB_Admin {
 
         $this->add_field('tb_enable_round_trip', __('Enable Round Trip', 'transfers-booking'), 'tb_features_section', 'checkbox');
         $this->add_field('tb_enable_flight_number', __('Enable Flight Number', 'transfers-booking'), 'tb_features_section', 'checkbox');
+
+        // Page URLs
+        add_settings_section(
+            'tb_pages_section',
+            __('Page URLs', 'transfers-booking'),
+            function () {
+                echo '<p>' . esc_html__('Set the URLs for booking flow pages.', 'transfers-booking') . '</p>';
+            },
+            'transfers-booking'
+        );
+
+        $this->add_field('tb_results_page_url', __('Results Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Page with [transfers_results] shortcode. Default: /book-transfer/', 'transfers-booking'));
+        $this->add_field('tb_tours_page_url', __('Tours Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Tours listing page. Default: /tours/', 'transfers-booking'));
+        $this->add_field('tb_checkout_page_url', __('Checkout Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Checkout page. Default: /checkout/', 'transfers-booking'));
+        $this->add_field('tb_confirmation_page_url', __('Confirmation Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Booking confirmed page. Default: /booking-confirmed/', 'transfers-booking'));
     }
 
     private function add_field($id, $label, $section, $type = 'text', $description = '', $options = []) {
@@ -103,6 +140,14 @@ class TB_Admin {
                         printf(
                             '<input type="%s" id="%s" name="%s" value="%s" class="regular-text">',
                             esc_attr($type === 'url' ? 'url' : 'text'),
+                            esc_attr($id),
+                            esc_attr($id),
+                            esc_attr($value)
+                        );
+                        break;
+                    case 'password':
+                        printf(
+                            '<input type="password" id="%s" name="%s" value="%s" class="regular-text" autocomplete="off">',
                             esc_attr($id),
                             esc_attr($id),
                             esc_attr($value)
@@ -160,5 +205,27 @@ class TB_Admin {
             [],
             $this->version
         );
+    }
+
+    public function enqueue_scripts($hook) {
+        if ($hook !== 'settings_page_transfers-booking') {
+            return;
+        }
+        wp_enqueue_script(
+            'tb-admin',
+            TB_PLUGIN_URL . 'admin/js/tb-admin.js',
+            ['jquery'],
+            $this->version,
+            true
+        );
+        wp_localize_script('tb-admin', 'tbAdmin', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('tb_api_nonce'),
+            'i18n'    => [
+                'testing'    => __('Testing...', 'transfers-booking'),
+                'success'    => __('Connection successful!', 'transfers-booking'),
+                'failed'     => __('Connection failed.', 'transfers-booking'),
+            ],
+        ]);
     }
 }

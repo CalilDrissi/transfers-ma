@@ -323,6 +323,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{% url 'dashboard:coupon_list' %}" class="nav-link {% active_link request '/coupons/' %}" title="{% trans 'Coupons' %}">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <span class="nav-link-text">{% trans "Coupons" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{% url 'dashboard:reports' %}" class="nav-link {% active_link request '/reports/' %}" title="{% trans 'Reports' %}">
                     <i class="bi bi-bar-chart"></i>
                     <span class="nav-link-text">{% trans "Reports" %}</span>
@@ -333,6 +340,13 @@
                 <a href="{% url 'dashboard:settings' %}" class="nav-link {% active_link request '/settings/' %}" title="{% trans 'Settings' %}">
                     <i class="bi bi-gear"></i>
                     <span class="nav-link-text">{% trans "Settings" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:api_key_list' %}" class="nav-link {% active_link request '/api-keys/' %}" title="{% trans 'API Keys' %}">
+                    <i class="bi bi-key"></i>
+                    <span class="nav-link-text">{% trans "API Keys" %}</span>
                 </a>
             </li>
         </ul>

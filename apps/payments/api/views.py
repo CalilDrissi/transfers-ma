@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,7 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import HttpResponse
 
-from apps.payments.models import PaymentGateway, Payment, Refund, Invoice
+from apps.accounts.permissions import HasAPIKeyOrIsAuthenticated
+from apps.payments.models import PaymentGateway, Payment, Refund, Invoice, Coupon, CouponUsage
 from apps.payments.gateways import get_gateway
 from .serializers import (
     PaymentGatewaySerializer,
@@ -27,7 +30,7 @@ class PaymentGatewayViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for listing available payment gateways."""
     queryset = PaymentGateway.objects.filter(is_active=True)
     serializer_class = PaymentGatewaySerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -40,7 +43,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['create', 'confirm']:
-            return [permissions.AllowAny()]
+            return [HasAPIKeyOrIsAuthenticated()]
         if self.action in ['list', 'retrieve']:
             return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
@@ -95,6 +98,30 @@ class PaymentViewSet(viewsets.ModelViewSet):
         )
         gateway = get_gateway(gateway_type)
 
+        # Determine payment amount
+        payment_amount = booking.total_price
+        # For cash payments, use deposit_amount if available
+        if gateway_type == 'cash' and hasattr(booking, 'deposit_amount') and booking.deposit_amount:
+            payment_amount = booking.deposit_amount
+
+        # Handle coupon
+        coupon = None
+        coupon_discount = Decimal('0')
+        coupon_code = data.get('coupon_code', '').strip()
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(code__iexact=coupon_code)
+                valid, msg = coupon.is_valid(
+                    booking_type=booking_type,
+                    amount=payment_amount,
+                    customer_email=booking.customer_email,
+                )
+                if valid:
+                    coupon_discount = coupon.calculate_discount(payment_amount)
+                    payment_amount = max(payment_amount - coupon_discount, Decimal('0'))
+            except Coupon.DoesNotExist:
+                pass
+
         # Create payment in database
         content_type = ContentType.objects.get_for_model(booking)
         payment = Payment.objects.create(
@@ -104,13 +131,26 @@ class PaymentViewSet(viewsets.ModelViewSet):
             customer=request.user if request.user.is_authenticated else None,
             customer_email=booking.customer_email,
             gateway=gateway_db,
-            amount=booking.total_price,
+            amount=payment_amount,
             currency=booking.currency,
+            coupon=coupon,
+            coupon_discount=coupon_discount,
             metadata={
                 'booking_ref': booking.booking_ref,
                 'booking_type': booking_type,
             }
         )
+
+        # Record coupon usage
+        if coupon and coupon_discount > 0:
+            CouponUsage.objects.create(
+                coupon=coupon,
+                customer_email=booking.customer_email,
+                payment=payment,
+                discount_applied=coupon_discount,
+            )
+            coupon.used_count += 1
+            coupon.save(update_fields=['used_count'])
 
         # Create payment with gateway
         description = f"Payment for {booking.booking_ref}"
@@ -199,6 +239,23 @@ class PaymentViewSet(viewsets.ModelViewSet):
             booking = Rental.objects.get(id=payment.object_id)
             booking.status = new_status
             booking.save()
+
+        # Send payment receipt email
+        try:
+            from apps.notifications.tasks import send_payment_receipt
+            send_payment_receipt.delay(
+                payment_ref=payment.payment_ref,
+                customer_email=payment.customer_email,
+                customer_name=getattr(booking, 'customer_name', ''),
+                payment_details={
+                    'amount': str(payment.amount),
+                    'currency': payment.currency,
+                    'gateway': payment.gateway.display_name,
+                    'booking_ref': payment.metadata.get('booking_ref', ''),
+                },
+            )
+        except Exception:
+            pass
 
     @action(detail=True, methods=['post'])
     def refund(self, request, pk=None):
@@ -348,3 +405,46 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         if user.is_authenticated:
             return queryset.filter(payment__customer=user)
         return queryset.none()
+
+
+class CouponValidateView(APIView):
+    """Validate a coupon code and return discount details."""
+
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
+
+    def post(self, request):
+        code = request.data.get('code', '').strip()
+        booking_type = request.data.get('booking_type', '')
+        amount = request.data.get('amount')
+        customer_email = request.data.get('customer_email', '')
+
+        if not code:
+            return Response(
+                {'valid': False, 'message': 'Coupon code is required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            coupon = Coupon.objects.get(code__iexact=code)
+        except Coupon.DoesNotExist:
+            return Response({'valid': False, 'message': 'Invalid coupon code.'})
+
+        amount_decimal = Decimal(str(amount)) if amount else None
+        valid, message = coupon.is_valid(
+            booking_type=booking_type or None,
+            amount=amount_decimal,
+            customer_email=customer_email or None,
+        )
+
+        if not valid:
+            return Response({'valid': False, 'message': message})
+
+        discount_amount = coupon.calculate_discount(amount_decimal) if amount_decimal else Decimal('0')
+
+        return Response({
+            'valid': True,
+            'discount_amount': float(discount_amount),
+            'discount_type': coupon.discount_type,
+            'discount_value': float(coupon.discount_value),
+            'message': message,
+        })
