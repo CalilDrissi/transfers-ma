@@ -773,10 +773,10 @@ class Command(BaseCommand):
 
         # Itinerary stops
         TripItineraryStop.objects.filter(trip=trip).delete()
-        for i, (name, location, desc, time, duration) in enumerate(stops):
+        for i, (name, location, desc, _time, duration) in enumerate(stops):
             TripItineraryStop.objects.create(
                 trip=trip, name=name, location=location,
-                description=desc, time=time,
+                description=desc,
                 duration_minutes=duration, order=i,
             )
 
