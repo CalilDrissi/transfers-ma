@@ -498,7 +498,7 @@ class Command(BaseCommand):
             insurance_total = insurance.price_per_day * total_days
             total_price = vehicle_total + insurance_total
             commission_rate = company.commission_rate
-            commission_amount = total_price * commission_rate / 100
+            commission_amount = (total_price * commission_rate / Decimal('100')).quantize(Decimal('0.01'))
             payout_amount = total_price - commission_amount
 
             # Check for existing booking to keep idempotent
