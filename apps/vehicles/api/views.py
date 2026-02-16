@@ -105,7 +105,7 @@ class VehicleViewSet(viewsets.ModelViewSet):
     """
     ViewSet for vehicles.
 
-    Vehicles are individual cars/vans that can be booked for transfers or rentals.
+    Vehicles are individual cars/vans that can be booked for transfers.
     """
     queryset = Vehicle.objects.select_related('category').prefetch_related('features', 'images')
     permission_classes = [IsAdminOrReadOnly]
@@ -124,21 +124,6 @@ class VehicleViewSet(viewsets.ModelViewSet):
         if not self.request.user.is_staff:
             queryset = queryset.filter(is_active=True, status=Vehicle.Status.AVAILABLE)
         return queryset
-
-    @extend_schema(
-        summary="Get rental vehicles",
-        description="Get vehicles that are available for rental (not just transfers).",
-        tags=['Vehicles'],
-    )
-    @action(detail=False, methods=['get'])
-    def available_for_rental(self, request):
-        """Get vehicles available for rental."""
-        vehicles = self.get_queryset().filter(
-            service_type=Vehicle.ServiceType.RENTAL,
-            status=Vehicle.Status.AVAILABLE
-        )
-        serializer = VehicleListSerializer(vehicles, many=True)
-        return Response(serializer.data)
 
     @extend_schema(
         summary="Upload vehicle image",

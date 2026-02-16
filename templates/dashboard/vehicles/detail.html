@@ -5,8 +5,8 @@
 {% block page_title %}{{ vehicle.name }}{% endblock %}
 
 {% block page_actions %}
-<a href="{% if vehicle.service_type == 'rental' %}{% url 'dashboard:rental_vehicle_list' %}{% else %}{% url 'dashboard:transfer_vehicle_list' %}{% endif %}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left me-2"></i>{% if vehicle.service_type == 'rental' %}{% trans "Back to Rental Cars" %}{% else %}{% trans "Back to Transfer Vehicles" %}{% endif %}
+<a href="{% url 'dashboard:transfer_vehicle_list' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>{% trans "Back to Transfer Vehicles" %}
 </a>
 {% endblock %}
 
@@ -71,23 +71,6 @@
                                 </label>
                             </div>
                         </div>
-
-                        {% if vehicle.service_type == 'rental' %}
-                        <div class="col-12">
-                            <hr>
-                            <h6>{% trans "Rental Pricing" %}</h6>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">{% trans "Daily Rate" %} ({{ CURRENCY }})</label>
-                            <input type="number" name="daily_rate" class="form-control" step="0.01" min="0" value="{{ vehicle.daily_rate|default:'' }}">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">{% trans "Weekly Rate" %} ({{ CURRENCY }})</label>
-                            <input type="number" name="weekly_rate" class="form-control" step="0.01" min="0" value="{{ vehicle.weekly_rate|default:'' }}">
-                        </div>
-                        {% endif %}
 
                         <div class="col-12">
                             <label class="form-label">{% trans "Notes" %}</label>

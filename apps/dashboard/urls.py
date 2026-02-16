@@ -22,19 +22,10 @@ urlpatterns = [
     path('trips/<int:pk>/', views.trip_detail, name='trip_detail'),
     path('trips/bookings/', views.trip_booking_list, name='trip_booking_list'),
 
-    # Rentals
-    path('rentals/', views.rental_list, name='rental_list'),
-    path('rentals/<int:pk>/', views.rental_detail, name='rental_detail'),
-
     # Transfer Vehicles
     path('transfer-vehicles/', views.transfer_vehicle_list, name='transfer_vehicle_list'),
     path('transfer-vehicles/create/', views.vehicle_create, {'service_type': 'transfer'}, name='transfer_vehicle_create'),
     path('transfer-vehicles/<int:pk>/', views.vehicle_detail, name='transfer_vehicle_detail'),
-
-    # Rental Vehicles
-    path('rental-vehicles/', views.rental_vehicle_list, name='rental_vehicle_list'),
-    path('rental-vehicles/create/', views.vehicle_create, {'service_type': 'rental'}, name='rental_vehicle_create'),
-    path('rental-vehicles/<int:pk>/', views.vehicle_detail, name='rental_vehicle_detail'),
 
     # Vehicle Categories
     path('vehicle-categories/', views.vehicle_category_list, name='vehicle_category_list'),

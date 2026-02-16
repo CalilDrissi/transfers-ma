@@ -1,8 +1,8 @@
 {% extends 'dashboard/base.html' %}
 {% load i18n %}
 
-{% block title %}{% if service_type == 'rental' %}{% trans "Add Rental Car" %}{% else %}{% trans "Add Transfer Vehicle" %}{% endif %}{% endblock %}
-{% block page_title %}{% if service_type == 'rental' %}{% trans "Add Rental Car" %}{% else %}{% trans "Add Transfer Vehicle" %}{% endif %}{% endblock %}
+{% block title %}{% trans "Add Transfer Vehicle" %}{% endblock %}
+{% block page_title %}{% trans "Add Transfer Vehicle" %}{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -301,22 +301,6 @@
                         </div>
                         {% endif %}
 
-                        {% if service_type == 'rental' %}
-                        <div class="col-12">
-                            <hr>
-                            <h6>{% trans "Rental Pricing" %}</h6>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">{% trans "Daily Rate" %} ({{ CURRENCY }})</label>
-                            <input type="number" name="daily_rate" class="form-control" step="0.01" min="0">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">{% trans "Weekly Rate" %} ({{ CURRENCY }})</label>
-                            <input type="number" name="weekly_rate" class="form-control" step="0.01" min="0">
-                        </div>
-                        {% endif %}
                     </div>
 
                     <!-- Customer Information -->
@@ -372,7 +356,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-2"></i>{% trans "Create Vehicle" %}
                         </button>
-                        <a href="{% if service_type == 'rental' %}{% url 'dashboard:rental_vehicle_list' %}{% else %}{% url 'dashboard:transfer_vehicle_list' %}{% endif %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'dashboard:transfer_vehicle_list' %}" class="btn btn-outline-secondary">
                             {% trans "Cancel" %}
                         </a>
                     </div>

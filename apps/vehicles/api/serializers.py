@@ -86,7 +86,7 @@ class VehicleSerializer(serializers.ModelSerializer):
             'status', 'notes', 'client_description', 'key_features',
             'important_note', 'important_note_type',
             'custom_info', 'is_active', 'daily_rate', 'weekly_rate',
-            'is_available_for_rental', 'images', 'primary_image', 'zone_pricing'
+            'images', 'primary_image', 'zone_pricing'
         ]
 
     def get_primary_image(self, obj):
@@ -106,7 +106,7 @@ class VehicleListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'category_name', 'license_plate',
             'passengers', 'luggage', 'status', 'primary_image',
-            'daily_rate', 'is_available_for_rental'
+            'daily_rate'
         ]
 
     def get_primary_image(self, obj):

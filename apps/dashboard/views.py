@@ -17,7 +17,6 @@ from apps.trips.models import (
     TripBooking, Trip, TripImage, TripHighlight, TripItineraryStop,
     TripPriceTier, TripContentBlock, TripFAQ
 )
-from apps.rentals.models import Rental
 from apps.vehicles.models import Vehicle, VehicleCategory, VehicleFeature, VehicleZonePricing, VehicleImage
 from apps.locations.models import Zone, ZoneDistanceRange, Route, VehicleRoutePricing, RoutePickupZone, RouteDropoffZone
 from apps.payments.models import Payment, Coupon
@@ -70,11 +69,6 @@ def home(request):
     trips_today = TripBooking.objects.filter(created_at__date=today).count()
     trips_month = TripBooking.objects.filter(created_at__date__gte=month_start).count()
 
-    # Rental stats
-    rentals_today = Rental.objects.filter(created_at__date=today).count()
-    rentals_month = Rental.objects.filter(created_at__date__gte=month_start).count()
-    active_rentals = Rental.objects.filter(status='active').count()
-
     # Revenue stats
     revenue_today = Payment.objects.filter(
         status='completed',
@@ -92,7 +86,6 @@ def home(request):
     ).order_by('-created_at')[:5]
 
     recent_trips = TripBooking.objects.select_related('trip').order_by('-created_at')[:5]
-    recent_rentals = Rental.objects.select_related('vehicle').order_by('-created_at')[:5]
 
     # Chart data - last 7 days bookings
     last_7_days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
@@ -100,8 +93,7 @@ def home(request):
     for day in last_7_days:
         count = (
             Transfer.objects.filter(created_at__date=day).count() +
-            TripBooking.objects.filter(created_at__date=day).count() +
-            Rental.objects.filter(created_at__date=day).count()
+            TripBooking.objects.filter(created_at__date=day).count()
         )
         daily_bookings.append({
             'date': day.strftime('%b %d'),
@@ -114,14 +106,10 @@ def home(request):
         'pending_transfers': pending_transfers,
         'trips_today': trips_today,
         'trips_month': trips_month,
-        'rentals_today': rentals_today,
-        'rentals_month': rentals_month,
-        'active_rentals': active_rentals,
         'revenue_today': revenue_today,
         'revenue_month': revenue_month,
         'recent_transfers': recent_transfers,
         'recent_trips': recent_trips,
-        'recent_rentals': recent_rentals,
         'daily_bookings': daily_bookings,
     }
 
@@ -253,63 +241,6 @@ def trip_booking_list(request):
     return render(request, 'dashboard/trips/bookings.html', context)
 
 
-# Rental Views
-@login_required
-@user_passes_test(is_admin)
-def rental_list(request):
-    """List all rentals."""
-    rentals = Rental.objects.select_related(
-        'vehicle', 'customer'
-    ).order_by('-created_at')
-
-    # Filters
-    status = request.GET.get('status')
-    search = request.GET.get('search')
-
-    if status:
-        rentals = rentals.filter(status=status)
-    if search:
-        rentals = rentals.filter(
-            Q(booking_ref__icontains=search) |
-            Q(customer_name__icontains=search) |
-            Q(pickup_location__icontains=search) |
-            Q(return_location__icontains=search)
-        )
-
-    paginator = Paginator(rentals, 20)
-    page = request.GET.get('page')
-    rentals = paginator.get_page(page)
-
-    context = {
-        'rentals': rentals,
-        'statuses': Rental.Status.choices,
-    }
-    return render(request, 'dashboard/rentals/list.html', context)
-
-
-@login_required
-@user_passes_test(is_admin)
-def rental_detail(request, pk):
-    """Rental detail view."""
-    rental = get_object_or_404(
-        Rental.objects.select_related('vehicle', 'customer'),
-        pk=pk
-    )
-
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'update_status':
-            rental.status = request.POST.get('status')
-            rental.save()
-            messages.success(request, 'Status updated successfully.')
-
-    context = {
-        'rental': rental,
-        'statuses': Rental.Status.choices,
-    }
-    return render(request, 'dashboard/rentals/detail.html', context)
-
-
 # Vehicle Views
 @login_required
 @user_passes_test(is_admin)
@@ -341,37 +272,9 @@ def transfer_vehicle_list(request):
 
 @login_required
 @user_passes_test(is_admin)
-def rental_vehicle_list(request):
-    """List rental vehicles."""
-    vehicles = Vehicle.objects.select_related('category').prefetch_related('features', 'images').filter(
-        service_type='rental'
-    )
-
-    # Filters
-    category = request.GET.get('category')
-    status = request.GET.get('status')
-
-    if category:
-        vehicles = vehicles.filter(category_id=category)
-    if status:
-        vehicles = vehicles.filter(status=status)
-
-    categories = VehicleCategory.objects.filter(is_active=True)
-
-    context = {
-        'vehicles': vehicles,
-        'categories': categories,
-        'statuses': Vehicle.Status.choices,
-        'service_type': 'rental',
-    }
-    return render(request, 'dashboard/vehicles/rental_list.html', context)
-
-
-@login_required
-@user_passes_test(is_admin)
 def vehicle_create(request, service_type='transfer'):
     """Create a new vehicle."""
-    if service_type not in ['transfer', 'rental']:
+    if service_type != 'transfer':
         service_type = 'transfer'
 
     if request.method == 'POST':
@@ -474,8 +377,6 @@ def vehicle_create(request, service_type='transfer'):
                                 pass
 
                 messages.success(request, f'Vehicle "{name}" created successfully.')
-                if service_type == 'rental':
-                    return redirect('dashboard:rental_vehicle_list')
                 return redirect('dashboard:transfer_vehicle_list')
             except Exception as e:
                 messages.error(request, f'Error creating vehicle: {e}')
@@ -644,15 +545,10 @@ def vehicle_detail(request, pk):
 
         elif action == 'delete_vehicle':
             vehicle_name = vehicle.name
-            service_type = vehicle.service_type
             vehicle.delete()
             messages.success(request, f'Vehicle "{vehicle_name}" deleted successfully.')
-            if service_type == 'rental':
-                return redirect('dashboard:rental_vehicle_list')
             return redirect('dashboard:transfer_vehicle_list')
 
-        if vehicle.service_type == 'rental':
-            return redirect('dashboard:rental_vehicle_detail', pk=pk)
         return redirect('dashboard:transfer_vehicle_detail', pk=pk)
 
     categories = VehicleCategory.objects.filter(is_active=True)

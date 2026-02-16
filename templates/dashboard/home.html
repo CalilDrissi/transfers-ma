@@ -23,13 +23,6 @@
     </div>
     <div class="col-md-6 col-lg-3">
         <div class="stat-card">
-            <div class="stat-value">{{ rentals_today }}</div>
-            <div class="stat-label">{% trans "Rentals Today" %}</div>
-            <small class="text-muted">{{ active_rentals }} {% trans "active" %}</small>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
             <div class="stat-value">{{ revenue_today|currency }}</div>
             <div class="stat-label">{% trans "Revenue Today" %}</div>
             <small class="text-muted">{{ revenue_month|currency }} {% trans "this month" %}</small>
@@ -75,9 +68,6 @@
                     <a href="{% url 'dashboard:trip_booking_list' %}" class="btn btn-outline-primary">
                         <i class="bi bi-map me-2"></i>{% trans "View Trip Bookings" %}
                     </a>
-                    <a href="{% url 'dashboard:rental_list' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-car-front me-2"></i>{% trans "View Rentals" %}
-                    </a>
                     <a href="{% url 'dashboard:reports' %}" class="btn btn-outline-secondary">
                         <i class="bi bi-bar-chart me-2"></i>{% trans "View Reports" %}
                     </a>
@@ -90,7 +80,7 @@
 <!-- Recent Bookings -->
 <div class="row g-4 mt-2">
     <!-- Recent Transfers -->
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-arrow-left-right me-2"></i>{% trans "Recent Transfers" %}</span>
@@ -117,7 +107,7 @@
     </div>
 
     <!-- Recent Trip Bookings -->
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-map me-2"></i>{% trans "Recent Trip Bookings" %}</span>
@@ -141,30 +131,6 @@
         </div>
     </div>
 
-    <!-- Recent Rentals -->
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-car-front me-2"></i>{% trans "Recent Rentals" %}</span>
-                <a href="{% url 'dashboard:rental_list' %}" class="btn btn-sm btn-link">{% trans "View All" %}</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    {% for rental in recent_rentals %}
-                    <a href="{% url 'dashboard:rental_detail' rental.pk %}" class="list-group-item list-group-item-action">
-                        <div class="d-flex justify-content-between">
-                            <strong>{{ rental.booking_ref }}</strong>
-                            {{ rental.status|status_badge }}
-                        </div>
-                        <small class="text-muted">{{ rental.vehicle.name }}</small>
-                    </a>
-                    {% empty %}
-                    <div class="list-group-item text-muted">{% trans "No recent rentals" %}</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 {% endblock %}
 

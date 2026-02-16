@@ -288,7 +288,7 @@
                         </div>
                         <div>
                             {{ vehicle.status|status_badge }}
-                            <a href="{% if vehicle.service_type == 'rental' %}{% url 'dashboard:rental_vehicle_detail' vehicle.pk %}{% else %}{% url 'dashboard:transfer_vehicle_detail' vehicle.pk %}{% endif %}" class="btn btn-sm btn-outline-primary ms-2">
+                            <a href="{% url 'dashboard:transfer_vehicle_detail' vehicle.pk %}" class="btn btn-sm btn-outline-primary ms-2">
                                 <i class="bi bi-pencil"></i>
                             </a>
                         </div>

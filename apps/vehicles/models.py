@@ -166,9 +166,6 @@ class Vehicle(models.Model):
     def is_available_for_transfer(self):
         return self.service_type == self.ServiceType.TRANSFER
 
-    @property
-    def is_available_for_rental(self):
-        return self.service_type == self.ServiceType.RENTAL
 
 
 class VehicleImage(models.Model):

@@ -86,9 +86,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
             booking = TripBooking.objects.get(id=booking_id)
             payment_type = Payment.PaymentType.TRIP
         elif booking_type == 'rental':
-            from apps.rentals.models import Rental
-            booking = Rental.objects.get(id=booking_id)
-            payment_type = Payment.PaymentType.RENTAL
+            return Response(
+                {'error': 'Rental bookings are not currently supported.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Get gateway
         gateway_type = data['gateway_type']
@@ -234,12 +235,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
             booking = TripBooking.objects.get(id=payment.object_id)
             booking.status = new_status
             booking.save()
-        elif payment.payment_type == Payment.PaymentType.RENTAL:
-            from apps.rentals.models import Rental
-            booking = Rental.objects.get(id=payment.object_id)
-            booking.status = new_status
-            booking.save()
-
         # Send payment receipt email
         try:
             from apps.notifications.tasks import send_payment_receipt
