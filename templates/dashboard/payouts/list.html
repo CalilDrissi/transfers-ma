@@ -1,0 +1,198 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Payouts" %}{% endblock %}
+{% block page_title %}{% trans "Company Payouts" %}{% endblock %}
+
+{% block content %}
+<!-- Generate Payout Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-plus-circle me-2"></i>{% trans "Generate Payout" %}
+    </div>
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate_payout">
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Company" %}</label>
+                <select name="company_id" class="form-select" required>
+                    <option value="">{% trans "Select Company" %}</option>
+                    {% for c in all_companies %}
+                    <option value="{{ c.pk }}">{{ c.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Period Start" %}</label>
+                <input type="date" name="period_start" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Period End" %}</label>
+                <input type="date" name="period_end" class="form-control" required>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-calculator me-2"></i>{% trans "Generate" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Status" %}</label>
+                <select name="status" class="form-select">
+                    <option value="">{% trans "All Statuses" %}</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Company" %}</label>
+                <select name="company" class="form-select">
+                    <option value="">{% trans "All Companies" %}</option>
+                    {% for c in all_companies %}
+                    <option value="{{ c.pk }}" {% if request.GET.company == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>{% trans "Filter" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Payouts Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Company" %}</th>
+                        <th>{% trans "Period" %}</th>
+                        <th>{% trans "Gross" %}</th>
+                        <th>{% trans "Commission" %}</th>
+                        <th>{% trans "Net" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Paid At" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payout in payouts %}
+                    <tr>
+                        <td><strong>{{ payout.company.company_name }}</strong></td>
+                        <td>
+                            {{ payout.period_start|date:"M d, Y" }}<br>
+                            <small class="text-muted">{% trans "to" %} {{ payout.period_end|date:"M d, Y" }}</small>
+                        </td>
+                        <td>{{ payout.gross_amount }}</td>
+                        <td class="text-danger">{{ payout.commission_amount }}</td>
+                        <td class="fw-bold text-success">{{ payout.net_amount }}</td>
+                        <td>
+                            {% if payout.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                            {% elif payout.status == 'completed' %}
+                            <span class="badge bg-success">{% trans "Completed" %}</span>
+                            {% elif payout.status == 'cancelled' %}
+                            <span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ payout.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if payout.paid_at %}
+                            {{ payout.paid_at|date:"M d, Y" }}<br>
+                            {% if payout.payment_reference %}
+                            <small class="text-muted">{{ payout.payment_reference }}</small>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if payout.status == 'pending' %}
+                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#markPaidModal{{ payout.pk }}" title="{% trans 'Mark as Paid' %}">
+                                <i class="bi bi-check-circle"></i>
+                            </button>
+                            <!-- Mark Paid Modal -->
+                            <div class="modal fade" id="markPaidModal{{ payout.pk }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="mark_paid">
+                                            <input type="hidden" name="payout_id" value="{{ payout.pk }}">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">{% trans "Mark Payout as Paid" %}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>{% trans "Company" %}: <strong>{{ payout.company.company_name }}</strong></p>
+                                                <p>{% trans "Net Amount" %}: <strong class="text-success">{{ payout.net_amount }}</strong></p>
+                                                <div class="mb-3">
+                                                    <label class="form-label">{% trans "Payment Reference" %}</label>
+                                                    <input type="text" name="payment_reference" class="form-control" placeholder="{% trans 'Transaction ID, bank ref, etc.' %}">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                                                <button type="submit" class="btn btn-success">{% trans "Mark as Paid" %}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            {% trans "No payouts found." %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if payouts.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if payouts.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ payouts.previous_page_number }}&{{ request.GET.urlencode }}">&laquo;</a>
+        </li>
+        {% endif %}
+
+        {% for num in payouts.paginator.page_range %}
+            {% if payouts.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > payouts.number|add:'-3' and num < payouts.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if payouts.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ payouts.next_page_number }}&{{ request.GET.urlencode }}">&raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,436 @@
+{% extends 'portal/base.html' %}
+{% load i18n %}
+
+{% block active_nav %}fleet{% endblock %}
+{% block page_title %}{{ vehicle.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .image-preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .image-preview-item {
+        width: 100px;
+        height: 100px;
+        border-radius: 0.5rem;
+        object-fit: cover;
+        border: 2px solid #dee2e6;
+    }
+    .tag-input-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        min-height: 42px;
+        cursor: text;
+        background: #fff;
+    }
+    .tag-input-container:focus-within {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .tag-input-container .tag {
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        padding: 0.15rem 0.5rem;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .tag-input-container .tag .remove-tag {
+        cursor: pointer;
+        font-weight: bold;
+        color: #6c757d;
+    }
+    .tag-input-container .tag .remove-tag:hover {
+        color: #dc3545;
+    }
+    .tag-input-container input {
+        border: none;
+        outline: none;
+        flex: 1;
+        min-width: 100px;
+        padding: 0.15rem 0;
+    }
+    .existing-image {
+        position: relative;
+        display: inline-block;
+    }
+    .existing-image img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+        border: 2px solid #dee2e6;
+    }
+    .existing-image.primary img {
+        border-color: #0d6efd;
+    }
+    .existing-image .image-actions {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        display: flex;
+        gap: 2px;
+    }
+    .existing-image .image-actions button,
+    .existing-image .image-actions a {
+        padding: 2px 5px;
+        font-size: 0.7rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Left Column: Edit Form -->
+    <div class="col-lg-8">
+        <form method="post" enctype="multipart/form-data" id="vehicleForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_vehicle">
+
+
+            <!-- Basic Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i>{% trans "Basic Information" %}
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">{% trans "Vehicle Name" %} <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="name" class="form-control" value="{{ vehicle.name|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">{% trans "Category" %} <span class="text-danger">*</span></label>
+                            <select name="category" id="category" class="form-select" required>
+                                <option value="">{% trans "Select category" %}</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.pk }}" {% if vehicle.category_id == cat.pk %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="license_plate" class="form-label">{% trans "License Plate" %}</label>
+                            <input type="text" name="license_plate" id="license_plate" class="form-control" value="{{ vehicle.license_plate|default:'' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="year" class="form-label">{% trans "Year" %}</label>
+                            <input type="number" name="year" id="year" class="form-control" value="{{ vehicle.year|default:'' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="color" class="form-label">{% trans "Color" %}</label>
+                            <input type="text" name="color" id="color" class="form-control" value="{{ vehicle.color|default:'' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="passengers" class="form-label">{% trans "Passengers" %} <span class="text-danger">*</span></label>
+                            <input type="number" name="passengers" id="passengers" class="form-control" value="{{ vehicle.passengers|default:'' }}" min="1" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="luggage" class="form-label">{% trans "Luggage" %} <span class="text-danger">*</span></label>
+                            <input type="number" name="luggage" id="luggage" class="form-control" value="{{ vehicle.luggage|default:'' }}" min="0" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="doors" class="form-label">{% trans "Doors" %}</label>
+                            <input type="number" name="doors" id="doors" class="form-control" value="{{ vehicle.doors|default:'' }}" min="2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specs -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-gear me-2"></i>{% trans "Specifications" %}
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="transmission" class="form-label">{% trans "Transmission" %}</label>
+                            <select name="transmission" id="transmission" class="form-select">
+                                <option value="">{% trans "Select..." %}</option>
+                                <option value="automatic" {% if vehicle.transmission == 'automatic' %}selected{% endif %}>{% trans "Automatic" %}</option>
+                                <option value="manual" {% if vehicle.transmission == 'manual' %}selected{% endif %}>{% trans "Manual" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fuel_type" class="form-label">{% trans "Fuel Type" %}</label>
+                            <select name="fuel_type" id="fuel_type" class="form-select">
+                                <option value="">{% trans "Select..." %}</option>
+                                <option value="petrol" {% if vehicle.fuel_type == 'petrol' %}selected{% endif %}>{% trans "Petrol" %}</option>
+                                <option value="diesel" {% if vehicle.fuel_type == 'diesel' %}selected{% endif %}>{% trans "Diesel" %}</option>
+                                <option value="hybrid" {% if vehicle.fuel_type == 'hybrid' %}selected{% endif %}>{% trans "Hybrid" %}</option>
+                                <option value="electric" {% if vehicle.fuel_type == 'electric' %}selected{% endif %}>{% trans "Electric" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fuel_policy" class="form-label">{% trans "Fuel Policy" %}</label>
+                            <select name="fuel_policy" id="fuel_policy" class="form-select">
+                                <option value="full_to_full" {% if vehicle.fuel_policy == 'full_to_full' %}selected{% endif %}>{% trans "Full to Full" %}</option>
+                                <option value="same_to_same" {% if vehicle.fuel_policy == 'same_to_same' %}selected{% endif %}>{% trans "Same to Same" %}</option>
+                                <option value="prepaid" {% if vehicle.fuel_policy == 'prepaid' %}selected{% endif %}>{% trans "Prepaid" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-currency-dollar me-2"></i>{% trans "Pricing" %}
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="daily_rate" class="form-label">{% trans "Daily Rate (MAD)" %} <span class="text-danger">*</span></label>
+                            <input type="number" name="daily_rate" id="daily_rate" class="form-control" step="0.01" value="{{ vehicle.daily_rate|default:'' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="weekly_rate" class="form-label">{% trans "Weekly Rate (MAD)" %}</label>
+                            <input type="number" name="weekly_rate" id="weekly_rate" class="form-control" step="0.01" value="{{ vehicle.weekly_rate|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="monthly_rate" class="form-label">{% trans "Monthly Rate (MAD)" %}</label>
+                            <input type="number" name="monthly_rate" id="monthly_rate" class="form-control" step="0.01" value="{{ vehicle.monthly_rate|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="rental_deposit" class="form-label">{% trans "Security Deposit (MAD)" %}</label>
+                            <input type="number" name="rental_deposit" id="rental_deposit" class="form-control" step="0.01" value="{{ vehicle.rental_deposit|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="mileage_limit_per_day" class="form-label">{% trans "Mileage Limit/Day (km)" %}</label>
+                            <input type="number" name="mileage_limit_per_day" id="mileage_limit_per_day" class="form-control" value="{{ vehicle.mileage_limit_per_day|default:'' }}">
+                            <div class="form-text">{% trans "Leave empty for unlimited" %}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="extra_mileage_fee" class="form-label">{% trans "Extra Mileage Fee (MAD/km)" %}</label>
+                            <input type="number" name="extra_mileage_fee" id="extra_mileage_fee" class="form-control" step="0.01" value="{{ vehicle.extra_mileage_fee|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-card-text me-2"></i>{% trans "Description" %}
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="client_description" class="form-label">{% trans "Vehicle Description" %}</label>
+                        <textarea name="client_description" id="client_description" class="form-control" rows="4">{{ vehicle.client_description|default:'' }}</textarea>
+                    </div>
+                    <div>
+                        <label class="form-label">{% trans "Key Features" %}</label>
+                        <input type="hidden" name="key_features" id="keyFeaturesInput" value='{{ vehicle.key_features|safe }}'>
+                        <div class="tag-input-container" id="keyFeaturesContainer">
+                            <input type="text" id="keyFeaturesAdd" placeholder="{% trans 'Type and press Enter...' %}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-check2-square me-2"></i>{% trans "Features" %}
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        {% for feature in features %}
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="features" value="{{ feature.pk }}" id="feature_{{ feature.pk }}"
+                                    {% if feature.pk in selected_features %}checked{% endif %}>
+                                <label class="form-check-label" for="feature_{{ feature.pk }}">{{ feature.name }}</label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>{% trans "Save Changes" %}
+                </button>
+                <a href="{% url 'portal:vehicle_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right Column: Images + Quick Info + Danger Zone -->
+    <div class="col-lg-4">
+        <!-- Image Management -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-images me-2"></i>{% trans "Images" %}
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for img in vehicle.images.all %}
+                    <div class="existing-image {% if img.is_primary %}primary{% endif %}">
+                        <img src="{{ img.image.url }}" alt="{{ vehicle.name }}">
+                        <div class="image-actions">
+                            {% if not img.is_primary %}
+                            <form method="post" action="{% url 'portal:vehicle_detail' vehicle.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="set_primary_image">
+                                <input type="hidden" name="image_id" value="{{ img.pk }}">
+                                <button type="submit" class="btn btn-primary btn-sm" title="{% trans 'Set as Primary' %}">
+                                    <i class="bi bi-star"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="badge bg-primary" style="font-size:0.65rem;">{% trans "Primary" %}</span>
+                            {% endif %}
+                            <form method="post" action="{% url 'portal:vehicle_detail' vehicle.pk %}" style="display:inline;" onsubmit="return confirm('{% trans "Delete this image?" %}');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_image">
+                                <input type="hidden" name="image_id" value="{{ img.pk }}">
+                                <button type="submit" class="btn btn-danger btn-sm" title="{% trans 'Delete' %}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">{% trans "No images uploaded." %}</p>
+                    {% endfor %}
+                </div>
+
+                <form method="post" action="{% url 'portal:vehicle_detail' vehicle.pk %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_image">
+                    <div class="input-group">
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <button type="submit" class="btn btn-outline-primary">{% trans "Upload" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-square me-2"></i>{% trans "Quick Info" %}
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">{% trans "Status" %}</span>
+                        <span>
+                            {% if vehicle.status == 'available' %}
+                                <span class="badge bg-success">{% trans "Available" %}</span>
+                            {% elif vehicle.status == 'in_use' %}
+                                <span class="badge bg-primary">{% trans "In Use" %}</span>
+                            {% elif vehicle.status == 'maintenance' %}
+                                <span class="badge bg-warning">{% trans "Maintenance" %}</span>
+                            {% elif vehicle.status == 'inactive' %}
+                                <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">{% trans "Created" %}</span>
+                        <span>{{ vehicle.created_at|date:"M d, Y" }}</span>
+                    </li>
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">{% trans "Total Bookings" %}</span>
+                        <span>{{ vehicle.rental_bookings.count|default:'0' }}</span>
+                    </li>
+                    <li class="d-flex justify-content-between py-2">
+                        <span class="text-muted">{% trans "Calendar" %}</span>
+                        <a href="{% url 'portal:vehicle_calendar' vehicle.pk %}">{% trans "View" %} &rarr;</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card border-danger">
+            <div class="card-header text-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>{% trans "Danger Zone" %}
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">{% trans "Deactivating the vehicle will hide it from the marketplace and prevent new bookings." %}</p>
+                <form method="post" action="{% url 'portal:vehicle_detail' vehicle.pk %}" onsubmit="return confirm('{% trans "Are you sure you want to deactivate this vehicle?" %}');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_vehicle">
+                    {% if vehicle.status == 'inactive' %}
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle me-1"></i>{% trans "Activate Vehicle" %}
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-x-circle me-1"></i>{% trans "Deactivate Vehicle" %}
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Key Features Tag Input
+    const keyFeaturesInput = document.getElementById('keyFeaturesInput');
+    const keyFeaturesContainer = document.getElementById('keyFeaturesContainer');
+    const keyFeaturesAdd = document.getElementById('keyFeaturesAdd');
+    let keyFeatures = [];
+
+    try {
+        keyFeatures = JSON.parse(keyFeaturesInput.value || '[]');
+    } catch(e) {
+        keyFeatures = [];
+    }
+
+    function renderTags() {
+        const existingTags = keyFeaturesContainer.querySelectorAll('.tag');
+        existingTags.forEach(t => t.remove());
+        keyFeatures.forEach(function(tag, idx) {
+            const span = document.createElement('span');
+            span.className = 'tag';
+            span.innerHTML = tag + ' <span class="remove-tag" data-idx="' + idx + '">&times;</span>';
+            keyFeaturesContainer.insertBefore(span, keyFeaturesAdd);
+        });
+        keyFeaturesInput.value = JSON.stringify(keyFeatures);
+    }
+
+    keyFeaturesAdd.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const val = this.value.trim();
+            if (val && !keyFeatures.includes(val)) {
+                keyFeatures.push(val);
+                renderTags();
+            }
+            this.value = '';
+        }
+    });
+
+    keyFeaturesContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-tag')) {
+            const idx = parseInt(e.target.dataset.idx);
+            keyFeatures.splice(idx, 1);
+            renderTags();
+        } else {
+            keyFeaturesAdd.focus();
+        }
+    });
+
+    renderTags();
+});
+</script>
+{% endblock %}

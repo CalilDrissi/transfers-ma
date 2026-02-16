@@ -1,0 +1,20 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Your Company Has Been Approved!</h2>
+<p>Congratulations! <strong>{{ company_name }}</strong> is now approved on Transfers.ma. Log in to your portal to start adding vehicles and receiving bookings from customers across Morocco.</p>
+
+<div style="background: #d4edda; border-radius: 8px; padding: 16px; margin: 16px 0; color: #155724;">
+    <p style="margin: 0;"><strong>You're all set!</strong> Your company profile is now live on our platform.</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ portal_url }}" class="btn" style="display: inline-block; padding: 12px 24px; background: #0d6efd; color: #fff; text-decoration: none; border-radius: 6px;">Go to Portal</a>
+</div>
+
+<p><strong>Next steps:</strong></p>
+<ul style="color: #555; padding-left: 20px;">
+    <li>Add your vehicles with photos and pricing</li>
+    <li>Set your availability and operating hours</li>
+    <li>Start receiving bookings from customers</li>
+</ul>
+{% endblock %}

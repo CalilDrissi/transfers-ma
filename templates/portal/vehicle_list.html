@@ -1,0 +1,121 @@
+{% extends 'portal/base.html' %}
+{% load i18n %}
+
+{% block active_nav %}fleet{% endblock %}
+{% block page_title %}{% trans "Fleet Management" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'portal:vehicle_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>{% trans "Add Vehicle" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Status" %}</label>
+                <select name="status" class="form-select">
+                    <option value="">{% trans "All Statuses" %}</option>
+                    <option value="available" {% if request.GET.status == 'available' %}selected{% endif %}>{% trans "Available" %}</option>
+                    <option value="in_use" {% if request.GET.status == 'in_use' %}selected{% endif %}>{% trans "In Use" %}</option>
+                    <option value="maintenance" {% if request.GET.status == 'maintenance' %}selected{% endif %}>{% trans "Maintenance" %}</option>
+                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Category" %}</label>
+                <select name="category" class="form-select">
+                    <option value="">{% trans "All Categories" %}</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.pk }}" {% if request.GET.category == cat.pk|stringformat:'d' %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Search" %}</label>
+                <input type="text" name="q" class="form-control" placeholder="{% trans 'Search by name or plate...' %}" value="{{ request.GET.q|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">{% trans "Filter" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Vehicles Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;"></th>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Category" %}</th>
+                        <th>{% trans "License Plate" %}</th>
+                        <th>{% trans "Daily Rate" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vehicle in vehicles %}
+                    <tr>
+                        <td>
+                            {% if vehicle.images.all.0 %}
+                                <img src="{{ vehicle.images.all.0.image.url }}" alt="{{ vehicle.name }}" class="rounded" style="width:50px;height:50px;object-fit:cover;">
+                            {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width:50px;height:50px;">
+                                    <i class="bi bi-car-front text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'portal:vehicle_detail' vehicle.pk %}" class="fw-semibold text-decoration-none">{{ vehicle.name }}</a>
+                        </td>
+                        <td>{{ vehicle.category.name|default:'' }}</td>
+                        <td><code>{{ vehicle.license_plate|default:'-' }}</code></td>
+                        <td>{{ vehicle.daily_rate|default:'—'|floatformat:2 }} MAD</td>
+                        <td>
+                            {% if vehicle.status == 'available' %}
+                                <span class="badge bg-success">{% trans "Available" %}</span>
+                            {% elif vehicle.status == 'in_use' %}
+                                <span class="badge bg-primary">{% trans "In Use" %}</span>
+                            {% elif vehicle.status == 'maintenance' %}
+                                <span class="badge bg-warning">{% trans "Maintenance" %}</span>
+                            {% elif vehicle.status == 'inactive' %}
+                                <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'portal:vehicle_detail' vehicle.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Edit' %}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'portal:vehicle_calendar' vehicle.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Calendar' %}">
+                                <i class="bi bi-calendar3"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="text-muted mb-3">
+                                <i class="bi bi-car-front" style="font-size:3rem;"></i>
+                            </div>
+                            <h5 class="text-muted">{% trans "No vehicles found" %}</h5>
+                            <p class="text-muted mb-3">{% trans "Get started by adding your first vehicle." %}</p>
+                            <a href="{% url 'portal:vehicle_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i>{% trans "Add Vehicle" %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Booking Cancelled</h2>
+<p>A rental booking has been cancelled.</p>
+
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <div class="detail-row">
+        <span class="detail-label">Booking Reference:</span>
+        <strong>{{ booking_ref }}</strong>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Customer:</span> {{ customer_name }}
+    </div>
+    {% if cancellation_reason %}
+    <div class="detail-row">
+        <span class="detail-label">Reason:</span> {{ cancellation_reason }}
+    </div>
+    {% endif %}
+</div>
+
+<p>The vehicle is now available for other bookings. No further action is required.</p>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'portal/base.html' %}
+{% load i18n %}
+
+{% block active_nav %}earnings{% endblock %}
+{% block page_title %}{% trans "Earnings" %}{% endblock %}
+
+{% block content %}
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_earnings|default:'0'|floatformat:2 }}</div>
+            <div class="stat-label">{% trans "Total Earnings" %} (MAD)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-value text-danger">{{ commission_paid|default:'0'|floatformat:2 }}</div>
+            <div class="stat-label">{% trans "Commission Paid" %} (MAD)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-value text-success">{{ net_earnings|default:'0'|floatformat:2 }}</div>
+            <div class="stat-label">{% trans "Net Earnings" %} (MAD)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-value text-warning">{{ pending_payout|default:'0'|floatformat:2 }}</div>
+            <div class="stat-label">{% trans "Pending Payout" %} (MAD)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Breakdown -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-calendar3 me-2"></i>{% trans "Monthly Breakdown" %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Month" %}</th>
+                        <th>{% trans "Bookings" %}</th>
+                        <th>{% trans "Gross" %}</th>
+                        <th>{% trans "Commission" %}</th>
+                        <th>{% trans "Net" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in monthly_breakdown %}
+                    <tr>
+                        <td>{{ row.month }}</td>
+                        <td>{{ row.bookings_count }}</td>
+                        <td>{{ row.gross|floatformat:2 }} MAD</td>
+                        <td class="text-danger">-{{ row.commission|floatformat:2 }} MAD</td>
+                        <td class="text-success fw-semibold">{{ row.net|floatformat:2 }} MAD</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">{% trans "No earnings data yet." %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Payout History -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-cash-stack me-2"></i>{% trans "Payout History" %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Period" %}</th>
+                        <th>{% trans "Amount" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Payment Method" %}</th>
+                        <th>{% trans "Paid At" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payout in payouts %}
+                    <tr>
+                        <td>{{ payout.period_start }} &mdash; {{ payout.period_end }}</td>
+                        <td class="fw-semibold">{{ payout.net_amount|floatformat:2 }} MAD</td>
+                        <td>
+                            {% if payout.status == 'pending' %}
+                                <span class="badge bg-warning">{% trans "Pending" %}</span>
+                            {% elif payout.status == 'processing' %}
+                                <span class="badge bg-info">{% trans "Processing" %}</span>
+                            {% elif payout.status == 'completed' %}
+                                <span class="badge bg-success">{% trans "Completed" %}</span>
+                            {% elif payout.status == 'failed' %}
+                                <span class="badge bg-danger">{% trans "Failed" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ payout.payment_method|default:'—' }}</td>
+                        <td>{{ payout.paid_at|date:"M d, Y"|default:'—' }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">{% trans "No payouts yet." %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

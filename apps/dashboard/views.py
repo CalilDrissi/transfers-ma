@@ -20,6 +20,8 @@ from apps.trips.models import (
 from apps.vehicles.models import Vehicle, VehicleCategory, VehicleFeature, VehicleZonePricing, VehicleImage
 from apps.locations.models import Zone, ZoneDistanceRange, Route, VehicleRoutePricing, RoutePickupZone, RouteDropoffZone
 from apps.payments.models import Payment, Coupon
+from apps.rental_companies.models import RentalCompany, CompanyDocument, CompanyPayout
+from apps.rentals.models import Rental
 
 
 def is_admin(user):
@@ -1811,3 +1813,262 @@ def coupon_detail(request, pk):
 
     context = {'coupon': coupon}
     return render(request, 'dashboard/coupons/detail.html', context)
+
+
+# Rental Company Views
+@login_required
+@user_passes_test(is_admin)
+def rental_company_list(request):
+    """List all rental companies."""
+    companies = RentalCompany.objects.order_by('-created_at')
+
+    # Filters
+    status = request.GET.get('status')
+    city = request.GET.get('city')
+    tier = request.GET.get('tier')
+    search = request.GET.get('search')
+
+    if status:
+        companies = companies.filter(status=status)
+    if city:
+        companies = companies.filter(city__icontains=city)
+    if tier:
+        companies = companies.filter(tier=tier)
+    if search:
+        companies = companies.filter(
+            Q(company_name__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    pending_count = RentalCompany.objects.filter(status='pending').count()
+
+    paginator = Paginator(companies, 20)
+    page = request.GET.get('page')
+    companies = paginator.get_page(page)
+
+    context = {
+        'companies': companies,
+        'pending_count': pending_count,
+    }
+    return render(request, 'dashboard/rental_companies/list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def rental_company_detail(request, pk):
+    """Rental company detail and management view."""
+    company = get_object_or_404(RentalCompany, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'approve_company':
+            company.status = 'approved'
+            company.approved_at = timezone.now()
+            company.approved_by = request.user
+            company.save()
+            try:
+                from apps.notifications.utils import send_company_approval_email
+                send_company_approval_email(company)
+            except Exception:
+                pass
+            messages.success(request, f'Company "{company.company_name}" has been approved.')
+
+        elif action == 'reject_company':
+            company.status = 'rejected'
+            company.rejection_reason = request.POST.get('rejection_reason', '')
+            company.save()
+            messages.success(request, f'Company "{company.company_name}" has been rejected.')
+
+        elif action == 'suspend_company':
+            company.status = 'suspended'
+            company.save()
+            messages.success(request, f'Company "{company.company_name}" has been suspended.')
+
+        elif action == 'update_commission':
+            company.commission_rate = request.POST.get('commission_rate')
+            company.save()
+            messages.success(request, 'Commission rate updated successfully.')
+
+        elif action == 'update_tier':
+            company.tier = request.POST.get('tier')
+            company.save()
+            messages.success(request, 'Company tier updated successfully.')
+
+        elif action == 'verify_document':
+            doc_id = request.POST.get('document_id')
+            document = get_object_or_404(CompanyDocument, pk=doc_id, company=company)
+            document.verification_status = 'verified'
+            document.verified_by = request.user
+            document.verified_at = timezone.now()
+            document.save()
+            messages.success(request, 'Document verified successfully.')
+
+        elif action == 'reject_document':
+            doc_id = request.POST.get('document_id')
+            document = get_object_or_404(CompanyDocument, pk=doc_id, company=company)
+            document.verification_status = 'rejected'
+            document.rejection_reason = request.POST.get('rejection_reason', '')
+            document.save()
+            messages.success(request, 'Document rejected.')
+
+        elif action == 'save_notes':
+            company.admin_notes = request.POST.get('admin_notes', '')
+            company.save()
+            messages.success(request, 'Admin notes saved.')
+
+        return redirect('dashboard:rental_company_detail', pk=pk)
+
+    documents = CompanyDocument.objects.filter(company=company).order_by('-uploaded_at')
+    vehicles_count = company.vehicles.count() if hasattr(company, 'vehicles') else 0
+    bookings_count = Rental.objects.filter(company=company).count()
+    total_revenue = Rental.objects.filter(
+        company=company, status='completed'
+    ).aggregate(total=Sum('total_price'))['total'] or Decimal('0')
+    avg_rating = company.avg_rating if hasattr(company, 'avg_rating') else None
+
+    context = {
+        'company': company,
+        'documents': documents,
+        'vehicles_count': vehicles_count,
+        'bookings_count': bookings_count,
+        'total_revenue': total_revenue,
+        'avg_rating': avg_rating,
+    }
+    return render(request, 'dashboard/rental_companies/detail.html', context)
+
+
+# Rental Views (Admin)
+@login_required
+@user_passes_test(is_admin)
+def rental_list(request):
+    """List all rental bookings (admin view)."""
+    rentals = Rental.objects.select_related('company').order_by('-created_at')
+
+    # Filters
+    status = request.GET.get('status')
+    company_id = request.GET.get('company')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    search = request.GET.get('search')
+
+    if status:
+        rentals = rentals.filter(status=status)
+    if company_id:
+        rentals = rentals.filter(company_id=company_id)
+    if date_from:
+        rentals = rentals.filter(pickup_date__gte=date_from)
+    if date_to:
+        rentals = rentals.filter(return_date__lte=date_to)
+    if search:
+        rentals = rentals.filter(
+            Q(booking_ref__icontains=search) |
+            Q(customer_name__icontains=search)
+        )
+
+    all_companies = RentalCompany.objects.filter(status='approved').order_by('company_name')
+
+    paginator = Paginator(rentals, 20)
+    page = request.GET.get('page')
+    rentals = paginator.get_page(page)
+
+    context = {
+        'rentals': rentals,
+        'all_companies': all_companies,
+    }
+    return render(request, 'dashboard/rentals/list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def rental_detail_view(request, pk):
+    """Rental booking detail (admin read-only view)."""
+    rental = get_object_or_404(
+        Rental.objects.select_related('company'),
+        pk=pk
+    )
+
+    context = {
+        'rental': rental,
+    }
+    return render(request, 'dashboard/rentals/detail.html', context)
+
+
+# Payout Views
+@login_required
+@user_passes_test(is_admin)
+def payout_list(request):
+    """List and manage company payouts."""
+    payouts = CompanyPayout.objects.select_related('company').order_by('-created_at')
+
+    # Filters
+    status = request.GET.get('status')
+    company_id = request.GET.get('company')
+
+    if status:
+        payouts = payouts.filter(status=status)
+    if company_id:
+        payouts = payouts.filter(company_id=company_id)
+
+    all_companies = RentalCompany.objects.filter(status='approved').order_by('company_name')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'generate_payout':
+            payout_company_id = request.POST.get('company_id')
+            period_start = request.POST.get('period_start')
+            period_end = request.POST.get('period_end')
+
+            if all([payout_company_id, period_start, period_end]):
+                try:
+                    payout_company = RentalCompany.objects.get(pk=payout_company_id)
+                    completed_rentals = Rental.objects.filter(
+                        company=payout_company,
+                        status='completed',
+                        pickup_date__gte=period_start,
+                        return_date__lte=period_end,
+                    )
+                    gross_amount = completed_rentals.aggregate(
+                        total=Sum('total_price')
+                    )['total'] or Decimal('0')
+                    commission_amount = gross_amount * (payout_company.commission_rate / Decimal('100'))
+                    net_amount = gross_amount - commission_amount
+
+                    CompanyPayout.objects.create(
+                        company=payout_company,
+                        period_start=period_start,
+                        period_end=period_end,
+                        gross_amount=gross_amount,
+                        commission_amount=commission_amount,
+                        net_amount=net_amount,
+                        status='pending',
+                    )
+                    messages.success(request, f'Payout generated for {payout_company.company_name}.')
+                except RentalCompany.DoesNotExist:
+                    messages.error(request, 'Company not found.')
+                except Exception as e:
+                    messages.error(request, f'Error generating payout: {e}')
+            else:
+                messages.error(request, 'Please fill in all required fields.')
+
+        elif action == 'mark_paid':
+            payout_id = request.POST.get('payout_id')
+            payout = get_object_or_404(CompanyPayout, pk=payout_id)
+            payout.status = 'completed'
+            payout.paid_at = timezone.now()
+            payout.payment_reference = request.POST.get('payment_reference', '')
+            payout.save()
+            messages.success(request, 'Payout marked as completed.')
+
+        return redirect('dashboard:payout_list')
+
+    paginator = Paginator(payouts, 20)
+    page = request.GET.get('page')
+    payouts = paginator.get_page(page)
+
+    context = {
+        'payouts': payouts,
+        'all_companies': all_companies,
+    }
+    return render(request, 'dashboard/payouts/list.html', context)

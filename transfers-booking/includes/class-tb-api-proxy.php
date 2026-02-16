@@ -25,6 +25,13 @@ class TB_API_Proxy {
         'get_trip_detail'     => ['method' => 'GET',  'path' => '/trips/', 'dynamic' => true],
         'get_trip_schedules'  => ['method' => 'GET',  'path' => '/trips/', 'dynamic' => true],
         'create_trip_booking' => ['method' => 'POST', 'path' => '/trips/bookings/'],
+        // Car rental endpoints
+        'rental_search'       => ['method' => 'GET',  'path' => '/rentals/search/'],
+        'rental_cities'       => ['method' => 'GET',  'path' => '/rentals/cities/'],
+        'rental_create'       => ['method' => 'POST', 'path' => '/rentals/'],
+        'rental_by_ref'       => ['method' => 'GET',  'path' => '/rentals/by-ref/', 'dynamic' => true],
+        'rental_insurance'    => ['method' => 'GET',  'path' => '/rentals/insurance/'],
+        'rental_extras'       => ['method' => 'GET',  'path' => '/rentals/extras/'],
     ];
 
     public function handle_request() {

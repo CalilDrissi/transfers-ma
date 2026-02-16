@@ -1,0 +1,146 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Rentals" %}{% endblock %}
+{% block page_title %}{% trans "Rental Bookings" %}{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">{% trans "Status" %}</label>
+                <select name="status" class="form-select">
+                    <option value="">{% trans "All Statuses" %}</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                    <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>{% trans "Confirmed" %}</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">{% trans "Company" %}</label>
+                <select name="company" class="form-select">
+                    <option value="">{% trans "All Companies" %}</option>
+                    {% for c in all_companies %}
+                    <option value="{{ c.pk }}" {% if request.GET.company == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">{% trans "From" %}</label>
+                <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">{% trans "To" %}</label>
+                <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">{% trans "Search" %}</label>
+                <input type="text" name="search" class="form-control" placeholder="{% trans 'Ref, name...' %}" value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>{% trans "Filter" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Ref" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Company" %}</th>
+                        <th>{% trans "Vehicle" %}</th>
+                        <th>{% trans "Pickup" %}</th>
+                        <th>{% trans "Return" %}</th>
+                        <th>{% trans "Total" %}</th>
+                        <th>{% trans "Commission" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rental in rentals %}
+                    <tr>
+                        <td><strong>{{ rental.booking_ref }}</strong></td>
+                        <td>
+                            {{ rental.customer_name }}<br>
+                            <small class="text-muted">{{ rental.customer_email|default:"" }}</small>
+                        </td>
+                        <td>{{ rental.company.company_name }}</td>
+                        <td>{{ rental.vehicle_name|default:"-" }}</td>
+                        <td>{{ rental.pickup_date|date:"M d, Y" }}</td>
+                        <td>{{ rental.return_date|date:"M d, Y" }}</td>
+                        <td>{{ rental.total_price|default:"0" }}</td>
+                        <td>{{ rental.commission_amount|default:"0" }}</td>
+                        <td>
+                            {% if rental.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                            {% elif rental.status == 'confirmed' %}
+                            <span class="badge bg-info">{% trans "Confirmed" %}</span>
+                            {% elif rental.status == 'active' %}
+                            <span class="badge bg-primary">{% trans "Active" %}</span>
+                            {% elif rental.status == 'completed' %}
+                            <span class="badge bg-success">{% trans "Completed" %}</span>
+                            {% elif rental.status == 'cancelled' %}
+                            <span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ rental.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'dashboard:rental_detail' pk=rental.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-4 text-muted">
+                            {% trans "No rental bookings found." %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if rentals.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if rentals.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ rentals.previous_page_number }}&{{ request.GET.urlencode }}">&laquo;</a>
+        </li>
+        {% endif %}
+
+        {% for num in rentals.paginator.page_range %}
+            {% if rentals.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > rentals.number|add:'-3' and num < rentals.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if rentals.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ rentals.next_page_number }}&{{ request.GET.urlencode }}">&raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'portal/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Reviews" %}{% endblock %}
+{% block page_title %}{% trans "Reviews" %}{% endblock %}
+
+{% block content %}
+<!-- Average Rating Summary -->
+<div class="card mb-4">
+    <div class="card-body text-center py-4">
+        <div class="mb-2">
+            {% with avg=request.company.average_rating %}
+            <span class="fs-1 fw-bold" style="color: #0d9488;">{{ avg|floatformat:1 }}</span>
+            <span class="text-muted fs-5">/ 5</span>
+            <div class="mt-2">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= avg %}
+                        <i class="bi bi-star-fill text-warning fs-4"></i>
+                    {% elif forloop.counter|add:"-1" < avg and avg < forloop.counter %}
+                        <i class="bi bi-star-half text-warning fs-4"></i>
+                    {% else %}
+                        <i class="bi bi-star text-warning fs-4"></i>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endwith %}
+        </div>
+        <div class="text-muted">{{ request.company.total_reviews }} {% trans "reviews" %}</div>
+    </div>
+</div>
+
+<!-- Reviews List -->
+{% for review in reviews %}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                <div class="mb-1">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                        {% else %}
+                            <i class="bi bi-star text-warning"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <h6 class="mb-0">{{ review.customer_name }}</h6>
+            </div>
+            <span class="text-muted small">{{ review.created_at|date:"M d, Y" }}</span>
+        </div>
+
+        {% if review.title %}
+        <h6 class="mt-2 mb-1">{{ review.title }}</h6>
+        {% endif %}
+
+        {% if review.comment %}
+        <p class="mb-2">{{ review.comment }}</p>
+        {% endif %}
+
+        <!-- Sub-ratings -->
+        {% if review.vehicle_condition_rating or review.service_rating or review.value_rating %}
+        <div class="d-flex gap-4 mb-3 small text-muted">
+            {% if review.vehicle_condition_rating %}
+            <span>{% trans "Condition" %}: {{ review.vehicle_condition_rating }}/5</span>
+            {% endif %}
+            {% if review.service_rating %}
+            <span>{% trans "Service" %}: {{ review.service_rating }}/5</span>
+            {% endif %}
+            {% if review.value_rating %}
+            <span>{% trans "Value" %}: {{ review.value_rating }}/5</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Company Response -->
+        {% if review.company_response %}
+        <div class="bg-light rounded p-3 mt-2">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="bi bi-reply" style="color: #0d9488;"></i>
+                <strong class="small">{% trans "Your Response" %}</strong>
+                {% if review.company_responded_at %}
+                <span class="text-muted small">{{ review.company_responded_at|date:"M d, Y" }}</span>
+                {% endif %}
+            </div>
+            <p class="mb-0 small">{{ review.company_response }}</p>
+        </div>
+        {% else %}
+        <!-- Respond Button triggers modal -->
+        <div class="mt-3">
+            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#respondModal{{ review.pk }}">
+                <i class="bi bi-reply me-1"></i>{% trans "Respond" %}
+            </button>
+        </div>
+
+        <!-- Response Modal -->
+        <div class="modal fade" id="respondModal{{ review.pk }}" tabindex="-1" aria-labelledby="respondModalLabel{{ review.pk }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="respond_to_review">
+                        <input type="hidden" name="review_id" value="{{ review.pk }}">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="respondModalLabel{{ review.pk }}">
+                                {% trans "Respond to Review" %}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <div class="small text-muted mb-2">
+                                    <strong>{{ review.customer_name }}</strong> &mdash;
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="bi bi-star-fill text-warning small"></i>
+                                        {% else %}
+                                            <i class="bi bi-star text-warning small"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% if review.comment %}
+                                <p class="small text-muted fst-italic mb-0">"{{ review.comment|truncatewords:30 }}"</p>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="company_response_{{ review.pk }}" class="form-label">{% trans "Your Response" %}</label>
+                                <textarea name="company_response" id="company_response_{{ review.pk }}" class="form-control" rows="4" placeholder="{% trans 'Write your response to this review...' %}" required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-reply me-1"></i>{% trans "Submit Response" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <div class="text-muted mb-3">
+            <i class="bi bi-chat-square-text" style="font-size: 3rem;"></i>
+        </div>
+        <h5 class="text-muted">{% trans "No reviews yet" %}</h5>
+        <p class="text-muted mb-0">{% trans "Reviews from customers will appear here after completed rentals." %}</p>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

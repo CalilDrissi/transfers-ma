@@ -1,0 +1,435 @@
+{% extends 'portal/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Company Profile" %}{% endblock %}
+{% block page_title %}{% trans "Company Profile" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logo-preview, .cover-preview {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 0.5rem;
+        border: 2px solid #dee2e6;
+        object-fit: cover;
+        margin-bottom: 0.5rem;
+    }
+    .cover-preview {
+        max-width: 100%;
+        max-height: 150px;
+        width: 100%;
+    }
+    .tag-input-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        min-height: 42px;
+        cursor: text;
+        background: #fff;
+    }
+    .tag-input-container:focus-within {
+        border-color: #0d9488;
+        box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.25);
+    }
+    .tag-input-container .tag {
+        background-color: #ccfbf1;
+        color: #0f766e;
+        border-radius: 0.25rem;
+        padding: 0.15rem 0.5rem;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .tag-input-container .tag .remove-tag {
+        cursor: pointer;
+        font-weight: bold;
+        color: #6c757d;
+    }
+    .tag-input-container .tag .remove-tag:hover {
+        color: #dc3545;
+    }
+    .tag-input-container input {
+        border: none;
+        outline: none;
+        flex: 1;
+        min-width: 120px;
+        padding: 0.15rem 0;
+    }
+    .hours-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .hours-row label {
+        min-width: 90px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" id="profileForm">
+    {% csrf_token %}
+
+    {% if form.errors %}
+    <div class="alert alert-danger mb-4">
+        <strong>{% trans "Please correct the errors below." %}</strong>
+    </div>
+    {% endif %}
+
+    <!-- Company Info -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-building me-2"></i>{% trans "Company Information" %}
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="company_name" class="form-label">{% trans "Company Name" %} <span class="text-danger">*</span></label>
+                    <input type="text" name="company_name" id="company_name" class="form-control" value="{{ company.company_name|default:'' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="short_description" class="form-label">{% trans "Short Description" %}</label>
+                    <input type="text" name="short_description" id="short_description" class="form-control" maxlength="300" value="{{ company.short_description|default:'' }}">
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">{% trans "Full Description" %}</label>
+                    <textarea name="description" id="description" class="form-control" rows="4">{{ company.description|default:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo & Cover -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-image me-2"></i>{% trans "Branding" %}
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">{% trans "Logo" %}</label>
+                    {% if company.logo %}
+                    <div>
+                        <img src="{{ company.logo.url }}" alt="{% trans 'Logo' %}" class="logo-preview" id="logoPreviewImg">
+                    </div>
+                    {% else %}
+                    <div>
+                        <img src="" alt="" class="logo-preview d-none" id="logoPreviewImg">
+                    </div>
+                    {% endif %}
+                    <input type="file" name="logo" class="form-control" accept="image/*" id="logoInput">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">{% trans "Cover Image" %}</label>
+                    {% if company.cover_image %}
+                    <div>
+                        <img src="{{ company.cover_image.url }}" alt="{% trans 'Cover' %}" class="cover-preview" id="coverPreviewImg">
+                    </div>
+                    {% else %}
+                    <div>
+                        <img src="" alt="" class="cover-preview d-none" id="coverPreviewImg">
+                    </div>
+                    {% endif %}
+                    <input type="file" name="cover_image" class="form-control" accept="image/*" id="coverInput">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-telephone me-2"></i>{% trans "Contact Information" %}
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="email" class="form-label">{% trans "Email" %} <span class="text-danger">*</span></label>
+                    <input type="email" name="email" id="email" class="form-control" value="{{ company.email|default:'' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="phone" class="form-label">{% trans "Phone" %} <span class="text-danger">*</span></label>
+                    <input type="text" name="phone" id="phone" class="form-control" value="{{ company.phone|default:'' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="whatsapp" class="form-label">{% trans "WhatsApp" %}</label>
+                    <input type="text" name="whatsapp" id="whatsapp" class="form-control" value="{{ company.whatsapp|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="website" class="form-label">{% trans "Website" %}</label>
+                    <input type="url" name="website" id="website" class="form-control" value="{{ company.website|default:'' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-geo-alt me-2"></i>{% trans "Address" %}
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label for="address" class="form-label">{% trans "Address" %} <span class="text-danger">*</span></label>
+                    <textarea name="address" id="address" class="form-control" rows="2" required>{{ company.address|default:'' }}</textarea>
+                </div>
+                <div class="col-md-4">
+                    <label for="city" class="form-label">{% trans "City" %} <span class="text-danger">*</span></label>
+                    <input type="text" name="city" id="city" class="form-control" value="{{ company.city|default:'' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="region" class="form-label">{% trans "Region" %}</label>
+                    <input type="text" name="region" id="region" class="form-control" value="{{ company.region|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="postal_code" class="form-label">{% trans "Postal Code" %}</label>
+                    <input type="text" name="postal_code" id="postal_code" class="form-control" value="{{ company.postal_code|default:'' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capabilities -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-tools me-2"></i>{% trans "Capabilities" %}
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="offers_delivery" id="offers_delivery" {% if company.offers_delivery %}checked{% endif %}>
+                        <label class="form-check-label" for="offers_delivery">{% trans "Offers Delivery" %}</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="offers_airport_pickup" id="offers_airport_pickup" {% if company.offers_airport_pickup %}checked{% endif %}>
+                        <label class="form-check-label" for="offers_airport_pickup">{% trans "Airport Pickup" %}</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="delivery_fee" class="form-label">{% trans "Delivery Fee (MAD)" %}</label>
+                    <input type="number" name="delivery_fee" id="delivery_fee" class="form-control" step="0.01" value="{{ company.delivery_fee|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="delivery_radius_km" class="form-label">{% trans "Delivery Radius (km)" %}</label>
+                    <input type="number" name="delivery_radius_km" id="delivery_radius_km" class="form-control" value="{{ company.delivery_radius_km|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="minimum_rental_days" class="form-label">{% trans "Minimum Rental Days" %}</label>
+                    <input type="number" name="minimum_rental_days" id="minimum_rental_days" class="form-control" value="{{ company.minimum_rental_days|default:'1' }}" min="1">
+                </div>
+                <div class="col-md-4">
+                    <label for="maximum_rental_days" class="form-label">{% trans "Maximum Rental Days" %}</label>
+                    <input type="number" name="maximum_rental_days" id="maximum_rental_days" class="form-control" value="{{ company.maximum_rental_days|default:'30' }}" min="1">
+                </div>
+                <div class="col-md-4">
+                    <label for="minimum_driver_age" class="form-label">{% trans "Minimum Driver Age" %}</label>
+                    <input type="number" name="minimum_driver_age" id="minimum_driver_age" class="form-control" value="{{ company.minimum_driver_age|default:'21' }}" min="18">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operating Hours -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-clock me-2"></i>{% trans "Operating Hours" %}
+        </div>
+        <div class="card-body">
+            <input type="hidden" name="operating_hours" id="operatingHoursInput" value='{{ company.operating_hours|safe }}'>
+            <div id="operatingHoursContainer">
+                <div class="hours-row" data-day="mon">
+                    <label>{% trans "Monday" %}</label>
+                    <input type="time" class="form-control form-control-sm hours-open" style="max-width: 140px;" placeholder="{% trans 'Open' %}">
+                    <span class="text-muted">{% trans "to" %}</span>
+                    <input type="time" class="form-control form-control-sm hours-close" style="max-width: 140px;" placeholder="{% trans 'Close' %}">
+                </div>
+                <div class="hours-row" data-day="tue">
+                    <label>{% trans "Tuesday" %}</label>
+                    <input type="time" class="form-control form-control-sm hours-open" style="max-width: 140px;" placeholder="{% trans 'Open' %}">
+                    <span class="text-muted">{% trans "to" %}</span>
+                    <input type="time" class="form-control form-control-sm hours-close" style="max-width: 140px;" placeholder="{% trans 'Close' %}">
+                </div>
+                <div class="hours-row" data-day="wed">
+                    <label>{% trans "Wednesday" %}</label>
+                    <input type="time" class="form-control form-control-sm hours-open" style="max-width: 140px;" placeholder="{% trans 'Open' %}">
+                    <span class="text-muted">{% trans "to" %}</span>
+                    <input type="time" class="form-control form-control-sm hours-close" style="max-width: 140px;" placeholder="{% trans 'Close' %}">
+                </div>
+                <div class="hours-row" data-day="thu">
+                    <label>{% trans "Thursday" %}</label>
+                    <input type="time" class="form-control form-control-sm hours-open" style="max-width: 140px;" placeholder="{% trans 'Open' %}">
+                    <span class="text-muted">{% trans "to" %}</span>
+                    <input type="time" class="form-control form-control-sm hours-close" style="max-width: 140px;" placeholder="{% trans 'Close' %}">
+                </div>
+                <div class="hours-row" data-day="fri">
+                    <label>{% trans "Friday" %}</label>
+                    <input type="time" class="form-control form-control-sm hours-open" style="max-width: 140px;" placeholder="{% trans 'Open' %}">
+                    <span class="text-muted">{% trans "to" %}</span>
+                    <input type="time" class="form-control form-control-sm hours-close" style="max-width: 140px;" placeholder="{% trans 'Close' %}">
+                </div>
+                <div class="hours-row" data-day="sat">
+                    <label>{% trans "Saturday" %}</label>
+                    <input type="time" class="form-control form-control-sm hours-open" style="max-width: 140px;" placeholder="{% trans 'Open' %}">
+                    <span class="text-muted">{% trans "to" %}</span>
+                    <input type="time" class="form-control form-control-sm hours-close" style="max-width: 140px;" placeholder="{% trans 'Close' %}">
+                </div>
+                <div class="hours-row" data-day="sun">
+                    <label>{% trans "Sunday" %}</label>
+                    <input type="time" class="form-control form-control-sm hours-open" style="max-width: 140px;" placeholder="{% trans 'Open' %}">
+                    <span class="text-muted">{% trans "to" %}</span>
+                    <input type="time" class="form-control form-control-sm hours-close" style="max-width: 140px;" placeholder="{% trans 'Close' %}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pickup Cities -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-pin-map me-2"></i>{% trans "Pickup Cities" %}
+        </div>
+        <div class="card-body">
+            <input type="hidden" name="pickup_cities" id="pickupCitiesInput" value='{{ company.pickup_cities|safe }}'>
+            <div class="tag-input-container" id="pickupCitiesContainer">
+                <input type="text" id="pickupCitiesAdd" placeholder="{% trans 'Type a city and press Enter...' %}">
+            </div>
+            <div class="form-text">{% trans "Press Enter after each city name to add it as a tag." %}</div>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-1"></i>{% trans "Save Profile" %}
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Logo preview
+    document.getElementById('logoInput').addEventListener('change', function() {
+        var img = document.getElementById('logoPreviewImg');
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                img.classList.remove('d-none');
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Cover preview
+    document.getElementById('coverInput').addEventListener('change', function() {
+        var img = document.getElementById('coverPreviewImg');
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                img.classList.remove('d-none');
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // ── Operating Hours JSON Editor ──
+    var hoursInput = document.getElementById('operatingHoursInput');
+    var hours = {};
+    try {
+        hours = JSON.parse(hoursInput.value || '{}');
+    } catch(e) {
+        hours = {};
+    }
+
+    document.querySelectorAll('.hours-row').forEach(function(row) {
+        var day = row.dataset.day;
+        var openInput = row.querySelector('.hours-open');
+        var closeInput = row.querySelector('.hours-close');
+
+        if (hours[day]) {
+            openInput.value = hours[day].open || '';
+            closeInput.value = hours[day].close || '';
+        }
+
+        function updateHours() {
+            if (openInput.value || closeInput.value) {
+                hours[day] = { open: openInput.value, close: closeInput.value };
+            } else {
+                delete hours[day];
+            }
+            hoursInput.value = JSON.stringify(hours);
+        }
+
+        openInput.addEventListener('change', updateHours);
+        closeInput.addEventListener('change', updateHours);
+    });
+
+    // ── Pickup Cities Tag Input ──
+    var pickupCitiesInput = document.getElementById('pickupCitiesInput');
+    var pickupCitiesContainer = document.getElementById('pickupCitiesContainer');
+    var pickupCitiesAdd = document.getElementById('pickupCitiesAdd');
+    var pickupCities = [];
+
+    try {
+        pickupCities = JSON.parse(pickupCitiesInput.value || '[]');
+    } catch(e) {
+        pickupCities = [];
+    }
+
+    function renderCities() {
+        var existingTags = pickupCitiesContainer.querySelectorAll('.tag');
+        existingTags.forEach(function(t) { t.remove(); });
+        pickupCities.forEach(function(city, idx) {
+            var span = document.createElement('span');
+            span.className = 'tag';
+            span.innerHTML = city + ' <span class="remove-tag" data-idx="' + idx + '">&times;</span>';
+            pickupCitiesContainer.insertBefore(span, pickupCitiesAdd);
+        });
+        pickupCitiesInput.value = JSON.stringify(pickupCities);
+    }
+
+    pickupCitiesAdd.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            var val = this.value.trim();
+            if (val && pickupCities.indexOf(val) === -1) {
+                pickupCities.push(val);
+                renderCities();
+            }
+            this.value = '';
+        }
+    });
+
+    pickupCitiesContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-tag')) {
+            var idx = parseInt(e.target.dataset.idx);
+            pickupCities.splice(idx, 1);
+            renderCities();
+        } else {
+            pickupCitiesAdd.focus();
+        }
+    });
+
+    renderCities();
+
+    // Serialize hours on form submit
+    document.getElementById('profileForm').addEventListener('submit', function() {
+        hoursInput.value = JSON.stringify(hours);
+    });
+});
+</script>
+{% endblock %}

@@ -25,6 +25,10 @@ class Transfers_Booking {
         require_once TB_PLUGIN_DIR . 'includes/class-tb-checkout-shortcode.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-confirmation-shortcode.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-tours-shortcode.php';
+        require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-search-shortcode.php';
+        require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-results-shortcode.php';
+        require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-checkout-shortcode.php';
+        require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-confirmation-shortcode.php';
         require_once TB_PLUGIN_DIR . 'admin/class-tb-admin.php';
         require_once TB_PLUGIN_DIR . 'public/class-tb-public.php';
     }
@@ -64,6 +68,18 @@ class Transfers_Booking {
         $tours_shortcode = new TB_Tours_Shortcode();
         add_shortcode('tours_listing', [$tours_shortcode, 'render_listing']);
         add_shortcode('tour_detail', [$tours_shortcode, 'render_detail']);
+
+        $rental_search_shortcode = new TB_Rental_Search_Shortcode();
+        add_shortcode('rental_search', [$rental_search_shortcode, 'render']);
+
+        $rental_results_shortcode = new TB_Rental_Results_Shortcode();
+        add_shortcode('rental_results', [$rental_results_shortcode, 'render']);
+
+        $rental_checkout_shortcode = new TB_Rental_Checkout_Shortcode();
+        add_shortcode('rental_checkout', [$rental_checkout_shortcode, 'render']);
+
+        $rental_confirmation_shortcode = new TB_Rental_Confirmation_Shortcode();
+        add_shortcode('rental_confirmation', [$rental_confirmation_shortcode, 'render']);
 
         // Rewrite rules for tour detail pages (/tours/{slug}/)
         add_action('init', [$this, 'register_rewrite_rules']);

@@ -1,0 +1,147 @@
+{% extends 'portal/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Documents" %}{% endblock %}
+{% block page_title %}{% trans "Documents" %}{% endblock %}
+
+{% block page_actions %}
+<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+    <i class="bi bi-upload me-1"></i>{% trans "Upload Document" %}
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Documents Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-folder me-2"></i>{% trans "Your Documents" %}</span>
+        <span class="badge bg-secondary">{{ documents|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Type" %}</th>
+                        <th>{% trans "Uploaded" %}</th>
+                        <th>{% trans "Expiry Date" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr>
+                        <td>
+                            <a href="{{ doc.file.url }}" target="_blank" class="text-decoration-none">
+                                <i class="bi bi-file-earmark me-1"></i>{{ doc.name }}
+                            </a>
+                        </td>
+                        <td>{{ doc.get_document_type_display }}</td>
+                        <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                        <td>{{ doc.expiry_date|date:"M d, Y"|default:"&mdash;" }}</td>
+                        <td>
+                            {% if doc.verification_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                            {% elif doc.verification_status == 'verified' %}
+                                <span class="badge bg-success">{% trans "Verified" %}</span>
+                            {% elif doc.verification_status == 'rejected' %}
+                                <span class="badge bg-danger">{% trans "Rejected" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ doc.verification_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if doc.verification_status == 'rejected' and doc.rejection_reason %}
+                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="left" title="{{ doc.rejection_reason }}">
+                                <i class="bi bi-info-circle"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted mb-3">
+                                <i class="bi bi-folder2-open" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="text-muted">{% trans "No documents uploaded" %}</h5>
+                            <p class="text-muted mb-3">{% trans "Upload your business documents to get verified." %}</p>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+                                <i class="bi bi-upload me-1"></i>{% trans "Upload Document" %}
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Document Modal -->
+<div class="modal fade" id="uploadDocumentModal" tabindex="-1" aria-labelledby="uploadDocumentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="upload_document">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadDocumentModalLabel">
+                        <i class="bi bi-cloud-upload me-2"></i>{% trans "Upload Document" %}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="document_type" class="form-label">{% trans "Document Type" %} <span class="text-danger">*</span></label>
+                        <select name="document_type" id="document_type" class="form-select" required>
+                            <option value="">{% trans "Select type..." %}</option>
+                            <option value="business_license">{% trans "Business License" %}</option>
+                            <option value="insurance">{% trans "Insurance Certificate" %}</option>
+                            <option value="rc">{% trans "Registre du Commerce (RC)" %}</option>
+                            <option value="ice">{% trans "ICE Number Certificate" %}</option>
+                            <option value="tax_certificate">{% trans "Tax Certificate" %}</option>
+                            <option value="id_card">{% trans "National ID Card" %}</option>
+                            <option value="other">{% trans "Other" %}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="doc_name" class="form-label">{% trans "Document Name" %} <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="doc_name" class="form-control" placeholder="{% trans 'e.g. Business License 2025' %}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="file" class="form-label">{% trans "File" %} <span class="text-danger">*</span></label>
+                        <input type="file" name="file" id="file" class="form-control" required>
+                        <div class="form-text">{% trans "Accepted formats: PDF, JPG, PNG. Max size: 10 MB." %}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiry_date" class="form-label">{% trans "Expiry Date" %}</label>
+                        <input type="date" name="expiry_date" id="expiry_date" class="form-control">
+                        <div class="form-text">{% trans "Optional. Leave blank if the document does not expire." %}</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload me-1"></i>{% trans "Upload" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(el) {
+        new bootstrap.Tooltip(el);
+    });
+});
+</script>
+{% endblock %}

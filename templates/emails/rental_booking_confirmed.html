@@ -1,0 +1,94 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Your Car Rental is Confirmed!</h2>
+<p>Great news! Your car rental booking has been confirmed.</p>
+
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <div class="detail-row">
+        <span class="detail-label">Booking Reference:</span>
+        <strong>{{ booking_ref }}</strong>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Vehicle:</span> {{ vehicle_name }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Company:</span> {{ company_name }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Pickup Date:</span> {{ pickup_date }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Return Date:</span> {{ return_date }}
+    </div>
+    {% if pickup_location %}
+    <div class="detail-row">
+        <span class="detail-label">Pickup Location:</span> {{ pickup_location }}
+    </div>
+    {% endif %}
+    {% if dropoff_location %}
+    <div class="detail-row">
+        <span class="detail-label">Dropoff Location:</span> {{ dropoff_location }}
+    </div>
+    {% endif %}
+</div>
+
+{% if company_phone or company_whatsapp %}
+<div style="background: #e8f4fd; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <p style="margin: 0 0 8px 0;"><strong>Company Contact</strong></p>
+    {% if company_phone %}
+    <div class="detail-row">
+        <span class="detail-label">Phone:</span> {{ company_phone }}
+    </div>
+    {% endif %}
+    {% if company_whatsapp %}
+    <div class="detail-row">
+        <span class="detail-label">WhatsApp:</span> {{ company_whatsapp }}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <p style="margin: 0 0 8px 0;"><strong>Price Breakdown</strong></p>
+    <div class="detail-row">
+        <span class="detail-label">Daily Rate:</span> {{ daily_rate }} {{ currency|default:"MAD" }} x {{ total_days }} day{{ total_days|pluralize }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Vehicle Total:</span> {{ vehicle_total }} {{ currency|default:"MAD" }}
+    </div>
+    {% if extras_total and extras_total > 0 %}
+    <div class="detail-row">
+        <span class="detail-label">Extras:</span> {{ extras_total }} {{ currency|default:"MAD" }}
+    </div>
+    {% endif %}
+    {% if insurance_total and insurance_total > 0 %}
+    <div class="detail-row">
+        <span class="detail-label">Insurance:</span> {{ insurance_total }} {{ currency|default:"MAD" }}
+    </div>
+    {% endif %}
+    {% if delivery_fee and delivery_fee > 0 %}
+    <div class="detail-row">
+        <span class="detail-label">Delivery Fee:</span> {{ delivery_fee }} {{ currency|default:"MAD" }}
+    </div>
+    {% endif %}
+    <div class="detail-row" style="border-top: 2px solid #dee2e6; margin-top: 8px; padding-top: 8px;">
+        <span class="detail-label">Total:</span> <strong>{{ total_price }} {{ currency|default:"MAD" }}</strong>
+    </div>
+    {% if deposit_amount and deposit_amount > 0 %}
+    <div class="detail-row">
+        <span class="detail-label">Security Deposit:</span> {{ deposit_amount }} {{ currency|default:"MAD" }}
+    </div>
+    {% endif %}
+</div>
+
+<div style="background: #fff3cd; border-radius: 8px; padding: 16px; margin: 16px 0; color: #856404;">
+    <p style="margin: 0 0 8px 0;"><strong>What to bring</strong></p>
+    <ul style="margin: 0; padding-left: 20px;">
+        <li>Valid driver's license</li>
+        <li>National ID card or passport</li>
+        <li>Security deposit ({{ deposit_amount|default:"as agreed" }} {{ currency|default:"MAD" }})</li>
+    </ul>
+</div>
+
+<p>If you have any questions, please contact the rental company directly or reach out to our support team.</p>
+{% endblock %}

@@ -337,6 +337,29 @@
             </li>
 
             <li class="nav-item">
+                <a href="{% url 'dashboard:rental_company_list' %}" class="nav-link {% active_link request '/rental-companies/' %}" title="{% trans 'Rental Companies' %}">
+                    <i class="bi bi-building"></i>
+                    <span class="nav-link-text">{% trans "Rental Companies" %}
+                        {% if pending_rental_companies_count %}<span class="badge bg-warning ms-1">{{ pending_rental_companies_count }}</span>{% endif %}
+                    </span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:rental_list' %}" class="nav-link {% active_link request '/rentals/' %}" title="{% trans 'Rentals' %}">
+                    <i class="bi bi-car-front"></i>
+                    <span class="nav-link-text">{% trans "Rentals" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:payout_list' %}" class="nav-link {% active_link request '/payouts/' %}" title="{% trans 'Payouts' %}">
+                    <i class="bi bi-cash-stack"></i>
+                    <span class="nav-link-text">{% trans "Payouts" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{% url 'dashboard:settings' %}" class="nav-link {% active_link request '/settings/' %}" title="{% trans 'Settings' %}">
                     <i class="bi bi-gear"></i>
                     <span class="nav-link-text">{% trans "Settings" %}</span>

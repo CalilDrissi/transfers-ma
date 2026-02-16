@@ -138,20 +138,72 @@ class Vehicle(models.Model):
         help_text=_('What service this vehicle is available for')
     )
 
+    # Rental company ownership (null = platform-owned transfer vehicle)
+    company = models.ForeignKey(
+        'rental_companies.RentalCompany',
+        null=True, blank=True,
+        on_delete=models.CASCADE,
+        related_name='vehicles',
+        verbose_name=_('rental company'),
+    )
+
     # For car rentals
     daily_rate = models.DecimalField(
-        _('daily rental rate'),
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True
+        _('daily rental rate'), max_digits=10, decimal_places=2, null=True, blank=True,
     )
     weekly_rate = models.DecimalField(
-        _('weekly rental rate'),
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True
+        _('weekly rental rate'), max_digits=10, decimal_places=2, null=True, blank=True,
+    )
+    monthly_rate = models.DecimalField(
+        _('monthly rental rate'), max_digits=10, decimal_places=2, null=True, blank=True,
+    )
+    rental_deposit = models.DecimalField(
+        _('security deposit'), max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text=_('Security deposit amount for rentals'),
+    )
+    mileage_limit_per_day = models.PositiveIntegerField(
+        _('mileage limit per day'), null=True, blank=True,
+        help_text=_('Km per day limit, null = unlimited'),
+    )
+    extra_mileage_fee = models.DecimalField(
+        _('extra mileage fee'), max_digits=6, decimal_places=2, null=True, blank=True,
+        help_text=_('Fee per extra km'),
+    )
+
+    class FuelPolicy(models.TextChoices):
+        FULL_TO_FULL = 'full_to_full', _('Full to Full')
+        SAME_TO_SAME = 'same_to_same', _('Same to Same')
+        PREPAID = 'prepaid', _('Prepaid')
+
+    fuel_policy = models.CharField(
+        _('fuel policy'), max_length=20,
+        choices=FuelPolicy.choices, default=FuelPolicy.FULL_TO_FULL,
+        blank=True,
+    )
+
+    class Transmission(models.TextChoices):
+        AUTOMATIC = 'automatic', _('Automatic')
+        MANUAL = 'manual', _('Manual')
+
+    transmission = models.CharField(
+        _('transmission'), max_length=20,
+        choices=Transmission.choices, blank=True,
+    )
+
+    class FuelType(models.TextChoices):
+        PETROL = 'petrol', _('Petrol')
+        DIESEL = 'diesel', _('Diesel')
+        HYBRID = 'hybrid', _('Hybrid')
+        ELECTRIC = 'electric', _('Electric')
+
+    fuel_type = models.CharField(
+        _('fuel type'), max_length=20,
+        choices=FuelType.choices, blank=True,
+    )
+    doors = models.PositiveSmallIntegerField(_('doors'), null=True, blank=True)
+    is_available_for_rental_marketplace = models.BooleanField(
+        _('rental marketplace'), default=False,
+        help_text=_('Vehicle is listed on the rental marketplace'),
     )
 
     class Meta:

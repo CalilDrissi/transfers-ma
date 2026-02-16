@@ -1,0 +1,237 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Rental" %} #{{ rental.booking_ref }}{% endblock %}
+{% block page_title %}{% trans "Rental Booking" %} #{{ rental.booking_ref }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:rental_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+        <!-- Booking Details -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-info-circle me-2"></i>{% trans "Booking Details" %}</span>
+                {% if rental.status == 'pending' %}
+                <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                {% elif rental.status == 'confirmed' %}
+                <span class="badge bg-info">{% trans "Confirmed" %}</span>
+                {% elif rental.status == 'active' %}
+                <span class="badge bg-primary">{% trans "Active" %}</span>
+                {% elif rental.status == 'completed' %}
+                <span class="badge bg-success">{% trans "Completed" %}</span>
+                {% elif rental.status == 'cancelled' %}
+                <span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ rental.status }}</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Booking Reference" %}</label>
+                        <p class="mb-1"><strong>{{ rental.booking_ref }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Created" %}</label>
+                        <p class="mb-1">{{ rental.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Pickup Date" %}</label>
+                        <p class="mb-1"><strong>{{ rental.pickup_date|date:"M d, Y" }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Return Date" %}</label>
+                        <p class="mb-1"><strong>{{ rental.return_date|date:"M d, Y" }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Pickup Location" %}</label>
+                        <p class="mb-1">{{ rental.pickup_location|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Return Location" %}</label>
+                        <p class="mb-1">{{ rental.return_location|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-person me-2"></i>{% trans "Customer Information" %}
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Name" %}</label>
+                        <p class="mb-0"><strong>{{ rental.customer_name }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Email" %}</label>
+                        <p class="mb-0">
+                            {% if rental.customer_email %}
+                            <a href="mailto:{{ rental.customer_email }}">{{ rental.customer_email }}</a>
+                            {% else %}-{% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">{% trans "Phone" %}</label>
+                        <p class="mb-0">
+                            {% if rental.customer_phone %}
+                            <a href="tel:{{ rental.customer_phone }}">{{ rental.customer_phone }}</a>
+                            {% else %}-{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-car-front me-2"></i>{% trans "Vehicle Information" %}
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Vehicle" %}</label>
+                        <p class="mb-0"><strong>{{ rental.vehicle_name|default:"-" }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Category" %}</label>
+                        <p class="mb-0">{{ rental.vehicle_category|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Company Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-building me-2"></i>{% trans "Company Information" %}
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Company" %}</label>
+                        <p class="mb-0">
+                            <a href="{% url 'dashboard:rental_company_detail' pk=rental.company.pk %}">
+                                <strong>{{ rental.company.company_name }}</strong>
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">{% trans "Company Email" %}</label>
+                        <p class="mb-0">{{ rental.company.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if rental.special_requests %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-chat-text me-2"></i>{% trans "Special Requests" %}
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ rental.special_requests }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar: Pricing -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-receipt me-2"></i>{% trans "Pricing Breakdown" %}
+            </div>
+            <div class="card-body">
+                {% if rental.daily_rate %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Daily Rate" %}</span>
+                    <span>{{ rental.daily_rate }}</span>
+                </div>
+                {% endif %}
+                {% if rental.rental_days %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Rental Days" %}</span>
+                    <span>{{ rental.rental_days }}</span>
+                </div>
+                {% endif %}
+                {% if rental.extras_price %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Extras" %}</span>
+                    <span>{{ rental.extras_price }}</span>
+                </div>
+                {% endif %}
+                {% if rental.insurance_price %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Insurance" %}</span>
+                    <span>{{ rental.insurance_price }}</span>
+                </div>
+                {% endif %}
+                {% if rental.discount %}
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>{% trans "Discount" %}</span>
+                    <span>-{{ rental.discount }}</span>
+                </div>
+                {% endif %}
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>{% trans "Total" %}</strong>
+                    <strong class="text-primary">{{ rental.total_price|default:"0" }}</strong>
+                </div>
+                {% if rental.commission_amount %}
+                <hr>
+                <div class="d-flex justify-content-between text-muted">
+                    <span>{% trans "Commission" %} ({{ rental.company.commission_rate }}%)</span>
+                    <span>{{ rental.commission_amount }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>{% trans "Company Payout" %}</span>
+                    <strong class="text-success">{{ rental.company_payout_amount|default:"" }}</strong>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>{% trans "Timeline" %}
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Created" %}</span>
+                    <span>{{ rental.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% if rental.confirmed_at %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Confirmed" %}</span>
+                    <span>{{ rental.confirmed_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% endif %}
+                {% if rental.completed_at %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Completed" %}</span>
+                    <span>{{ rental.completed_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% endif %}
+                {% if rental.cancelled_at %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Cancelled" %}</span>
+                    <span>{{ rental.cancelled_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

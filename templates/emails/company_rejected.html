@@ -1,0 +1,15 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Application Update</h2>
+<p>Unfortunately, we couldn't approve <strong>{{ company_name }}</strong> at this time.</p>
+
+{% if reason %}
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <p style="margin: 0;"><strong>Reason:</strong></p>
+    <p style="margin: 8px 0 0 0; color: #555;">{{ reason }}</p>
+</div>
+{% endif %}
+
+<p>You can reapply after addressing the above or contact our support team if you have questions.</p>
+<p>We appreciate your interest in partnering with Transfers.ma and hope to work with you in the future.</p>
+{% endblock %}

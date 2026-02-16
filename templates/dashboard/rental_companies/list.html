@@ -1,0 +1,156 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Rental Companies" %}{% endblock %}
+{% block page_title %}{% trans "Rental Companies" %}{% endblock %}
+
+{% block content %}
+{% if pending_count > 0 %}
+<div class="alert alert-warning d-flex align-items-center mb-4">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>{{ pending_count }}</strong>&nbsp;{% trans "pending company applications awaiting review." %}
+</div>
+{% endif %}
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Status" %}</label>
+                <select name="status" class="form-select">
+                    <option value="">{% trans "All Statuses" %}</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                    <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>{% trans "Approved" %}</option>
+                    <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>{% trans "Rejected" %}</option>
+                    <option value="suspended" {% if request.GET.status == 'suspended' %}selected{% endif %}>{% trans "Suspended" %}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">{% trans "Tier" %}</label>
+                <select name="tier" class="form-select">
+                    <option value="">{% trans "All Tiers" %}</option>
+                    <option value="basic" {% if request.GET.tier == 'basic' %}selected{% endif %}>{% trans "Basic" %}</option>
+                    <option value="standard" {% if request.GET.tier == 'standard' %}selected{% endif %}>{% trans "Standard" %}</option>
+                    <option value="premium" {% if request.GET.tier == 'premium' %}selected{% endif %}>{% trans "Premium" %}</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Search" %}</label>
+                <input type="text" name="search" class="form-control" placeholder="{% trans 'Company name, email...' %}" value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>{% trans "Filter" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Company" %}</th>
+                        <th>{% trans "City" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Tier" %}</th>
+                        <th>{% trans "Commission" %}</th>
+                        <th>{% trans "Vehicles" %}</th>
+                        <th>{% trans "Bookings" %}</th>
+                        <th>{% trans "Rating" %}</th>
+                        <th>{% trans "Created" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for company in companies %}
+                    <tr>
+                        <td>
+                            <strong>{{ company.company_name }}</strong><br>
+                            <small class="text-muted">{{ company.email }}</small>
+                        </td>
+                        <td>{{ company.city|default:"-" }}</td>
+                        <td>
+                            {% if company.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                            {% elif company.status == 'approved' %}
+                            <span class="badge bg-success">{% trans "Approved" %}</span>
+                            {% elif company.status == 'rejected' %}
+                            <span class="badge bg-danger">{% trans "Rejected" %}</span>
+                            {% elif company.status == 'suspended' %}
+                            <span class="badge bg-secondary">{% trans "Suspended" %}</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{{ company.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if company.tier == 'premium' %}
+                            <span class="badge bg-primary">{% trans "Premium" %}</span>
+                            {% elif company.tier == 'standard' %}
+                            <span class="badge bg-info">{% trans "Standard" %}</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{% trans "Basic" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ company.commission_rate }}%</td>
+                        <td>{{ company.vehicles.count|default:"0" }}</td>
+                        <td>{{ company.rental_count|default:"0" }}</td>
+                        <td>
+                            {% if company.avg_rating %}
+                            <i class="bi bi-star-fill text-warning"></i> {{ company.avg_rating|floatformat:1 }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ company.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'dashboard:rental_company_detail' pk=company.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-4 text-muted">
+                            {% trans "No rental companies found." %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if companies.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if companies.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ companies.previous_page_number }}&{{ request.GET.urlencode }}">&laquo;</a>
+        </li>
+        {% endif %}
+
+        {% for num in companies.paginator.page_range %}
+            {% if companies.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > companies.number|add:'-3' and num < companies.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if companies.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ companies.next_page_number }}&{{ request.GET.urlencode }}">&raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

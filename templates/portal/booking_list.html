@@ -1,0 +1,146 @@
+{% extends 'portal/base.html' %}
+{% load i18n %}
+
+{% block active_nav %}bookings{% endblock %}
+{% block page_title %}{% trans "Bookings" %}{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">{% trans "Status" %}</label>
+                <select name="status" class="form-select">
+                    <option value="">{% trans "All Statuses" %}</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                    <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>{% trans "Confirmed" %}</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">{% trans "Pickup From" %}</label>
+                <input type="date" name="pickup_date__gte" class="form-control" value="{{ request.GET.pickup_date__gte|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">{% trans "Pickup To" %}</label>
+                <input type="date" name="pickup_date__lte" class="form-control" value="{{ request.GET.pickup_date__lte|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">{% trans "Search" %}</label>
+                <input type="text" name="q" class="form-control" placeholder="{% trans 'Ref, customer name...' %}" value="{{ request.GET.q|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">{% trans "Filter" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bookings Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Ref" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Vehicle" %}</th>
+                        <th>{% trans "Pickup" %}</th>
+                        <th>{% trans "Return" %}</th>
+                        <th>{% trans "Days" %}</th>
+                        <th>{% trans "Total" %}</th>
+                        <th>{% trans "Commission" %}</th>
+                        <th>{% trans "Payout" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'portal:booking_detail' booking.pk %}" class="fw-semibold text-decoration-none">{{ booking.booking_ref }}</a>
+                        </td>
+                        <td>{{ booking.customer_name }}</td>
+                        <td>{{ booking.vehicle.name|default:'' }}</td>
+                        <td>{{ booking.pickup_date }}</td>
+                        <td>{{ booking.return_date }}</td>
+                        <td>{{ booking.total_days }}</td>
+                        <td>{{ booking.total_price|floatformat:2 }} <small>MAD</small></td>
+                        <td>{{ booking.commission_amount|floatformat:2 }} <small>MAD</small></td>
+                        <td>{{ booking.company_payout_amount|floatformat:2 }} <small>MAD</small></td>
+                        <td>
+                            {% if booking.status == 'pending' %}
+                                <span class="badge bg-warning">{% trans "Pending" %}</span>
+                            {% elif booking.status == 'confirmed' %}
+                                <span class="badge bg-info">{% trans "Confirmed" %}</span>
+                            {% elif booking.status == 'active' %}
+                                <span class="badge bg-primary">{% trans "Active" %}</span>
+                            {% elif booking.status == 'completed' %}
+                                <span class="badge bg-success">{% trans "Completed" %}</span>
+                            {% elif booking.status == 'cancelled' %}
+                                <span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ booking.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'portal:booking_detail' booking.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="11" class="text-center py-5">
+                            <div class="text-muted mb-2">
+                                <i class="bi bi-calendar-x" style="font-size:3rem;"></i>
+                            </div>
+                            <h5 class="text-muted">{% trans "No bookings found" %}</h5>
+                            <p class="text-muted">{% trans "Bookings will appear here when customers reserve your vehicles." %}</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

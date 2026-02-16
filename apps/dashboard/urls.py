@@ -62,4 +62,15 @@ urlpatterns = [
     path('coupons/', views.coupon_list, name='coupon_list'),
     path('coupons/create/', views.coupon_create, name='coupon_create'),
     path('coupons/<int:pk>/', views.coupon_detail, name='coupon_detail'),
+
+    # Rental Companies
+    path('rental-companies/', views.rental_company_list, name='rental_company_list'),
+    path('rental-companies/<int:pk>/', views.rental_company_detail, name='rental_company_detail'),
+
+    # Payouts
+    path('payouts/', views.payout_list, name='payout_list'),
+
+    # Rentals
+    path('rentals/', views.rental_list, name='rental_list'),
+    path('rentals/<int:pk>/', views.rental_detail_view, name='rental_detail'),
 ]

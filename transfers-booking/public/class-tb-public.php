@@ -47,7 +47,11 @@ class TB_Public {
             || $this->page_has_shortcode('transfers_checkout')
             || $this->page_has_shortcode('transfers_confirmation')
             || $this->page_has_shortcode('tours_listing')
-            || $this->page_has_shortcode('tour_detail');
+            || $this->page_has_shortcode('tour_detail')
+            || $this->page_has_shortcode('rental_search')
+            || $this->page_has_shortcode('rental_results')
+            || $this->page_has_shortcode('rental_checkout')
+            || $this->page_has_shortcode('rental_confirmation');
 
         if ($any_shortcode && !$this->page_has_shortcode('transfers_booking')) {
             $primary = esc_attr(TB_Settings::get('tb_primary_color'));
@@ -108,6 +112,21 @@ class TB_Public {
                 $this->version
             );
         }
+
+        // Rental pages (all share the same stylesheet)
+        $has_rental = $this->page_has_shortcode('rental_search')
+            || $this->page_has_shortcode('rental_results')
+            || $this->page_has_shortcode('rental_checkout')
+            || $this->page_has_shortcode('rental_confirmation');
+
+        if ($has_rental) {
+            wp_enqueue_style(
+                'tb-rentals',
+                TB_PLUGIN_URL . 'public/css/tb-rentals.css',
+                [],
+                $this->version
+            );
+        }
     }
 
     public function enqueue_scripts() {
@@ -118,8 +137,13 @@ class TB_Public {
         $has_confirmation = $this->page_has_shortcode('transfers_confirmation');
         $has_tours        = $this->page_has_shortcode('tours_listing');
         $has_tour_detail  = $this->page_has_shortcode('tour_detail');
+        $has_rental_search       = $this->page_has_shortcode('rental_search');
+        $has_rental_results      = $this->page_has_shortcode('rental_results');
+        $has_rental_checkout     = $this->page_has_shortcode('rental_checkout');
+        $has_rental_confirmation = $this->page_has_shortcode('rental_confirmation');
 
-        $needs_scripts = $has_booking || $has_search || $has_results || $has_checkout || $has_confirmation || $has_tours || $has_tour_detail;
+        $needs_scripts = $has_booking || $has_search || $has_results || $has_checkout || $has_confirmation || $has_tours || $has_tour_detail
+            || $has_rental_search || $has_rental_results || $has_rental_checkout || $has_rental_confirmation;
 
         if (!$needs_scripts) {
             return;
@@ -138,7 +162,8 @@ class TB_Public {
         }
 
         // Ensure tb-utils and tb-api are loaded for pages that need the API
-        $needs_api = $has_results || $has_checkout || $has_confirmation || $has_tours || $has_tour_detail;
+        $needs_api = $has_results || $has_checkout || $has_confirmation || $has_tours || $has_tour_detail
+            || $has_rental_results || $has_rental_checkout || $has_rental_confirmation;
         if ($needs_api && !$has_booking) {
             wp_enqueue_script(
                 'tb-utils',
@@ -286,6 +311,80 @@ class TB_Public {
             }
         }
 
+        // Rental search widget scripts
+        if ($has_rental_search) {
+            wp_enqueue_script(
+                'tb-rental-search',
+                TB_PLUGIN_URL . 'public/js/tb-rental-search.js',
+                [],
+                $this->version,
+                true
+            );
+            if (!$config_handle) {
+                $config_handle = 'tb-rental-search';
+            }
+        }
+
+        // Rental results page scripts
+        if ($has_rental_results) {
+            wp_enqueue_script(
+                'tb-rental-results',
+                TB_PLUGIN_URL . 'public/js/tb-rental-results.js',
+                ['tb-api'],
+                $this->version,
+                true
+            );
+            if (!$config_handle) {
+                $config_handle = 'tb-api';
+            }
+        }
+
+        // Rental checkout page scripts
+        if ($has_rental_checkout) {
+            wp_enqueue_script('stripe-js', 'https://js.stripe.com/v3/', [], null, true);
+
+            $paypal_client_id = TB_Settings::get('tb_paypal_client_id');
+            if ($paypal_client_id) {
+                wp_enqueue_script(
+                    'paypal-sdk',
+                    'https://www.paypal.com/sdk/js?client-id=' . urlencode($paypal_client_id) . '&currency=MAD',
+                    [],
+                    null,
+                    true
+                );
+            }
+
+            $rental_checkout_deps = ['tb-api', 'stripe-js'];
+            if ($paypal_client_id) {
+                $rental_checkout_deps[] = 'paypal-sdk';
+            }
+
+            wp_enqueue_script(
+                'tb-rental-checkout',
+                TB_PLUGIN_URL . 'public/js/tb-rental-checkout.js',
+                $rental_checkout_deps,
+                $this->version,
+                true
+            );
+            if (!$config_handle) {
+                $config_handle = 'tb-api';
+            }
+        }
+
+        // Rental confirmation page scripts
+        if ($has_rental_confirmation) {
+            wp_enqueue_script(
+                'tb-rental-confirmation',
+                TB_PLUGIN_URL . 'public/js/tb-rental-confirmation.js',
+                ['tb-api'],
+                $this->version,
+                true
+            );
+            if (!$config_handle) {
+                $config_handle = 'tb-api';
+            }
+        }
+
         // Pass config to JavaScript
         if ($config_handle) {
             wp_localize_script($config_handle, 'tbConfig', $this->get_js_config());
@@ -308,7 +407,10 @@ class TB_Public {
             'resultsPageUrl'       => TB_Settings::get('tb_results_page_url'),
             'toursPageUrl'         => TB_Settings::get('tb_tours_page_url'),
             'checkoutPageUrl'      => TB_Settings::get('tb_checkout_page_url'),
-            'confirmationPageUrl'  => TB_Settings::get('tb_confirmation_page_url'),
+            'confirmationPageUrl'         => TB_Settings::get('tb_confirmation_page_url'),
+            'rentalResultsPageUrl'        => TB_Settings::get('tb_rental_results_page_url'),
+            'rentalCheckoutPageUrl'       => TB_Settings::get('tb_rental_checkout_page_url'),
+            'rentalConfirmationPageUrl'   => TB_Settings::get('tb_rental_confirmation_page_url'),
             'transferTypes'        => [
                 ['value' => 'airport_pickup',  'label' => __('Airport Pickup', 'transfers-booking')],
                 ['value' => 'airport_dropoff', 'label' => __('Airport Drop-off', 'transfers-booking')],
@@ -397,6 +499,18 @@ class TB_Public {
                 'day'                => __('day', 'transfers-booking'),
                 'group'              => __('group', 'transfers-booking'),
                 'person'             => __('person', 'transfers-booking'),
+                // Rental strings
+                'selectCity'         => __('Select a city', 'transfers-booking'),
+                'pickupFuture'       => __('Pickup date must be in the future', 'transfers-booking'),
+                'returnAfterPickup'  => __('Return date must be after pickup date', 'transfers-booking'),
+                'noInsurance'        => __('No additional insurance', 'transfers-booking'),
+                'free'               => __('Free', 'transfers-booking'),
+                'insurance'          => __('Insurance', 'transfers-booking'),
+                'vehicles'           => __('vehicles', 'transfers-booking'),
+                'phone'              => __('Phone', 'transfers-booking'),
+                'email'              => __('Email', 'transfers-booking'),
+                'address'            => __('Address', 'transfers-booking'),
+                'whatsapp'           => __('Contact via WhatsApp', 'transfers-booking'),
             ],
         ];
     }

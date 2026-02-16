@@ -1,0 +1,305 @@
+{% extends 'portal/base.html' %}
+{% load i18n %}
+
+{% block active_nav %}fleet{% endblock %}
+{% block page_title %}{% trans "Availability Calendar" %} - {{ vehicle.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+    .calendar-header {
+        background: #f8f9fa;
+        padding: 0.5rem;
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #495057;
+    }
+    .calendar-day {
+        min-height: 60px;
+        padding: 0.35rem;
+        border: 1px solid #e9ecef;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        cursor: default;
+    }
+    .calendar-day .day-number {
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+    .calendar-day.available {
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+    }
+    .calendar-day.booked {
+        background-color: #f8d7da;
+        border-color: #f5c2c7;
+    }
+    .calendar-day.blocked {
+        background-color: #fff3cd;
+        border-color: #ffecb5;
+    }
+    .calendar-day.past {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+        color: #adb5bd;
+    }
+    .calendar-day.empty {
+        background: transparent;
+        border: none;
+    }
+    .calendar-legend {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .calendar-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.85rem;
+    }
+    .calendar-legend-item .swatch {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+    }
+    .block-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Calendar -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <button class="btn btn-sm btn-outline-secondary" id="prevMonth">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <h5 class="mb-0" id="calendarTitle"></h5>
+                <button class="btn btn-sm btn-outline-secondary" id="nextMonth">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Legend -->
+                <div class="calendar-legend">
+                    <div class="calendar-legend-item">
+                        <div class="swatch" style="background:#d1e7dd;border:1px solid #badbcc;"></div>
+                        <span>{% trans "Available" %}</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <div class="swatch" style="background:#f8d7da;border:1px solid #f5c2c7;"></div>
+                        <span>{% trans "Booked" %}</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <div class="swatch" style="background:#fff3cd;border:1px solid #ffecb5;"></div>
+                        <span>{% trans "Blocked" %}</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <div class="swatch" style="background:#e9ecef;border:1px solid #dee2e6;"></div>
+                        <span>{% trans "Past" %}</span>
+                    </div>
+                </div>
+
+                <!-- Day headers -->
+                <div class="calendar-grid mb-2">
+                    <div class="calendar-header">{% trans "Mon" %}</div>
+                    <div class="calendar-header">{% trans "Tue" %}</div>
+                    <div class="calendar-header">{% trans "Wed" %}</div>
+                    <div class="calendar-header">{% trans "Thu" %}</div>
+                    <div class="calendar-header">{% trans "Fri" %}</div>
+                    <div class="calendar-header">{% trans "Sat" %}</div>
+                    <div class="calendar-header">{% trans "Sun" %}</div>
+                </div>
+
+                <!-- Calendar days -->
+                <div class="calendar-grid" id="calendarDays"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Add Block + Existing Blocks -->
+    <div class="col-lg-4">
+        <!-- Add Availability Block -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-calendar-x me-2"></i>{% trans "Block Dates" %}
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'portal:vehicle_calendar' vehicle.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_block">
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">{% trans "Start Date" %}</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">{% trans "End Date" %}</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">{% trans "Reason" %}</label>
+                        <select name="reason" id="reason" class="form-select">
+                            <option value="maintenance">{% trans "Maintenance" %}</option>
+                            <option value="unavailable">{% trans "Unavailable" %}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">{% trans "Notes" %}</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="bi bi-calendar-x me-1"></i>{% trans "Block Dates" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Existing Blocks -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-list-ul me-2"></i>{% trans "Active Blocks" %}
+            </div>
+            <div class="card-body">
+                {% for block in availability_blocks %}
+                <div class="block-item">
+                    <div>
+                        <div class="fw-semibold">{{ block.get_reason_display }}</div>
+                        <div class="text-muted small">{{ block.start_date }} &mdash; {{ block.end_date }}</div>
+                        {% if block.notes %}
+                        <div class="text-muted small">{{ block.notes }}</div>
+                        {% endif %}
+                    </div>
+                    <form method="post" action="{% url 'portal:vehicle_calendar' vehicle.pk %}" onsubmit="return confirm('{% trans "Remove this block?" %}');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_block">
+                        <input type="hidden" name="block_id" value="{{ block.pk }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-muted mb-0">{% trans "No active blocks." %}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bookings = {{ bookings_json|safe }};
+    const blocks = {{ blocks_json|safe }};
+    const calendarDays = document.getElementById('calendarDays');
+    const calendarTitle = document.getElementById('calendarTitle');
+    const prevBtn = document.getElementById('prevMonth');
+    const nextBtn = document.getElementById('nextMonth');
+
+    const MONTHS = [
+        '{% trans "January" %}', '{% trans "February" %}', '{% trans "March" %}',
+        '{% trans "April" %}', '{% trans "May" %}', '{% trans "June" %}',
+        '{% trans "July" %}', '{% trans "August" %}', '{% trans "September" %}',
+        '{% trans "October" %}', '{% trans "November" %}', '{% trans "December" %}'
+    ];
+
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+
+    function isDateInRange(dateStr, start, end) {
+        return dateStr >= start && dateStr <= end;
+    }
+
+    function formatDate(y, m, d) {
+        return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    }
+
+    function getDateStatus(dateStr) {
+        const today = new Date();
+        const todayStr = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
+
+        if (dateStr < todayStr) return 'past';
+
+        for (let b of bookings) {
+            if (isDateInRange(dateStr, b.start, b.end)) return 'booked';
+        }
+        for (let b of blocks) {
+            if (isDateInRange(dateStr, b.start, b.end)) return 'blocked';
+        }
+        return 'available';
+    }
+
+    function renderCalendar() {
+        calendarDays.innerHTML = '';
+        calendarTitle.textContent = MONTHS[currentMonth] + ' ' + currentYear;
+
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        let startDay = firstDay.getDay();
+        startDay = startDay === 0 ? 6 : startDay - 1; // Monday-based
+
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        // Empty cells before first day
+        for (let i = 0; i < startDay; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day empty';
+            calendarDays.appendChild(cell);
+        }
+
+        // Day cells
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = formatDate(currentYear, currentMonth, d);
+            const status = getDateStatus(dateStr);
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day ' + status;
+            cell.innerHTML = '<div class="day-number">' + d + '</div>';
+
+            if (status === 'booked') {
+                cell.innerHTML += '<small>{% trans "Booked" %}</small>';
+            } else if (status === 'blocked') {
+                cell.innerHTML += '<small>{% trans "Blocked" %}</small>';
+            }
+
+            calendarDays.appendChild(cell);
+        }
+    }
+
+    prevBtn.addEventListener('click', function() {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        renderCalendar();
+    });
+
+    nextBtn.addEventListener('click', function() {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar();
+    });
+
+    renderCalendar();
+});
+</script>
+{% endblock %}

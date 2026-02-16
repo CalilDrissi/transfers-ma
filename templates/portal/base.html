@@ -1,0 +1,615 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Partner Portal{% endblock %} - Transfers.ma</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --primary-color: #0d9488;
+            --primary-hover: #0f766e;
+            --primary-light: #f0fdfa;
+            --sidebar-bg: #f0fdfa;
+            --sidebar-border: #ccfbf1;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* ---- Sidebar ---- */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            padding: 1rem;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: width 0.3s ease, transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 0.75rem 0.5rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            white-space: nowrap;
+            overflow: hidden;
+            border-bottom: 1px solid var(--sidebar-border);
+            margin-bottom: 0.5rem;
+            padding-bottom: 1rem;
+        }
+
+        .sidebar-brand:hover {
+            color: var(--primary-hover);
+        }
+
+        .sidebar-brand-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.5rem;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-initial {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-text {
+            transition: opacity 0.2s;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0;
+            flex: 1;
+        }
+
+        .sidebar-nav .nav-item {
+            margin-bottom: 0.15rem;
+        }
+
+        .sidebar-nav .nav-link {
+            color: #475569;
+            padding: 0.65rem 0.85rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            color: var(--primary-color);
+            background-color: #ccfbf1;
+        }
+
+        .sidebar-nav .nav-link.active {
+            color: #ffffff;
+            background-color: var(--primary-color);
+        }
+
+        .sidebar-nav .nav-link i {
+            font-size: 1.2rem;
+            min-width: 1.2rem;
+        }
+
+        .nav-link-text {
+            transition: opacity 0.2s;
+        }
+
+        /* ---- Main Content ---- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 0.85rem 1.5rem;
+            margin: -1.5rem -1.5rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: #6c757d;
+            font-size: 1.25rem;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+
+        /* ---- Cards & Stats ---- */
+        .stat-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-card .stat-label {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #495057;
+            border-top: none;
+        }
+
+        /* ---- Buttons (teal overrides) ---- */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+
+        /* ---- Notification bell ---- */
+        .notification-bell {
+            position: relative;
+            color: #6c757d;
+            font-size: 1.2rem;
+        }
+
+        .notification-bell:hover {
+            color: var(--primary-color);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -6px;
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        /* ---- User dropdown ---- */
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #334155;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: border-color 0.2s;
+        }
+
+        .user-dropdown-toggle:hover {
+            border-color: var(--primary-color);
+        }
+
+        .user-dropdown-toggle::after {
+            display: inline-block;
+            margin-left: 0.25em;
+            vertical-align: 0.15em;
+            content: "";
+            border-top: 0.3em solid;
+            border-right: 0.3em solid transparent;
+            border-left: 0.3em solid transparent;
+        }
+
+        .user-avatar-sm {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ---- Footer ---- */
+        .portal-footer {
+            margin-top: auto;
+            padding: 1.5rem 0 0.5rem;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        /* ---- Sidebar Footer ---- */
+        .sidebar-footer {
+            border-top: 1px solid var(--sidebar-border);
+            padding-top: 0.75rem;
+        }
+
+        .sidebar-footer .nav-link {
+            color: #dc3545;
+            padding: 0.65rem 0.85rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .sidebar-footer .nav-link:hover {
+            background-color: #fee2e2;
+        }
+
+        /* ---- Collapsed sidebar state ---- */
+        body.sidebar-collapsed .sidebar {
+            width: var(--sidebar-collapsed-width);
+            padding: 1rem 0.5rem;
+        }
+
+        body.sidebar-collapsed .sidebar-brand {
+            justify-content: center;
+            padding: 0.75rem 0;
+        }
+
+        body.sidebar-collapsed .sidebar-brand-text,
+        body.sidebar-collapsed .nav-link-text {
+            display: none;
+        }
+
+        body.sidebar-collapsed .sidebar-nav .nav-link {
+            justify-content: center;
+            padding: 0.65rem;
+        }
+
+        body.sidebar-collapsed .sidebar-nav .nav-link i {
+            margin: 0;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        body.sidebar-collapsed .sidebar-footer {
+            text-align: center;
+        }
+
+        body.sidebar-collapsed .sidebar-footer .nav-link {
+            justify-content: center;
+        }
+
+        /* ---- Mobile styles ---- */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: var(--sidebar-width) !important;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar.show .sidebar-brand-text,
+            .sidebar.show .nav-link-text {
+                opacity: 1 !important;
+                visibility: visible !important;
+                display: inline !important;
+            }
+
+            .sidebar.show .sidebar-nav .nav-link {
+                justify-content: flex-start !important;
+                padding: 0.65rem 0.85rem !important;
+            }
+
+            .sidebar.show .sidebar-footer .nav-link {
+                justify-content: flex-start !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+
+        /* ---- Alert overrides ---- */
+        .alert {
+            border-radius: 0.5rem;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% comment %}Child templates set active_nav via this block. Views can also pass active_nav in context.{% endcomment %}
+    {% block active_nav %}{% endblock %}
+
+    <!-- Sidebar Overlay (for mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <a href="{% url 'portal:home' %}" class="sidebar-brand">
+            {% if request.company.logo %}
+                <img src="{{ request.company.logo.url }}" alt="{{ request.company.name }}" class="sidebar-brand-logo">
+            {% else %}
+                <span class="sidebar-brand-initial">{{ request.company.name|first|upper }}</span>
+            {% endif %}
+            <span class="sidebar-brand-text">{{ request.company.name }}</span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="{% url 'portal:home' %}" class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}" title="{% trans 'Dashboard' %}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span class="nav-link-text">{% trans "Dashboard" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'portal:vehicle_list' %}" class="nav-link {% if active_nav == 'fleet' %}active{% endif %}" title="{% trans 'My Fleet' %}">
+                    <i class="bi bi-car-front"></i>
+                    <span class="nav-link-text">{% trans "My Fleet" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'portal:booking_list' %}" class="nav-link {% if active_nav == 'bookings' %}active{% endif %}" title="{% trans 'Bookings' %}">
+                    <i class="bi bi-calendar-check"></i>
+                    <span class="nav-link-text">{% trans "Bookings" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'portal:earnings' %}" class="nav-link {% if active_nav == 'earnings' %}active{% endif %}" title="{% trans 'Earnings' %}">
+                    <i class="bi bi-cash-stack"></i>
+                    <span class="nav-link-text">{% trans "Earnings" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'portal:reviews' %}" class="nav-link {% if active_nav == 'reviews' %}active{% endif %}" title="{% trans 'Reviews' %}">
+                    <i class="bi bi-star"></i>
+                    <span class="nav-link-text">{% trans "Reviews" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'portal:profile' %}" class="nav-link {% if active_nav == 'profile' %}active{% endif %}" title="{% trans 'Profile' %}">
+                    <i class="bi bi-building"></i>
+                    <span class="nav-link-text">{% trans "Profile" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'portal:documents' %}" class="nav-link {% if active_nav == 'documents' %}active{% endif %}" title="{% trans 'Documents' %}">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span class="nav-link-text">{% trans "Documents" %}</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'portal:logout' %}" class="nav-link" title="{% trans 'Logout' %}">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="nav-link-text">{% trans "Logout" %}</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="top-bar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="sidebar-toggle" id="sidebarToggle" title="{% trans 'Toggle Sidebar' %}">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h5 class="mb-0 fw-semibold">{% block page_title %}Dashboard{% endblock %}</h5>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                {% block page_actions %}{% endblock %}
+
+                <!-- Notification Bell -->
+                <a href="#" class="notification-bell" title="{% trans 'Notifications' %}">
+                    <i class="bi bi-bell"></i>
+                </a>
+
+                <!-- User Dropdown -->
+                <div class="dropdown">
+                    <div class="user-dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="user-avatar-sm">{{ request.company.name|first|upper }}</span>
+                        <span class="d-none d-md-inline">{{ request.company.name }}</span>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'portal:profile' %}"><i class="bi bi-building me-2"></i>{% trans "Profile" %}</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'portal:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>{% trans "Logout" %}</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+        <!-- Footer -->
+        <div class="portal-footer">
+            {% trans "Transfers.ma Partner Portal" %}
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Sidebar Toggle Logic
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const body = document.body;
+            const STORAGE_KEY = 'portal-sidebar-collapsed';
+
+            function isMobile() {
+                return window.innerWidth <= 992;
+            }
+
+            function loadSavedState() {
+                if (!isMobile()) {
+                    const isCollapsed = localStorage.getItem(STORAGE_KEY) === 'true';
+                    if (isCollapsed) {
+                        body.classList.add('sidebar-collapsed');
+                    }
+                }
+            }
+
+            function toggleSidebar() {
+                if (isMobile()) {
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                } else {
+                    body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem(STORAGE_KEY, body.classList.contains('sidebar-collapsed'));
+                }
+            }
+
+            function closeMobileSidebar() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            }
+
+            function handleResize() {
+                if (isMobile()) {
+                    body.classList.remove('sidebar-collapsed');
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                } else {
+                    loadSavedState();
+                }
+            }
+
+            loadSavedState();
+
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', closeMobileSidebar);
+            window.addEventListener('resize', handleResize);
+        })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

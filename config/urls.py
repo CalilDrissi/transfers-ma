@@ -27,6 +27,10 @@ urlpatterns = [
     # Unified Search
     path('api/v1/dashboard-search/', UnifiedSearchView.as_view(), name='unified_search'),
 
+    # Rental company registration & portal
+    path('register/', include('apps.rental_companies.registration_urls')),
+    path('portal/', include('apps.rental_companies.urls')),
+
     # Language switching
     path('i18n/', include('django.conf.urls.i18n')),
 ]

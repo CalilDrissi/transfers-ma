@@ -21,10 +21,13 @@ class TB_Settings {
             'tb_currency_position'      => 'after',
             'tb_enable_round_trip'      => '1',
             'tb_enable_flight_number'   => '1',
-            'tb_results_page_url'       => '/book-transfer/',
-            'tb_tours_page_url'         => '/tours/',
-            'tb_checkout_page_url'      => '/checkout/',
-            'tb_confirmation_page_url'  => '/booking-confirmed/',
+            'tb_results_page_url'              => '/book-transfer/',
+            'tb_tours_page_url'                => '/tours/',
+            'tb_checkout_page_url'             => '/checkout/',
+            'tb_confirmation_page_url'         => '/booking-confirmed/',
+            'tb_rental_results_page_url'       => '/rental-results/',
+            'tb_rental_checkout_page_url'      => '/rental-checkout/',
+            'tb_rental_confirmation_page_url'  => '/rental-confirmed/',
         ];
     }
 

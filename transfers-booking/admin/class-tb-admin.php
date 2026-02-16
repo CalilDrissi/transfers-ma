@@ -121,6 +121,12 @@ class TB_Admin {
             __('Checkout page. Default: /checkout/', 'transfers-booking'));
         $this->add_field('tb_confirmation_page_url', __('Confirmation Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
             __('Booking confirmed page. Default: /booking-confirmed/', 'transfers-booking'));
+        $this->add_field('tb_rental_results_page_url', __('Rental Results Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Page with [rental_results] shortcode. Default: /rental-results/', 'transfers-booking'));
+        $this->add_field('tb_rental_checkout_page_url', __('Rental Checkout Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Rental checkout page. Default: /rental-checkout/', 'transfers-booking'));
+        $this->add_field('tb_rental_confirmation_page_url', __('Rental Confirmation Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Rental booking confirmed page. Default: /rental-confirmed/', 'transfers-booking'));
     }
 
     private function add_field($id, $label, $section, $type = 'text', $description = '', $options = []) {
