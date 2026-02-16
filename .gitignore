@@ -139,3 +139,6 @@ logs/
 
 # Docker
 .docker/
+
+# Reports
+PROJECT_REPORT.html
