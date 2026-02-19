@@ -29,6 +29,7 @@
                         resolve(result.data);
                     } else {
                         var msg = (result.data && result.data.message)
+                            || (result.data && result.data.error)
                             || (result.data && result.data.detail)
                             || tbConfig.i18n.errorGeneric;
                         reject({ message: msg, data: result.data });

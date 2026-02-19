@@ -37,6 +37,9 @@ class Transfers_Booking {
         // Load text domain
         add_action('init', [$this, 'load_textdomain']);
 
+        // Register translatable strings for WPML / Polylang
+        add_action('init', [$this, 'register_translatable_strings']);
+
         // Admin hooks
         $admin = new TB_Admin($this->plugin_name, $this->version);
         add_action('admin_menu', [$admin, 'add_settings_page']);
@@ -99,6 +102,30 @@ class Transfers_Booking {
             false,
             dirname(TB_PLUGIN_BASENAME) . '/languages/'
         );
+    }
+
+    public function register_translatable_strings() {
+        $translatable = [
+            'tb_contact_phone',
+            'tb_contact_email',
+            'tb_contact_whatsapp',
+            'tb_no_route_message',
+        ];
+
+        foreach ($translatable as $key) {
+            $value = TB_Settings::get($key);
+            if (!$value) {
+                continue;
+            }
+            // WPML String Translation
+            if (function_exists('icl_register_string')) {
+                icl_register_string('transfers-booking', $key, $value);
+            }
+            // Polylang
+            if (function_exists('pll_register_string')) {
+                pll_register_string($key, $value, 'transfers-booking');
+            }
+        }
     }
 
     public function register_rewrite_rules() {

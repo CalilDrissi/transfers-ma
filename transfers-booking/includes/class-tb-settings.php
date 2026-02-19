@@ -28,12 +28,36 @@ class TB_Settings {
             'tb_rental_results_page_url'       => '/rental-results/',
             'tb_rental_checkout_page_url'      => '/rental-checkout/',
             'tb_rental_confirmation_page_url'  => '/rental-confirmed/',
+            'tb_contact_phone'                 => '',
+            'tb_contact_email'                 => '',
+            'tb_contact_whatsapp'              => '',
+            'tb_no_route_message'              => 'This route is not currently available for online booking. Please contact us for a custom quote.',
+            'tb_show_no_route_message'         => '',
         ];
     }
 
     public static function get($key) {
         $defaults = self::get_defaults();
         return get_option($key, isset($defaults[$key]) ? $defaults[$key] : '');
+    }
+
+    /**
+     * Get a translatable setting value (WPML → Polylang → raw).
+     */
+    public static function get_translated($key) {
+        $value = self::get($key);
+        if (!$value) {
+            return $value;
+        }
+        // WPML
+        if (function_exists('icl_t')) {
+            return icl_t('transfers-booking', $key, $value);
+        }
+        // Polylang
+        if (function_exists('pll__')) {
+            return pll__($value);
+        }
+        return $value;
     }
 
     /**

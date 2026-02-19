@@ -660,6 +660,70 @@
 }
 
 /* --------------------------------------------------------------------------
+   NO ROUTE CONTACT CARD
+   -------------------------------------------------------------------------- */
+
+.tb-no-route {
+    text-align: center;
+    padding: 48px 24px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tb-no-route__icon {
+    color: #2E8BFF;
+    margin-bottom: 20px;
+}
+
+.tb-no-route__message {
+    font-size: 16px;
+    color: #1E293B;
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto 24px;
+}
+
+.tb-no-route__contacts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.tb-no-route__contact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+    transition: 0.2s;
+    border: 2px solid #E2E8F0;
+    color: #1E293B;
+}
+
+.tb-no-route__contact-btn:hover {
+    border-color: #2E8BFF;
+    color: #2E8BFF;
+}
+
+.tb-no-route__contact-btn--whatsapp {
+    background: #25D366;
+    border-color: #25D366;
+    color: #FFFFFF;
+}
+
+.tb-no-route__contact-btn--whatsapp:hover {
+    background: #1da851;
+    border-color: #1da851;
+    color: #FFFFFF;
+}
+
+/* --------------------------------------------------------------------------
    RESPONSIVE - max-width 768px
    -------------------------------------------------------------------------- */
 

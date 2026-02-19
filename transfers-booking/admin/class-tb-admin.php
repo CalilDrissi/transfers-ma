@@ -103,6 +103,27 @@ class TB_Admin {
         $this->add_field('tb_enable_round_trip', __('Enable Round Trip', 'transfers-booking'), 'tb_features_section', 'checkbox');
         $this->add_field('tb_enable_flight_number', __('Enable Flight Number', 'transfers-booking'), 'tb_features_section', 'checkbox');
 
+        // Contact & Messages
+        add_settings_section(
+            'tb_contact_section',
+            __('Contact & Messages', 'transfers-booking'),
+            function () {
+                echo '<p>' . esc_html__('Contact info shown when a route is not available for online booking.', 'transfers-booking') . '</p>';
+            },
+            'transfers-booking'
+        );
+
+        $this->add_field('tb_contact_phone', __('Contact Phone', 'transfers-booking'), 'tb_contact_section', 'text',
+            __('Phone number for customer inquiries (e.g. +212 5XX-XXXXXX).', 'transfers-booking'));
+        $this->add_field('tb_contact_email', __('Contact Email', 'transfers-booking'), 'tb_contact_section', 'text',
+            __('Email address for custom quote requests.', 'transfers-booking'));
+        $this->add_field('tb_contact_whatsapp', __('WhatsApp Number', 'transfers-booking'), 'tb_contact_section', 'text',
+            __('WhatsApp number with country code, no spaces (e.g. 212600000000).', 'transfers-booking'));
+        $this->add_field('tb_show_no_route_message', __('Show "Contact Us" for Unknown Routes', 'transfers-booking'), 'tb_contact_section', 'checkbox',
+            __('When enabled, routes without a pre-configured price will show a contact message instead of calculated prices.', 'transfers-booking'));
+        $this->add_field('tb_no_route_message', __('No Route Message', 'transfers-booking'), 'tb_contact_section', 'textarea',
+            __('Message shown when a route is not available. Supports basic HTML.', 'transfers-booking'));
+
         // Page URLs
         add_settings_section(
             'tb_pages_section',
@@ -132,7 +153,7 @@ class TB_Admin {
     private function add_field($id, $label, $section, $type = 'text', $description = '', $options = []) {
         register_setting('transfers-booking', $id, [
             'type'              => 'string',
-            'sanitize_callback' => 'sanitize_text_field',
+            'sanitize_callback' => $type === 'textarea' ? 'wp_kses_post' : 'sanitize_text_field',
         ]);
 
         add_settings_field(
@@ -173,6 +194,14 @@ class TB_Admin {
                             esc_attr($id),
                             esc_attr($id),
                             checked($value, '1', false)
+                        );
+                        break;
+                    case 'textarea':
+                        printf(
+                            '<textarea id="%s" name="%s" rows="4" class="large-text">%s</textarea>',
+                            esc_attr($id),
+                            esc_attr($id),
+                            esc_textarea($value)
                         );
                         break;
                     case 'select':

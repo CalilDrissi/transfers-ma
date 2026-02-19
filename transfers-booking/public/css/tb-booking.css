@@ -836,6 +836,67 @@
     background: var(--tb-light-bg) !important;
 }
 
+/* === No Route Contact Card === */
+.tb-no-route {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: #fff;
+    border-radius: var(--tb-radius);
+    box-shadow: var(--tb-shadow);
+}
+
+.tb-no-route__icon {
+    color: var(--tb-accent);
+    margin-bottom: 1.25rem;
+}
+
+.tb-no-route__message {
+    font-size: 1.1rem;
+    color: var(--tb-text-dark);
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto 1.5rem;
+}
+
+.tb-no-route__contacts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.tb-no-route__contact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 10px 20px;
+    border-radius: var(--tb-radius-sm);
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: var(--tb-font);
+    text-decoration: none;
+    transition: all 0.2s;
+    border: 2px solid var(--tb-border);
+    color: var(--tb-text-dark);
+}
+
+.tb-no-route__contact-btn:hover {
+    border-color: var(--tb-accent);
+    color: var(--tb-accent);
+}
+
+.tb-no-route__contact-btn--whatsapp {
+    background: #25D366;
+    border-color: #25D366;
+    color: #fff;
+}
+
+.tb-no-route__contact-btn--whatsapp:hover {
+    background: #1da851;
+    border-color: #1da851;
+    color: #fff;
+}
+
 /* === Responsive === */
 @media (max-width: 767px) {
     .tb-vehicle-card {

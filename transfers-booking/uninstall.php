@@ -16,6 +16,11 @@ $options = [
     'tb_currency_position',
     'tb_enable_round_trip',
     'tb_enable_flight_number',
+    'tb_contact_phone',
+    'tb_contact_email',
+    'tb_contact_whatsapp',
+    'tb_no_route_message',
+    'tb_show_no_route_message',
 ];
 
 foreach ($options as $option) {
