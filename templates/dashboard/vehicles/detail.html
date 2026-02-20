@@ -491,6 +491,51 @@
                                             </form>
                                         </td>
                                     </tr>
+                                    {% if pricing.route_pickup_zones or pricing.route_dropoff_zones %}
+                                    <tr>
+                                        <td colspan="5" class="bg-light py-2 px-3">
+                                            <form method="post" class="mb-0">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="update_route_pricing">
+                                                <input type="hidden" name="pricing_id" value="{{ pricing.id }}">
+                                                <input type="hidden" name="price" value="{{ pricing.price }}">
+                                                <input type="hidden" name="cost" value="{{ pricing.cost|default:'' }}">
+                                                <input type="hidden" name="min_booking_hours" value="{{ pricing.min_booking_hours|default:'' }}">
+                                                <div class="row g-3">
+                                                    {% if pricing.route_pickup_zones %}
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted fw-bold d-block mb-1"><i class="bi bi-geo-alt text-success me-1"></i>{% trans "Sub-Origin Adjustments" %}</small>
+                                                        {% for zone in pricing.route_pickup_zones %}
+                                                        <div class="input-group input-group-sm mb-1">
+                                                            <span class="input-group-text" style="min-width: 140px; font-size: 0.8rem;">{{ zone.name }}</span>
+                                                            <span class="input-group-text">+</span>
+                                                            <input type="number" step="0.01" class="form-control" name="pickup_adj_{{ zone.id }}" value="{{ zone.current_adjustment }}" min="0">
+                                                            <span class="input-group-text">MAD</span>
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                    {% endif %}
+                                                    {% if pricing.route_dropoff_zones %}
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted fw-bold d-block mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{% trans "Sub-Destination Adjustments" %}</small>
+                                                        {% for zone in pricing.route_dropoff_zones %}
+                                                        <div class="input-group input-group-sm mb-1">
+                                                            <span class="input-group-text" style="min-width: 140px; font-size: 0.8rem;">{{ zone.name }}</span>
+                                                            <span class="input-group-text">+</span>
+                                                            <input type="number" step="0.01" class="form-control" name="dropoff_adj_{{ zone.id }}" value="{{ zone.current_adjustment }}" min="0">
+                                                            <span class="input-group-text">MAD</span>
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                <button type="submit" class="btn btn-sm btn-outline-primary mt-2">
+                                                    <i class="bi bi-check-lg me-1"></i>{% trans "Save Adjustments" %}
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
                                     {% endfor %}
                                 </tbody>
                             </table>

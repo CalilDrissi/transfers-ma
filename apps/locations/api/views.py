@@ -506,9 +506,9 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                 if v.get('min_booking_hours') is not None
             ]
             data['min_booking_hours'] = min(min_hours_values) if min_hours_values else None
-            # Add adjustment breakdown
-            data['pickup_adjustment'] = float(matched_pickup_zone.price_adjustment) if matched_pickup_zone else 0
-            data['dropoff_adjustment'] = float(matched_dropoff_zone.price_adjustment) if matched_dropoff_zone else 0
+            # Include matched sub-zone IDs (adjustments are per-vehicle, applied in vehicle_options)
+            data['matched_pickup_zone_id'] = matched_pickup_zone.id if matched_pickup_zone else None
+            data['matched_dropoff_zone_id'] = matched_dropoff_zone.id if matched_dropoff_zone else None
             if matched_pickup_zone:
                 data['matched_pickup_zone'] = RoutePickupZoneSerializer(matched_pickup_zone).data
             else:

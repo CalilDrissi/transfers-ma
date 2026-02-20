@@ -510,6 +510,20 @@ def vehicle_detail(request, pk):
             pricing.price = request.POST.get('price', pricing.price)
             pricing.cost = request.POST.get('cost') or None
             pricing.min_booking_hours = request.POST.get('min_booking_hours') or None
+            # Save sub-zone adjustments from POST keys like pickup_adj_1, dropoff_adj_2
+            pickup_adjs = {}
+            dropoff_adjs = {}
+            for key, value in request.POST.items():
+                if key.startswith('pickup_adj_') and value:
+                    zone_id = key.replace('pickup_adj_', '')
+                    pickup_adjs[zone_id] = str(value)
+                elif key.startswith('dropoff_adj_') and value:
+                    zone_id = key.replace('dropoff_adj_', '')
+                    dropoff_adjs[zone_id] = str(value)
+            if pickup_adjs:
+                pricing.pickup_zone_adjustments = pickup_adjs
+            if dropoff_adjs:
+                pricing.dropoff_zone_adjustments = dropoff_adjs
             pricing.save()
             messages.success(request, 'Route pricing updated successfully.')
 
@@ -575,10 +589,19 @@ def vehicle_detail(request, pk):
         existing_range_ids = vehicle.zone_pricing.values_list('zone_distance_range_id', flat=True)
         available_ranges = zone_ranges.exclude(id__in=existing_range_ids)
 
-        # Get route pricing for this vehicle
+        # Get route pricing for this vehicle, with sub-zone data attached
         route_pricing = vehicle.route_pricing.select_related('route').filter(
             is_active=True
         ).order_by('route__name')
+        for rp in route_pricing:
+            pickup_zones = rp.route.pickup_zones.filter(is_active=True).order_by('order', 'name')
+            dropoff_zones = rp.route.dropoff_zones.filter(is_active=True).order_by('order', 'name')
+            for z in pickup_zones:
+                z.current_adjustment = rp.pickup_zone_adjustments.get(str(z.id), '0')
+            for z in dropoff_zones:
+                z.current_adjustment = rp.dropoff_zone_adjustments.get(str(z.id), '0')
+            rp.route_pickup_zones = list(pickup_zones) if pickup_zones.exists() else None
+            rp.route_dropoff_zones = list(dropoff_zones) if dropoff_zones.exists() else None
 
         # Get all active routes for the dropdown
         all_routes = Route.objects.filter(is_active=True).order_by('order', 'name')

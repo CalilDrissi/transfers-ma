@@ -163,17 +163,14 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
     def get_vehicle_options(self, obj):
         """Get all vehicle options with prices for this route.
 
-        Uses default route pricing + sub-zone price adjustments.
+        Uses default route pricing + per-vehicle sub-zone price adjustments.
         Final price = default_price + pickup_adjustment + dropoff_adjustment.
+        Adjustments are stored as JSON on each VehicleRoutePricing record.
         """
         from apps.vehicles.models import VehicleCategory
 
         matched_pickup_zone = self.context.get('matched_pickup_zone')
         matched_dropoff_zone = self.context.get('matched_dropoff_zone')
-
-        # Calculate price adjustments from matched sub-zones
-        pickup_adjustment = float(matched_pickup_zone.price_adjustment) if matched_pickup_zone else 0
-        dropoff_adjustment = float(matched_dropoff_zone.price_adjustment) if matched_dropoff_zone else 0
 
         options = []
 
@@ -185,16 +182,22 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
         ).select_related('vehicle', 'vehicle__category')
 
         for pricing in default_pricing:
-            adjusted_price = float(pricing.price) + pickup_adjustment + dropoff_adjustment
+            # Per-vehicle adjustments from JSON fields
+            pickup_adj = 0
+            dropoff_adj = 0
+            if matched_pickup_zone:
+                pickup_adj = float(pricing.pickup_zone_adjustments.get(str(matched_pickup_zone.id), 0))
+            if matched_dropoff_zone:
+                dropoff_adj = float(pricing.dropoff_zone_adjustments.get(str(matched_dropoff_zone.id), 0))
+            adjusted_price = float(pricing.price) + pickup_adj + dropoff_adj
             options.append(self._build_vehicle_option(
                 pricing.vehicle, adjusted_price, 'route', pricing
             ))
 
-        # Fallback: category-based calculated pricing
+        # Fallback: category-based calculated pricing (no per-vehicle adjustments available)
         if not options:
             for category in VehicleCategory.objects.filter(is_active=True).order_by('order'):
                 base_price = float(obj.distance_km) * 5 * float(category.price_multiplier)
-                adjusted_price = max(base_price, 100) + pickup_adjustment + dropoff_adjustment
                 options.append({
                     'vehicle_id': None,
                     'vehicle_name': category.name,
@@ -208,7 +211,7 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                     'category_image': category.image.url if category.image else None,
                     'passengers': category.max_passengers,
                     'luggage': category.max_luggage,
-                    'price': adjusted_price,
+                    'price': max(base_price, 100),
                     'features': [],
                     'image': category.image.url if category.image else None,
                     'client_description': '',

@@ -552,6 +552,14 @@ class VehicleRoutePricing(models.Model):
         blank=True,
         help_text=_('Minimum hours in advance required to book')
     )
+    pickup_zone_adjustments = models.JSONField(
+        _('pickup zone adjustments'), default=dict, blank=True,
+        help_text=_('Per sub-origin price adjustments: {"zone_id": "amount", ...}')
+    )
+    dropoff_zone_adjustments = models.JSONField(
+        _('dropoff zone adjustments'), default=dict, blank=True,
+        help_text=_('Per sub-destination price adjustments: {"zone_id": "amount", ...}')
+    )
     is_active = models.BooleanField(_('active'), default=True)
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)

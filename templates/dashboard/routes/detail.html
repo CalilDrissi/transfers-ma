@@ -288,11 +288,10 @@
                     <table class="table table-sm table-hover">
                         <thead>
                             <tr>
-                                <th>{% trans "Zone" %}</th>
+                                <th>{% trans "Name" %}</th>
                                 <th>{% trans "Coordinates" %}</th>
                                 <th>{% trans "Radius" %}</th>
-                                <th>{% trans "Price Adjustment" %}</th>
-                                <th width="100">{% trans "Actions" %}</th>
+                                <th width="80">{% trans "Actions" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -304,23 +303,6 @@
                                 </td>
                                 <td class="small text-muted">{{ zone.center_latitude|floatformat:4 }}, {{ zone.center_longitude|floatformat:4 }}</td>
                                 <td>{{ zone.radius_km }} km</td>
-                                <td>
-                                    <form method="post" class="d-flex align-items-center gap-1">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="update_pickup_zone">
-                                        <input type="hidden" name="zone_id" value="{{ zone.id }}">
-                                        <input type="hidden" name="zone_name" value="{{ zone.name }}">
-                                        <div class="input-group input-group-sm" style="width: 160px;">
-                                            <span class="input-group-text">+</span>
-                                            <input type="number" step="0.01" class="form-control" name="price_adjustment" value="{{ zone.price_adjustment }}" min="0">
-                                            <span class="input-group-text">MAD</span>
-                                        </div>
-                                        <input type="hidden" name="is_active" value="on">
-                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Save">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                    </form>
-                                </td>
                                 <td>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
@@ -356,11 +338,10 @@
                     <table class="table table-sm table-hover">
                         <thead>
                             <tr>
-                                <th>{% trans "Zone" %}</th>
+                                <th>{% trans "Name" %}</th>
                                 <th>{% trans "Coordinates" %}</th>
                                 <th>{% trans "Radius" %}</th>
-                                <th>{% trans "Price Adjustment" %}</th>
-                                <th width="100">{% trans "Actions" %}</th>
+                                <th width="80">{% trans "Actions" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -372,23 +353,6 @@
                                 </td>
                                 <td class="small text-muted">{{ zone.center_latitude|floatformat:4 }}, {{ zone.center_longitude|floatformat:4 }}</td>
                                 <td>{{ zone.radius_km }} km</td>
-                                <td>
-                                    <form method="post" class="d-flex align-items-center gap-1">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="update_dropoff_zone">
-                                        <input type="hidden" name="zone_id" value="{{ zone.id }}">
-                                        <input type="hidden" name="zone_name" value="{{ zone.name }}">
-                                        <div class="input-group input-group-sm" style="width: 160px;">
-                                            <span class="input-group-text">+</span>
-                                            <input type="number" step="0.01" class="form-control" name="price_adjustment" value="{{ zone.price_adjustment }}" min="0">
-                                            <span class="input-group-text">MAD</span>
-                                        </div>
-                                        <input type="hidden" name="is_active" value="on">
-                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Save">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                    </form>
-                                </td>
                                 <td>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
@@ -511,17 +475,6 @@
                             <input type="color" class="form-control form-control-color w-100" id="pickup_color" name="color" value="#28a745">
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label for="pickup_price_adjustment" class="form-label">{% trans "Price Adjustment" %}</label>
-                            <div class="input-group">
-                                <span class="input-group-text">+</span>
-                                <input type="number" step="0.01" class="form-control" id="pickup_price_adjustment" name="price_adjustment" value="0" min="0">
-                                <span class="input-group-text">MAD</span>
-                            </div>
-                            <small class="text-muted">{% trans "Surcharge added to vehicle price for this zone" %}</small>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
@@ -565,17 +518,6 @@
                         <div class="col-md-2">
                             <label for="dropoff_color" class="form-label">{% trans "Color" %}</label>
                             <input type="color" class="form-control form-control-color w-100" id="dropoff_color" name="color" value="#dc3545">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label for="dropoff_price_adjustment" class="form-label">{% trans "Price Adjustment" %}</label>
-                            <div class="input-group">
-                                <span class="input-group-text">+</span>
-                                <input type="number" step="0.01" class="form-control" id="dropoff_price_adjustment" name="price_adjustment" value="0" min="0">
-                                <span class="input-group-text">MAD</span>
-                            </div>
-                            <small class="text-muted">{% trans "Surcharge added to vehicle price for this zone" %}</small>
                         </div>
                     </div>
                 </div>
