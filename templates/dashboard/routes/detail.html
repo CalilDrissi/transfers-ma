@@ -476,13 +476,7 @@
                             <label class="form-label">
                                 {% trans "Radius" %}: <span id="pickup_radius_display" class="radius-value">5</span> km
                             </label>
-                            <div class="d-flex align-items-center gap-2">
-                                <input type="range" class="form-range flex-grow-1" id="pickup_radius_slider" name="radius_km" min="1" max="500" value="5" step="1">
-                                <div class="input-group input-group-sm" style="width: 130px;">
-                                    <input type="number" class="form-control" id="pickup_radius_max" value="500" min="1">
-                                    <span class="input-group-text">max</span>
-                                </div>
-                            </div>
+                            <input type="range" class="form-range" id="pickup_radius_slider" name="radius_km" min="1" max="{{ route.origin_radius_km|default:50 }}" value="5" step="1">
                         </div>
                         <div class="col-auto">
                             <label for="pickup_color" class="form-label">{% trans "Color" %}</label>
@@ -523,13 +517,7 @@
                             <label class="form-label">
                                 {% trans "Radius" %}: <span id="dropoff_radius_display" class="radius-value">5</span> km
                             </label>
-                            <div class="d-flex align-items-center gap-2">
-                                <input type="range" class="form-range flex-grow-1" id="dropoff_radius_slider" name="radius_km" min="1" max="500" value="5" step="1">
-                                <div class="input-group input-group-sm" style="width: 130px;">
-                                    <input type="number" class="form-control" id="dropoff_radius_max" value="500" min="1">
-                                    <span class="input-group-text">max</span>
-                                </div>
-                            </div>
+                            <input type="range" class="form-range" id="dropoff_radius_slider" name="radius_km" min="1" max="{{ route.destination_radius_km|default:50 }}" value="5" step="1">
                         </div>
                         <div class="col-auto">
                             <label for="dropoff_color" class="form-label">{% trans "Color" %}</label>
@@ -664,7 +652,7 @@ function initMaps() {
     });
 
     // Initialize zone maps when modals are shown
-    function initZoneModal(modalId, mapElId, center, parentRadius, existingZones, sliderEl, displayEl, maxEl, color) {
+    function initZoneModal(modalId, mapElId, center, parentRadius, existingZones, sliderEl, displayEl, color) {
         var map = null;
         var newCircle = null;
         document.getElementById(modalId).addEventListener('shown.bs.modal', function() {
@@ -707,23 +695,15 @@ function initMaps() {
             displayEl.textContent = r;
             if (newCircle) { newCircle.setRadius(r * 1000); fitBoundsToCircle(map, newCircle); }
         });
-        // Max input controls slider range
-        maxEl.addEventListener('input', function() {
-            var max = parseInt(this.value) || 50;
-            sliderEl.max = max;
-            if (parseInt(sliderEl.value) > max) { sliderEl.value = max; sliderEl.dispatchEvent(new Event('input')); }
-        });
     }
 
     if (initialOriginLat && initialOriginLng) {
         initZoneModal('addPickupZoneModal', 'pickupZoneMap', originCenter, initialOriginRadius, existingPickupZones,
-            document.getElementById('pickup_radius_slider'), document.getElementById('pickup_radius_display'),
-            document.getElementById('pickup_radius_max'), '#28a745');
+            document.getElementById('pickup_radius_slider'), document.getElementById('pickup_radius_display'), '#28a745');
     }
     if (initialDestLat && initialDestLng) {
         initZoneModal('addDropoffZoneModal', 'dropoffZoneMap', destCenter, initialDestRadius, existingDropoffZones,
-            document.getElementById('dropoff_radius_slider'), document.getElementById('dropoff_radius_display'),
-            document.getElementById('dropoff_radius_max'), '#dc3545');
+            document.getElementById('dropoff_radius_slider'), document.getElementById('dropoff_radius_display'), '#dc3545');
     }
 }
 
