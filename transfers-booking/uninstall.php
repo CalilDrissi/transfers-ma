@@ -21,6 +21,7 @@ $options = [
     'tb_contact_whatsapp',
     'tb_no_route_message',
     'tb_show_no_route_message',
+    'tb_enable_debug_log',
 ];
 
 foreach ($options as $option) {

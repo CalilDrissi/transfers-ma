@@ -17,12 +17,14 @@ class TB_Admin {
     }
 
     public function add_settings_page() {
-        add_options_page(
+        add_menu_page(
             __('Transfers Booking', 'transfers-booking'),
-            __('Transfers Booking', 'transfers-booking'),
+            __('Transfers', 'transfers-booking'),
             'manage_options',
             'transfers-booking',
-            [$this, 'render_settings_page']
+            [$this, 'render_settings_page'],
+            'dashicons-car',
+            30
         );
     }
 
@@ -102,6 +104,8 @@ class TB_Admin {
 
         $this->add_field('tb_enable_round_trip', __('Enable Round Trip', 'transfers-booking'), 'tb_features_section', 'checkbox');
         $this->add_field('tb_enable_flight_number', __('Enable Flight Number', 'transfers-booking'), 'tb_features_section', 'checkbox');
+        $this->add_field('tb_enable_debug_log', __('Enable Debug Log', 'transfers-booking'), 'tb_features_section', 'checkbox',
+            __('Log API errors to wp-content/plugins/transfers-booking/debug.log for troubleshooting.', 'transfers-booking'));
 
         // Contact & Messages
         add_settings_section(
@@ -231,7 +235,7 @@ class TB_Admin {
     }
 
     public function enqueue_styles($hook) {
-        if ($hook !== 'settings_page_transfers-booking') {
+        if ($hook !== 'toplevel_page_transfers-booking') {
             return;
         }
         wp_enqueue_style(
@@ -243,7 +247,7 @@ class TB_Admin {
     }
 
     public function enqueue_scripts($hook) {
-        if ($hook !== 'settings_page_transfers-booking') {
+        if ($hook !== 'toplevel_page_transfers-booking') {
             return;
         }
         wp_enqueue_script(

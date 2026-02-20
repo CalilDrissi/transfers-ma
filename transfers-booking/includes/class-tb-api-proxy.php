@@ -99,15 +99,18 @@ class TB_API_Proxy {
 
         // Handle errors
         if (is_wp_error($response)) {
+            self::log("WP error [{$endpoint_key}]: " . $response->get_error_message() . " | URL: {$url}");
             wp_send_json_error(['message' => $response->get_error_message()], 500);
         }
 
         $status_code = wp_remote_retrieve_response_code($response);
-        $body = json_decode(wp_remote_retrieve_body($response), true);
+        $raw_body = wp_remote_retrieve_body($response);
+        $body = json_decode($raw_body, true);
 
         if ($status_code >= 200 && $status_code < 300) {
             wp_send_json_success($body);
         } else {
+            self::log("API error [{$endpoint_key}]: HTTP {$status_code} | URL: {$url} | Response: " . substr($raw_body, 0, 500));
             wp_send_json_error($body ?: ['message' => 'API request failed.'], $status_code);
         }
     }
@@ -162,6 +165,24 @@ class TB_API_Proxy {
         // Fallback to WordPress locale (e.g. fr_FR → fr)
         $locale = determine_locale();
         return substr($locale, 0, 2);
+    }
+
+    /**
+     * Log a message to the plugin debug log file.
+     * Only writes if tb_enable_debug_log is enabled.
+     */
+    public static function log($message) {
+        if (!TB_Settings::get('tb_enable_debug_log')) {
+            return;
+        }
+        $log_file = TB_PLUGIN_DIR . 'debug.log';
+        $timestamp = current_time('Y-m-d H:i:s');
+        // Keep log file under 500KB
+        if (file_exists($log_file) && filesize($log_file) > 512000) {
+            $lines = file($log_file);
+            file_put_contents($log_file, implode('', array_slice($lines, -200)));
+        }
+        file_put_contents($log_file, "[{$timestamp}] {$message}\n", FILE_APPEND | LOCK_EX);
     }
 
     private function sanitize_params($params) {

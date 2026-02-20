@@ -33,6 +33,7 @@ class TB_Settings {
             'tb_contact_whatsapp'              => '',
             'tb_no_route_message'              => 'This route is not currently available for online booking. Please contact us for a custom quote.',
             'tb_show_no_route_message'         => '',
+            'tb_enable_debug_log'              => '',
         ];
     }
 

@@ -133,9 +133,13 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
         'vehicle_pricing__dropoff_zone'
     )
 
-    def get_permissions(self):
-        return [HasAPIKeyOrIsAuthenticated()]
     lookup_field = 'slug'
+
+    def get_permissions(self):
+        # Public-facing actions don't require authentication
+        if self.action in ('get_pricing', 'popular', 'search'):
+            return [permissions.AllowAny()]
+        return [HasAPIKeyOrIsAuthenticated()]
 
     def get_serializer_class(self):
         if self.action == 'list':
