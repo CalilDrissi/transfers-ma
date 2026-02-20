@@ -508,6 +508,7 @@ class TB_Public {
                 'person'             => __('person', 'transfers-booking'),
                 // Rental strings
                 'selectCity'         => __('Select a city', 'transfers-booking'),
+                'minBookingTime'     => __('We can only accept bookings for this route with a minimum of {hours} hours notice.', 'transfers-booking'),
                 'pickupFuture'       => __('Pickup date must be in the future', 'transfers-booking'),
                 'returnAfterPickup'  => __('Return date must be after pickup date', 'transfers-booking'),
                 'noInsurance'        => __('No additional insurance', 'transfers-booking'),

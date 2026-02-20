@@ -213,7 +213,11 @@
                 TB.Results.renderExtras(Array.isArray(extras) ? extras : (extras && extras.results ? extras.results : []));
             }).catch(function (err) {
                 showLoading(false);
-                showEmpty(err.message || i18n.errorGeneric || 'Something went wrong.');
+                if (cfg.showNoRouteMessage) {
+                    showNoRouteContact();
+                } else {
+                    showEmpty(err.message || i18n.errorGeneric || 'Something went wrong.');
+                }
             });
         },
 

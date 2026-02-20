@@ -58,8 +58,12 @@
                 TB.Step2.renderVehicles(data);
                 TB.Step2.renderRouteInfo(data);
             }).catch(function (err) {
-                container.innerHTML = '<div class="tb-alert tb-alert--error">' +
-                    TB.Utils.escapeHtml(err.message || tbConfig.i18n.errorGeneric) + '</div>';
+                if (tbConfig.showNoRouteMessage) {
+                    TB.Step2.renderNoRouteMessage();
+                } else {
+                    container.innerHTML = '<div class="tb-alert tb-alert--error">' +
+                        TB.Utils.escapeHtml(err.message || tbConfig.i18n.errorGeneric) + '</div>';
+                }
             });
         },
 

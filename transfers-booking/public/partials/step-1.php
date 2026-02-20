@@ -73,6 +73,9 @@
             <input type="text" id="tb-flight-number" class="tb-input" placeholder="<?php esc_attr_e('e.g. AT 1234', 'transfers-booking'); ?>">
         </div>
 
+        <!-- No Route Message (injected by JS) -->
+        <div id="tb-no-route-container" style="display:none;"></div>
+
         <!-- Actions -->
         <div class="tb-form-actions">
             <button type="button" id="tb-btn-search" class="tb-btn tb-btn--primary tb-btn--full">

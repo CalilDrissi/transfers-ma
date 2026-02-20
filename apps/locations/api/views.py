@@ -402,6 +402,12 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                 }
             ).data
             data['pricing_type'] = 'route'
+            # Compute route-level min_booking_hours (smallest non-null across vehicle options)
+            min_hours_values = [
+                v['min_booking_hours'] for v in data.get('vehicle_options', [])
+                if v.get('min_booking_hours') is not None
+            ]
+            data['min_booking_hours'] = min(min_hours_values) if min_hours_values else None
             if matched_pickup_zone:
                 data['matched_pickup_zone'] = RoutePickupZoneSerializer(matched_pickup_zone).data
             else:
