@@ -142,76 +142,70 @@
 
                         <div class="col-12">
                             {% if routes %}
-                            <div class="accordion" id="routePricingAccordion">
-                                {% for route in routes %}
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#route-{{ route.id }}" aria-expanded="false">
-                                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                <strong>{{ route.name }}</strong>
-                                                <span class="badge bg-secondary">{{ route.distance_km }} km</span>
+                            {% for route in routes %}
+                            <div class="card mb-2 route-card" data-route-id="{{ route.id }}">
+                                <div class="card-header py-2 d-flex align-items-center gap-2">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input route-toggle" type="checkbox" id="route_enable_{{ route.id }}" data-route="{{ route.id }}">
+                                        <label class="form-check-label fw-bold" for="route_enable_{{ route.id }}">{{ route.name }}</label>
+                                    </div>
+                                    <span class="badge bg-secondary">{{ route.distance_km }} km</span>
+                                    <small class="text-muted ms-auto">{{ route.origin_name }} &rarr; {{ route.destination_name }}</small>
+                                </div>
+                                <div class="card-body py-3 route-pricing-body" id="route-body-{{ route.id }}" style="display: none;">
+                                    <!-- Base route pricing -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label">{% trans "Price" %} ({{ CURRENCY }})</label>
+                                            <input type="number" name="route_price_{{ route.id }}" class="form-control" step="0.01" min="0" placeholder="0.00" disabled>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">{% trans "Cost" %} ({{ COST_CURRENCY }})</label>
+                                            <input type="number" name="route_cost_{{ route.id }}" class="form-control" step="0.01" min="0" placeholder="0.00" disabled>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">{% trans "Min. Booking" %}</label>
+                                            <div class="input-group">
+                                                <input type="number" name="route_min_hours_{{ route.id }}" class="form-control" min="0" placeholder="0" disabled>
+                                                <span class="input-group-text">{% trans "hrs" %}</span>
                                             </div>
-                                        </button>
-                                    </h2>
-                                    <div id="route-{{ route.id }}" class="accordion-collapse collapse" data-bs-parent="#routePricingAccordion">
-                                        <div class="accordion-body">
-                                            <small class="text-muted d-block mb-3">{{ route.origin_name }} &rarr; {{ route.destination_name }}</small>
-
-                                            <!-- Base route pricing -->
-                                            <div class="row g-3 mb-3">
-                                                <div class="col-md-3">
-                                                    <label class="form-label">{% trans "Price" %} ({{ CURRENCY }})</label>
-                                                    <input type="number" name="route_price_{{ route.id }}" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label">{% trans "Cost" %} ({{ COST_CURRENCY }})</label>
-                                                    <input type="number" name="route_cost_{{ route.id }}" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label">{% trans "Min. Booking" %}</label>
-                                                    <div class="input-group">
-                                                        <input type="number" name="route_min_hours_{{ route.id }}" class="form-control" min="0" placeholder="0">
-                                                        <span class="input-group-text">{% trans "hrs" %}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {% if route.pickup_zones.all or route.dropoff_zones.all %}
-                                            <!-- Sub-zone adjustments -->
-                                            <div class="row g-3">
-                                                {% if route.pickup_zones.all %}
-                                                <div class="col-md-6">
-                                                    <small class="text-muted fw-bold d-block mb-1"><i class="bi bi-geo-alt text-success me-1"></i>{% trans "Sub-Origin Adjustments" %}</small>
-                                                    {% for pz in route.pickup_zones.all %}
-                                                    <div class="input-group input-group-sm mb-1">
-                                                        <span class="input-group-text" style="min-width: 140px; font-size: 0.8rem;">{{ pz.name }}</span>
-                                                        <span class="input-group-text">+</span>
-                                                        <input type="number" step="0.01" class="form-control" name="route_{{ route.id }}_pickup_adj_{{ pz.id }}" min="0" placeholder="0">
-                                                        <span class="input-group-text">{{ CURRENCY }}</span>
-                                                    </div>
-                                                    {% endfor %}
-                                                </div>
-                                                {% endif %}
-                                                {% if route.dropoff_zones.all %}
-                                                <div class="col-md-6">
-                                                    <small class="text-muted fw-bold d-block mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{% trans "Sub-Destination Adjustments" %}</small>
-                                                    {% for dz in route.dropoff_zones.all %}
-                                                    <div class="input-group input-group-sm mb-1">
-                                                        <span class="input-group-text" style="min-width: 140px; font-size: 0.8rem;">{{ dz.name }}</span>
-                                                        <span class="input-group-text">+</span>
-                                                        <input type="number" step="0.01" class="form-control" name="route_{{ route.id }}_dropoff_adj_{{ dz.id }}" min="0" placeholder="0">
-                                                        <span class="input-group-text">{{ CURRENCY }}</span>
-                                                    </div>
-                                                    {% endfor %}
-                                                </div>
-                                                {% endif %}
-                                            </div>
-                                            {% endif %}
                                         </div>
                                     </div>
+
+                                    {% if route.pickup_zones.all or route.dropoff_zones.all %}
+                                    <!-- Sub-zone adjustments -->
+                                    <div class="row g-3">
+                                        {% if route.pickup_zones.all %}
+                                        <div class="col-md-6">
+                                            <small class="text-muted fw-bold d-block mb-1"><i class="bi bi-geo-alt text-success me-1"></i>{% trans "Sub-Origin Adjustments" %}</small>
+                                            {% for pz in route.pickup_zones.all %}
+                                            <div class="input-group input-group-sm mb-1">
+                                                <span class="input-group-text" style="min-width: 140px; font-size: 0.8rem;">{{ pz.name }}</span>
+                                                <span class="input-group-text">+</span>
+                                                <input type="number" step="0.01" class="form-control" name="route_{{ route.id }}_pickup_adj_{{ pz.id }}" min="0" placeholder="0" disabled>
+                                                <span class="input-group-text">{{ CURRENCY }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        {% if route.dropoff_zones.all %}
+                                        <div class="col-md-6">
+                                            <small class="text-muted fw-bold d-block mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{% trans "Sub-Destination Adjustments" %}</small>
+                                            {% for dz in route.dropoff_zones.all %}
+                                            <div class="input-group input-group-sm mb-1">
+                                                <span class="input-group-text" style="min-width: 140px; font-size: 0.8rem;">{{ dz.name }}</span>
+                                                <span class="input-group-text">+</span>
+                                                <input type="number" step="0.01" class="form-control" name="route_{{ route.id }}_dropoff_adj_{{ dz.id }}" min="0" placeholder="0" disabled>
+                                                <span class="input-group-text">{{ CURRENCY }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endfor %}
                             </div>
+                            {% endfor %}
                             {% else %}
                             <div class="alert alert-info">
                                 {% trans "No routes defined." %}
@@ -395,6 +389,22 @@ function renderVehicleListItems(type) {
 }
 document.addEventListener('DOMContentLoaded', function() {
     renderVehicleListItems('keyFeatures');
+
+    // Route toggle: check to enable, uncheck to disable
+    document.querySelectorAll('.route-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var routeId = this.dataset.route;
+            var body = document.getElementById('route-body-' + routeId);
+            var inputs = body.querySelectorAll('input[type=number]');
+            if (this.checked) {
+                body.style.display = '';
+                inputs.forEach(function(inp) { inp.disabled = false; });
+            } else {
+                body.style.display = 'none';
+                inputs.forEach(function(inp) { inp.disabled = true; inp.value = ''; });
+            }
+        });
+    });
 });
 </script>
 {% endblock %}
