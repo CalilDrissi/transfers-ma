@@ -310,23 +310,15 @@
                             {% for zone in pickup_zones %}
                             <tr>
                                 <td>
-                                    <form method="post" class="d-flex gap-1 align-items-center">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="update_pickup_zone">
-                                        <input type="hidden" name="zone_id" value="{{ zone.id }}">
-                                        <input type="color" name="color" value="{{ zone.color }}" class="form-control form-control-color p-0 border-0" style="width:20px;height:20px;">
-                                        <input type="text" name="zone_name" value="{{ zone.name }}" class="form-control form-control-sm" style="width:140px;">
+                                    <span class="zone-badge" style="background-color: {{ zone.color }};"></span>
+                                    {{ zone.name }}
                                 </td>
                                 <td class="small text-muted">{{ zone.center_latitude|floatformat:4 }}, {{ zone.center_longitude|floatformat:4 }}</td>
+                                <td>{{ zone.radius_km }} km</td>
                                 <td>
-                                        <div class="input-group input-group-sm" style="width:100px;">
-                                            <input type="number" name="radius_km" value="{{ zone.radius_km }}" class="form-control" step="0.1" min="0.5">
-                                            <span class="input-group-text">km</span>
-                                        </div>
-                                </td>
-                                <td>
-                                        <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check"></i></button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPickupZone{{ zone.id }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_pickup_zone">
@@ -371,23 +363,15 @@
                             {% for zone in dropoff_zones %}
                             <tr>
                                 <td>
-                                    <form method="post" class="d-flex gap-1 align-items-center">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="update_dropoff_zone">
-                                        <input type="hidden" name="zone_id" value="{{ zone.id }}">
-                                        <input type="color" name="color" value="{{ zone.color }}" class="form-control form-control-color p-0 border-0" style="width:20px;height:20px;">
-                                        <input type="text" name="zone_name" value="{{ zone.name }}" class="form-control form-control-sm" style="width:140px;">
+                                    <span class="zone-badge" style="background-color: {{ zone.color }};"></span>
+                                    {{ zone.name }}
                                 </td>
                                 <td class="small text-muted">{{ zone.center_latitude|floatformat:4 }}, {{ zone.center_longitude|floatformat:4 }}</td>
+                                <td>{{ zone.radius_km }} km</td>
                                 <td>
-                                        <div class="input-group input-group-sm" style="width:100px;">
-                                            <input type="number" name="radius_km" value="{{ zone.radius_km }}" class="form-control" step="0.1" min="0.5">
-                                            <span class="input-group-text">km</span>
-                                        </div>
-                                </td>
-                                <td>
-                                        <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check"></i></button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editDropoffZone{{ zone.id }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_dropoff_zone">
@@ -555,6 +539,89 @@
         </div>
     </div>
 </div>
+<!-- Edit Pickup Zone Modals -->
+{% for zone in pickup_zones %}
+<div class="modal fade" id="editPickupZone{{ zone.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_pickup_zone">
+                <input type="hidden" name="zone_id" value="{{ zone.id }}">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Edit Sub-Origin Radius" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Zone Name" %}</label>
+                        <input type="text" class="form-control" name="zone_name" value="{{ zone.name }}" required>
+                    </div>
+                    <div id="editPickupZoneMap{{ zone.id }}" class="zones-map-container mb-3"></div>
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <label class="form-label">
+                                {% trans "Radius" %}: <span id="editPickupRadiusDisplay{{ zone.id }}" class="radius-value">{{ zone.radius_km|floatformat:0 }}</span> km
+                            </label>
+                            <input type="range" class="form-range" id="editPickupRadiusSlider{{ zone.id }}" name="radius_km" min="1" max="{{ route.origin_radius_km|default:50 }}" value="{{ zone.radius_km|floatformat:0 }}" step="1">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label">{% trans "Color" %}</label>
+                            <input type="color" class="form-control form-control-color" name="color" value="{{ zone.color }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-success">{% trans "Save Changes" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Edit Dropoff Zone Modals -->
+{% for zone in dropoff_zones %}
+<div class="modal fade" id="editDropoffZone{{ zone.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_dropoff_zone">
+                <input type="hidden" name="zone_id" value="{{ zone.id }}">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Edit Sub-Destination Radius" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Zone Name" %}</label>
+                        <input type="text" class="form-control" name="zone_name" value="{{ zone.name }}" required>
+                    </div>
+                    <div id="editDropoffZoneMap{{ zone.id }}" class="zones-map-container mb-3"></div>
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <label class="form-label">
+                                {% trans "Radius" %}: <span id="editDropoffRadiusDisplay{{ zone.id }}" class="radius-value">{{ zone.radius_km|floatformat:0 }}</span> km
+                            </label>
+                            <input type="range" class="form-range" id="editDropoffRadiusSlider{{ zone.id }}" name="radius_km" min="1" max="{{ route.destination_radius_km|default:50 }}" value="{{ zone.radius_km|floatformat:0 }}" step="1">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label">{% trans "Color" %}</label>
+                            <input type="color" class="form-control form-control-color" name="color" value="{{ zone.color }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Save Changes" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}
 
 {% block extra_js %}
@@ -722,10 +789,20 @@ function initMaps() {
     if (initialOriginLat && initialOriginLng) {
         initZoneModal('addPickupZoneModal', 'pickupZoneMap', originCenter, initialOriginRadius, existingPickupZones,
             document.getElementById('pickup_radius_slider'), document.getElementById('pickup_radius_display'), '#28a745');
+        // Edit modals for existing pickup zones
+        {% for zone in pickup_zones %}
+        initZoneModal('editPickupZone{{ zone.id }}', 'editPickupZoneMap{{ zone.id }}', originCenter, initialOriginRadius, existingPickupZones,
+            document.getElementById('editPickupRadiusSlider{{ zone.id }}'), document.getElementById('editPickupRadiusDisplay{{ zone.id }}'), '{{ zone.color }}');
+        {% endfor %}
     }
     if (initialDestLat && initialDestLng) {
         initZoneModal('addDropoffZoneModal', 'dropoffZoneMap', destCenter, initialDestRadius, existingDropoffZones,
             document.getElementById('dropoff_radius_slider'), document.getElementById('dropoff_radius_display'), '#dc3545');
+        // Edit modals for existing dropoff zones
+        {% for zone in dropoff_zones %}
+        initZoneModal('editDropoffZone{{ zone.id }}', 'editDropoffZoneMap{{ zone.id }}', destCenter, initialDestRadius, existingDropoffZones,
+            document.getElementById('editDropoffRadiusSlider{{ zone.id }}'), document.getElementById('editDropoffRadiusDisplay{{ zone.id }}'), '{{ zone.color }}');
+        {% endfor %}
     }
 }
 
