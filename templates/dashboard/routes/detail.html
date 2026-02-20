@@ -310,12 +310,23 @@
                             {% for zone in pickup_zones %}
                             <tr>
                                 <td>
-                                    <span class="zone-badge" style="background-color: {{ zone.color }};"></span>
-                                    {{ zone.name }}
+                                    <form method="post" class="d-flex gap-1 align-items-center">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update_pickup_zone">
+                                        <input type="hidden" name="zone_id" value="{{ zone.id }}">
+                                        <input type="color" name="color" value="{{ zone.color }}" class="form-control form-control-color p-0 border-0" style="width:20px;height:20px;">
+                                        <input type="text" name="zone_name" value="{{ zone.name }}" class="form-control form-control-sm" style="width:140px;">
                                 </td>
                                 <td class="small text-muted">{{ zone.center_latitude|floatformat:4 }}, {{ zone.center_longitude|floatformat:4 }}</td>
-                                <td>{{ zone.radius_km }} km</td>
                                 <td>
+                                        <div class="input-group input-group-sm" style="width:100px;">
+                                            <input type="number" name="radius_km" value="{{ zone.radius_km }}" class="form-control" step="0.1" min="0.5">
+                                            <span class="input-group-text">km</span>
+                                        </div>
+                                </td>
+                                <td>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check"></i></button>
+                                    </form>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_pickup_zone">
@@ -360,12 +371,23 @@
                             {% for zone in dropoff_zones %}
                             <tr>
                                 <td>
-                                    <span class="zone-badge" style="background-color: {{ zone.color }};"></span>
-                                    {{ zone.name }}
+                                    <form method="post" class="d-flex gap-1 align-items-center">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update_dropoff_zone">
+                                        <input type="hidden" name="zone_id" value="{{ zone.id }}">
+                                        <input type="color" name="color" value="{{ zone.color }}" class="form-control form-control-color p-0 border-0" style="width:20px;height:20px;">
+                                        <input type="text" name="zone_name" value="{{ zone.name }}" class="form-control form-control-sm" style="width:140px;">
                                 </td>
                                 <td class="small text-muted">{{ zone.center_latitude|floatformat:4 }}, {{ zone.center_longitude|floatformat:4 }}</td>
-                                <td>{{ zone.radius_km }} km</td>
                                 <td>
+                                        <div class="input-group input-group-sm" style="width:100px;">
+                                            <input type="number" name="radius_km" value="{{ zone.radius_km }}" class="form-control" step="0.1" min="0.5">
+                                            <span class="input-group-text">km</span>
+                                        </div>
+                                </td>
+                                <td>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check"></i></button>
+                                    </form>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_dropoff_zone">

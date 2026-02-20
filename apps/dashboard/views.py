@@ -1117,10 +1117,12 @@ def route_detail(request, pk):
             zone.center_longitude = request.POST.get('longitude') or zone.center_longitude
             zone.radius_km = request.POST.get('radius_km') or zone.radius_km
             zone.color = request.POST.get('color') or zone.color
-            zone.price_adjustment = request.POST.get('price_adjustment') or 0
-            zone.is_active = request.POST.get('is_active') == 'on'
+            if 'price_adjustment' in request.POST:
+                zone.price_adjustment = request.POST.get('price_adjustment') or 0
+            if 'is_active' in request.POST:
+                zone.is_active = request.POST.get('is_active') == 'on'
             zone.save()
-            messages.success(request, 'Pickup zone updated successfully.')
+            messages.success(request, 'Sub-origin radius updated successfully.')
 
         elif action == 'delete_pickup_zone':
             zone_id = request.POST.get('zone_id')
@@ -1161,10 +1163,12 @@ def route_detail(request, pk):
             zone.center_longitude = request.POST.get('longitude') or zone.center_longitude
             zone.radius_km = request.POST.get('radius_km') or zone.radius_km
             zone.color = request.POST.get('color') or zone.color
-            zone.price_adjustment = request.POST.get('price_adjustment') or 0
-            zone.is_active = request.POST.get('is_active') == 'on'
+            if 'price_adjustment' in request.POST:
+                zone.price_adjustment = request.POST.get('price_adjustment') or 0
+            if 'is_active' in request.POST:
+                zone.is_active = request.POST.get('is_active') == 'on'
             zone.save()
-            messages.success(request, 'Dropoff zone updated successfully.')
+            messages.success(request, 'Sub-destination radius updated successfully.')
 
         elif action == 'delete_dropoff_zone':
             zone_id = request.POST.get('zone_id')
