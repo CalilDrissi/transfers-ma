@@ -100,6 +100,48 @@ def find_matching_dropoff_zone(route, lat, lng):
     return None
 
 
+def find_matching_zone(lat, lng):
+    """Find the standalone Zone containing the given coordinates."""
+    for zone in Zone.objects.filter(is_active=True):
+        if not zone.has_coordinates:
+            continue
+        distance = haversine_distance(lat, lng, zone.center_latitude, zone.center_longitude)
+        if distance <= float(zone.radius_km):
+            return zone
+    return None
+
+
+def _build_zone_vehicle_option(zone_pricing):
+    """Build a vehicle option dict from a VehicleZonePricing record."""
+    vehicle = zone_pricing.vehicle
+    category = vehicle.category
+    primary_image = vehicle.images.filter(is_primary=True).first()
+    return {
+        'vehicle_id': vehicle.id,
+        'vehicle_name': vehicle.name,
+        'category_id': category.id,
+        'category_name': category.name,
+        'category_icon': category.icon,
+        'category_description': category.description or '',
+        'category_tagline': category.tagline or '',
+        'category_included_amenities': category.included_amenities or [],
+        'category_not_included': category.not_included or [],
+        'category_image': category.image.url if category.image else None,
+        'passengers': vehicle.passengers,
+        'luggage': vehicle.luggage,
+        'price': float(zone_pricing.price),
+        'features': [f.name for f in vehicle.features.all()[:4]],
+        'image': primary_image.image.url if primary_image else None,
+        'client_description': vehicle.client_description or '',
+        'key_features': vehicle.key_features or [],
+        'important_note': vehicle.important_note or '',
+        'important_note_type': vehicle.important_note_type or 'info',
+        'custom_info': vehicle.custom_info or {},
+        'pricing_type': 'zone',
+        'min_booking_hours': zone_pricing.min_booking_hours,
+    }
+
+
 @extend_schema_view(
     list=extend_schema(
         summary="List all routes",
@@ -352,7 +394,59 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
         dest_lng = serializer.validated_data['destination_lng']
         passengers = int(request.query_params.get('passengers', 1))
 
-        # Try to find a matching route
+        # Step 1: Check if both points are in the same Zone (within-city transfer)
+        pickup_zone = find_matching_zone(origin_lat, origin_lng)
+        dropoff_zone = find_matching_zone(dest_lat, dest_lng)
+
+        if pickup_zone and dropoff_zone and pickup_zone.id == dropoff_zone.id:
+            zone = pickup_zone
+            # Calculate driving distance
+            distance_km = float(haversine_distance(origin_lat, origin_lng, dest_lat, dest_lng))
+            duration_minutes = None
+            try:
+                dist_result = calculate_distance(float(origin_lat), float(origin_lng), float(dest_lat), float(dest_lng))
+                if dist_result.get('distance_km'):
+                    distance_km = float(dist_result['distance_km'])
+                    duration_minutes = dist_result.get('duration_minutes')
+            except Exception:
+                pass
+            if duration_minutes is None:
+                duration_minutes = int(distance_km * 1.5)
+
+            # Find matching distance range
+            distance_range = zone.get_range_for_distance(distance_km)
+            if distance_range:
+                from apps.vehicles.models import VehicleZonePricing
+                zone_vehicle_pricing = VehicleZonePricing.objects.filter(
+                    zone_distance_range=distance_range,
+                    is_active=True
+                ).select_related('vehicle', 'vehicle__category')
+
+                if zone_vehicle_pricing.exists():
+                    vehicle_options = []
+                    for zp in zone_vehicle_pricing:
+                        vehicle_options.append(_build_zone_vehicle_option(zp))
+
+                    min_hours_values = [zp.min_booking_hours for zp in zone_vehicle_pricing if zp.min_booking_hours]
+                    return Response({
+                        'id': None,
+                        'name': zone.name,
+                        'pricing_type': 'zone',
+                        'deposit_percentage': float(zone.deposit_percentage),
+                        'origin_name': request.query_params.get('origin_name', 'Pickup'),
+                        'destination_name': request.query_params.get('destination_name', 'Dropoff'),
+                        'distance_km': round(distance_km, 1),
+                        'estimated_duration_minutes': duration_minutes,
+                        'duration_display': f"{duration_minutes // 60}h {duration_minutes % 60}min",
+                        'client_notice': zone.client_notice,
+                        'client_notice_type': zone.client_notice_type,
+                        'custom_info': zone.custom_info,
+                        'min_booking_hours': min(min_hours_values) if min_hours_values else None,
+                        'vehicle_options': sorted(vehicle_options, key=lambda x: x['price']),
+                    })
+        # If no zone match or no pricing → fall through to Route check
+
+        # Step 2: Try to find a matching route
         matching_route = None
         matched_pickup_zone = None
         matched_dropoff_zone = None
