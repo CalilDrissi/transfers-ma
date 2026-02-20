@@ -490,7 +490,7 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                     break
 
         if matching_route:
-            # Use route-based pricing with zone-specific prices if available
+            # Use route-based pricing with sub-zone price adjustments
             data = RouteWithPricingSerializer(
                 matching_route,
                 context={
@@ -506,6 +506,9 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                 if v.get('min_booking_hours') is not None
             ]
             data['min_booking_hours'] = min(min_hours_values) if min_hours_values else None
+            # Add adjustment breakdown
+            data['pickup_adjustment'] = float(matched_pickup_zone.price_adjustment) if matched_pickup_zone else 0
+            data['dropoff_adjustment'] = float(matched_dropoff_zone.price_adjustment) if matched_dropoff_zone else 0
             if matched_pickup_zone:
                 data['matched_pickup_zone'] = RoutePickupZoneSerializer(matched_pickup_zone).data
             else:

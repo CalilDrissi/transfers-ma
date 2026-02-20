@@ -1067,7 +1067,8 @@ def route_detail(request, pk):
                     center_latitude=lat,
                     center_longitude=lng,
                     radius_km=radius,
-                    color=request.POST.get('color', '#28a745')
+                    color=request.POST.get('color', '#28a745'),
+                    price_adjustment=request.POST.get('price_adjustment') or 0
                 )
                 messages.success(request, f'Pickup zone "{name}" added successfully.')
             else:
@@ -1081,6 +1082,7 @@ def route_detail(request, pk):
             zone.center_longitude = request.POST.get('longitude') or zone.center_longitude
             zone.radius_km = request.POST.get('radius_km') or zone.radius_km
             zone.color = request.POST.get('color') or zone.color
+            zone.price_adjustment = request.POST.get('price_adjustment') or 0
             zone.is_active = request.POST.get('is_active') == 'on'
             zone.save()
             messages.success(request, 'Pickup zone updated successfully.')
@@ -1106,7 +1108,8 @@ def route_detail(request, pk):
                     center_latitude=lat,
                     center_longitude=lng,
                     radius_km=radius,
-                    color=request.POST.get('color', '#dc3545')
+                    color=request.POST.get('color', '#dc3545'),
+                    price_adjustment=request.POST.get('price_adjustment') or 0
                 )
                 messages.success(request, f'Dropoff zone "{name}" added successfully.')
             else:
@@ -1120,6 +1123,7 @@ def route_detail(request, pk):
             zone.center_longitude = request.POST.get('longitude') or zone.center_longitude
             zone.radius_km = request.POST.get('radius_km') or zone.radius_km
             zone.color = request.POST.get('color') or zone.color
+            zone.price_adjustment = request.POST.get('price_adjustment') or 0
             zone.is_active = request.POST.get('is_active') == 'on'
             zone.save()
             messages.success(request, 'Dropoff zone updated successfully.')

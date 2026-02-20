@@ -417,6 +417,10 @@ class RoutePickupZone(models.Model):
         default='#28a745',
         help_text=_('Hex color for map display')
     )
+    price_adjustment = models.DecimalField(
+        _('price adjustment'), max_digits=10, decimal_places=2, default=0,
+        help_text=_('Amount added to vehicle price when pickup is in this zone')
+    )
     order = models.PositiveSmallIntegerField(_('display order'), default=0)
     is_active = models.BooleanField(_('active'), default=True)
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
@@ -467,6 +471,10 @@ class RouteDropoffZone(models.Model):
         max_length=7,
         default='#dc3545',
         help_text=_('Hex color for map display')
+    )
+    price_adjustment = models.DecimalField(
+        _('price adjustment'), max_digits=10, decimal_places=2, default=0,
+        help_text=_('Amount added to vehicle price when dropoff is in this zone')
     )
     order = models.PositiveSmallIntegerField(_('display order'), default=0)
     is_active = models.BooleanField(_('active'), default=True)

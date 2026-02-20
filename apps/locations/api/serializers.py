@@ -60,7 +60,7 @@ class RoutePickupZoneSerializer(serializers.ModelSerializer):
         model = RoutePickupZone
         fields = [
             'id', 'name', 'center_latitude', 'center_longitude',
-            'radius_km', 'color', 'order', 'is_active'
+            'radius_km', 'color', 'price_adjustment', 'order', 'is_active'
         ]
 
 
@@ -70,7 +70,7 @@ class RouteDropoffZoneSerializer(serializers.ModelSerializer):
         model = RouteDropoffZone
         fields = [
             'id', 'name', 'center_latitude', 'center_longitude',
-            'radius_km', 'color', 'order', 'is_active'
+            'radius_km', 'color', 'price_adjustment', 'order', 'is_active'
         ]
 
 
@@ -163,79 +163,38 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
     def get_vehicle_options(self, obj):
         """Get all vehicle options with prices for this route.
 
-        If matched_pickup_zone and/or matched_dropoff_zone are passed in context,
-        it will return zone-specific pricing when available.
+        Uses default route pricing + sub-zone price adjustments.
+        Final price = default_price + pickup_adjustment + dropoff_adjustment.
         """
         from apps.vehicles.models import VehicleCategory
 
-        # Get matched zones from context if available
         matched_pickup_zone = self.context.get('matched_pickup_zone')
         matched_dropoff_zone = self.context.get('matched_dropoff_zone')
 
+        # Calculate price adjustments from matched sub-zones
+        pickup_adjustment = float(matched_pickup_zone.price_adjustment) if matched_pickup_zone else 0
+        dropoff_adjustment = float(matched_dropoff_zone.price_adjustment) if matched_dropoff_zone else 0
+
         options = []
-        vehicles_seen = set()
 
-        # If we have matched zones, prioritize zone-specific pricing
-        if matched_pickup_zone or matched_dropoff_zone:
-            # First, try to find exact zone match pricing
-            zone_pricing = obj.vehicle_pricing.filter(
-                is_active=True,
-                pickup_zone=matched_pickup_zone,
-                dropoff_zone=matched_dropoff_zone
-            ).select_related('vehicle', 'vehicle__category')
+        # Always use default route pricing (no zone FKs)
+        default_pricing = obj.vehicle_pricing.filter(
+            is_active=True,
+            pickup_zone__isnull=True,
+            dropoff_zone__isnull=True
+        ).select_related('vehicle', 'vehicle__category')
 
-            for pricing in zone_pricing:
-                vehicle = pricing.vehicle
-                if vehicle.id not in vehicles_seen:
-                    vehicles_seen.add(vehicle.id)
-                    options.append(self._build_vehicle_option(vehicle, pricing.price, 'zone_specific', pricing))
+        for pricing in default_pricing:
+            adjusted_price = float(pricing.price) + pickup_adjustment + dropoff_adjustment
+            options.append(self._build_vehicle_option(
+                pricing.vehicle, adjusted_price, 'route', pricing
+            ))
 
-            # If no exact match, try pickup zone only
-            if not options and matched_pickup_zone:
-                pickup_pricing = obj.vehicle_pricing.filter(
-                    is_active=True,
-                    pickup_zone=matched_pickup_zone,
-                    dropoff_zone__isnull=True
-                ).select_related('vehicle', 'vehicle__category')
-
-                for pricing in pickup_pricing:
-                    vehicle = pricing.vehicle
-                    if vehicle.id not in vehicles_seen:
-                        vehicles_seen.add(vehicle.id)
-                        options.append(self._build_vehicle_option(vehicle, pricing.price, 'pickup_zone', pricing))
-
-            # If still no match, try dropoff zone only
-            if not options and matched_dropoff_zone:
-                dropoff_pricing = obj.vehicle_pricing.filter(
-                    is_active=True,
-                    pickup_zone__isnull=True,
-                    dropoff_zone=matched_dropoff_zone
-                ).select_related('vehicle', 'vehicle__category')
-
-                for pricing in dropoff_pricing:
-                    vehicle = pricing.vehicle
-                    if vehicle.id not in vehicles_seen:
-                        vehicles_seen.add(vehicle.id)
-                        options.append(self._build_vehicle_option(vehicle, pricing.price, 'dropoff_zone', pricing))
-
-        # Fall back to default route pricing (no zones)
-        if not options:
-            default_pricing = obj.vehicle_pricing.filter(
-                is_active=True,
-                pickup_zone__isnull=True,
-                dropoff_zone__isnull=True
-            ).select_related('vehicle', 'vehicle__category')
-
-            for pricing in default_pricing:
-                vehicle = pricing.vehicle
-                if vehicle.id not in vehicles_seen:
-                    vehicles_seen.add(vehicle.id)
-                    options.append(self._build_vehicle_option(vehicle, pricing.price, 'route_default', pricing))
-
-        # If still no route-specific pricing, fall back to category-based pricing
+        # Fallback: category-based calculated pricing
         if not options:
             for category in VehicleCategory.objects.filter(is_active=True).order_by('order'):
                 base_price = float(obj.distance_km) * 5 * float(category.price_multiplier)
+                adjusted_price = max(base_price, 100) + pickup_adjustment + dropoff_adjustment
                 options.append({
                     'vehicle_id': None,
                     'vehicle_name': category.name,
@@ -249,7 +208,7 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                     'category_image': category.image.url if category.image else None,
                     'passengers': category.max_passengers,
                     'luggage': category.max_luggage,
-                    'price': max(base_price, 100),
+                    'price': adjusted_price,
                     'features': [],
                     'image': category.image.url if category.image else None,
                     'client_description': '',

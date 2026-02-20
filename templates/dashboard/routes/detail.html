@@ -274,10 +274,10 @@
             </div>
         </div>
 
-        <!-- Pickup Zones -->
+        <!-- Sub-Origin Zones -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Pickup Zones" %}</h5>
+                <h5 class="mb-0"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Sub-Origin Zones" %}</h5>
                 <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addPickupZoneModal">
                     <i class="bi bi-plus-lg"></i> {% trans "Add Zone" %}
                 </button>
@@ -291,6 +291,7 @@
                                 <th>{% trans "Zone" %}</th>
                                 <th>{% trans "Coordinates" %}</th>
                                 <th>{% trans "Radius" %}</th>
+                                <th>{% trans "Price Adjustment" %}</th>
                                 <th width="100">{% trans "Actions" %}</th>
                             </tr>
                         </thead>
@@ -304,11 +305,18 @@
                                 <td class="small text-muted">{{ zone.center_latitude|floatformat:4 }}, {{ zone.center_longitude|floatformat:4 }}</td>
                                 <td>{{ zone.radius_km }} km</td>
                                 <td>
+                                    {% if zone.price_adjustment %}
+                                    <span class="text-success fw-bold">+{{ zone.price_adjustment }} MAD</span>
+                                    {% else %}
+                                    <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_pickup_zone">
                                         <input type="hidden" name="zone_id" value="{{ zone.id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Delete this pickup zone?" %}')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Delete this zone?" %}')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -319,15 +327,15 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted mb-0">{% trans "No pickup zones defined. Using default origin radius." %}</p>
+                <p class="text-muted mb-0">{% trans "No sub-origin zones defined. Using default origin radius." %}</p>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Dropoff Zones -->
+        <!-- Sub-Destination Zones -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Dropoff Zones" %}</h5>
+                <h5 class="mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Sub-Destination Zones" %}</h5>
                 <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#addDropoffZoneModal">
                     <i class="bi bi-plus-lg"></i> {% trans "Add Zone" %}
                 </button>
@@ -341,6 +349,7 @@
                                 <th>{% trans "Zone" %}</th>
                                 <th>{% trans "Coordinates" %}</th>
                                 <th>{% trans "Radius" %}</th>
+                                <th>{% trans "Price Adjustment" %}</th>
                                 <th width="100">{% trans "Actions" %}</th>
                             </tr>
                         </thead>
@@ -354,11 +363,18 @@
                                 <td class="small text-muted">{{ zone.center_latitude|floatformat:4 }}, {{ zone.center_longitude|floatformat:4 }}</td>
                                 <td>{{ zone.radius_km }} km</td>
                                 <td>
+                                    {% if zone.price_adjustment %}
+                                    <span class="text-danger fw-bold">+{{ zone.price_adjustment }} MAD</span>
+                                    {% else %}
+                                    <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_dropoff_zone">
                                         <input type="hidden" name="zone_id" value="{{ zone.id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Delete this dropoff zone?" %}')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Delete this zone?" %}')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -369,7 +385,7 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted mb-0">{% trans "No dropoff zones defined. Using default destination radius." %}</p>
+                <p class="text-muted mb-0">{% trans "No sub-destination zones defined. Using default destination radius." %}</p>
                 {% endif %}
             </div>
         </div>
@@ -394,11 +410,11 @@
                 </div>
                 {% endif %}
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">{% trans "Pickup Zones" %}</span>
+                    <span class="text-muted">{% trans "Sub-Origin Zones" %}</span>
                     <strong>{{ pickup_zones.count }}</strong>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">{% trans "Dropoff Zones" %}</span>
+                    <span class="text-muted">{% trans "Sub-Destination Zones" %}</span>
                     <strong>{{ dropoff_zones.count }}</strong>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
@@ -448,7 +464,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_pickup_zone">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Add Pickup Zone" %}</h5>
+                    <h5 class="modal-title"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Add Sub-Origin Zone" %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -457,7 +473,7 @@
                         <input type="text" class="form-control" id="pickup_zone_name" name="zone_name" required placeholder="e.g., Airport Terminal, City Center">
                     </div>
                     <div id="pickupZoneMap" class="zones-map-container mb-3"></div>
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="pickup_lat" class="form-label">{% trans "Latitude" %}</label>
                             <input type="number" step="0.0000001" class="form-control" id="pickup_lat" name="latitude" required>
@@ -475,10 +491,21 @@
                             <input type="color" class="form-control form-control-color w-100" id="pickup_color" name="color" value="#28a745">
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="pickup_price_adjustment" class="form-label">{% trans "Price Adjustment" %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text">+</span>
+                                <input type="number" step="0.01" class="form-control" id="pickup_price_adjustment" name="price_adjustment" value="0" min="0">
+                                <span class="input-group-text">MAD</span>
+                            </div>
+                            <small class="text-muted">{% trans "Surcharge added to vehicle price for this zone" %}</small>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-success">{% trans "Add Pickup Zone" %}</button>
+                    <button type="submit" class="btn btn-success">{% trans "Add Sub-Origin Zone" %}</button>
                 </div>
             </form>
         </div>
@@ -493,7 +520,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_dropoff_zone">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Add Dropoff Zone" %}</h5>
+                    <h5 class="modal-title"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Add Sub-Destination Zone" %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -502,7 +529,7 @@
                         <input type="text" class="form-control" id="dropoff_zone_name" name="zone_name" required placeholder="e.g., City Center, Hotel District">
                     </div>
                     <div id="dropoffZoneMap" class="zones-map-container mb-3"></div>
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="dropoff_lat" class="form-label">{% trans "Latitude" %}</label>
                             <input type="number" step="0.0000001" class="form-control" id="dropoff_lat" name="latitude" required>
@@ -520,10 +547,21 @@
                             <input type="color" class="form-control form-control-color w-100" id="dropoff_color" name="color" value="#dc3545">
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="dropoff_price_adjustment" class="form-label">{% trans "Price Adjustment" %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text">+</span>
+                                <input type="number" step="0.01" class="form-control" id="dropoff_price_adjustment" name="price_adjustment" value="0" min="0">
+                                <span class="input-group-text">MAD</span>
+                            </div>
+                            <small class="text-muted">{% trans "Surcharge added to vehicle price for this zone" %}</small>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-danger">{% trans "Add Dropoff Zone" %}</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Add Sub-Destination Zone" %}</button>
                 </div>
             </form>
         </div>
