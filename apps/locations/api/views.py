@@ -75,29 +75,33 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 
 def find_matching_pickup_zone(route, lat, lng):
-    """Find the pickup zone that contains the given coordinates."""
+    """Find the smallest pickup zone that contains the given coordinates."""
     pickup_zones = route.pickup_zones.filter(is_active=True)
     if not pickup_zones.exists():
         return None
 
+    best = None
     for zone in pickup_zones:
         distance = haversine_distance(lat, lng, zone.center_latitude, zone.center_longitude)
         if distance <= float(zone.radius_km):
-            return zone
-    return None
+            if best is None or zone.radius_km < best.radius_km:
+                best = zone
+    return best
 
 
 def find_matching_dropoff_zone(route, lat, lng):
-    """Find the dropoff zone that contains the given coordinates."""
+    """Find the smallest dropoff zone that contains the given coordinates."""
     dropoff_zones = route.dropoff_zones.filter(is_active=True)
     if not dropoff_zones.exists():
         return None
 
+    best = None
     for zone in dropoff_zones:
         distance = haversine_distance(lat, lng, zone.center_latitude, zone.center_longitude)
         if distance <= float(zone.radius_km):
-            return zone
-    return None
+            if best is None or zone.radius_km < best.radius_km:
+                best = zone
+    return best
 
 
 def find_matching_zone(lat, lng):
