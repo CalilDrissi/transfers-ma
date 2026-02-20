@@ -150,12 +150,6 @@
                                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                                 <strong>{{ route.name }}</strong>
                                                 <span class="badge bg-secondary">{{ route.distance_km }} km</span>
-                                                {% if route.pickup_zones.all or route.dropoff_zones.all %}
-                                                <span class="badge bg-info">
-                                                    <i class="bi bi-geo-alt me-1"></i>
-                                                    {{ route.pickup_zones.count }} pickup / {{ route.dropoff_zones.count }} dropoff zones
-                                                </span>
-                                                {% endif %}
                                             </div>
                                         </button>
                                     </h2>
@@ -163,128 +157,54 @@
                                         <div class="accordion-body">
                                             <small class="text-muted d-block mb-3">{{ route.origin_name }} &rarr; {{ route.destination_name }}</small>
 
-                                            {% if route.pickup_zones.all or route.dropoff_zones.all %}
-                                            <!-- Pickup Zones pricing (separate from dropoff) -->
-                                            {% if route.pickup_zones.all %}
-                                            <div class="card mb-3 border-success">
-                                                <div class="card-header bg-success bg-opacity-10">
-                                                    <i class="bi bi-geo-alt-fill text-success me-2"></i>
-                                                    <strong>{% trans "Pickup Zones" %}</strong>
-                                                </div>
-                                                <div class="card-body">
-                                                    {% for pz in route.pickup_zones.all %}
-                                                    <div class="row g-2 align-items-center mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
-                                                        <div class="col-md-2">
-                                                            <strong>{{ pz.name }}</strong>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Price" %}</span>
-                                                                <input type="number" name="route_price_{{ route.id }}_{{ pz.id }}_0" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Cost" %}</span>
-                                                                <input type="number" name="route_cost_{{ route.id }}_{{ pz.id }}_0" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Min." %}</span>
-                                                                <input type="number" name="route_min_hours_{{ route.id }}_{{ pz.id }}_0" class="form-control" min="0" placeholder="0">
-                                                                <span class="input-group-text">{% trans "hrs" %}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    {% endfor %}
-                                                </div>
-                                            </div>
-                                            {% endif %}
-
-                                            <!-- Dropoff Zones pricing (separate from pickup) -->
-                                            {% if route.dropoff_zones.all %}
-                                            <div class="card mb-3 border-danger">
-                                                <div class="card-header bg-danger bg-opacity-10">
-                                                    <i class="bi bi-geo-fill text-danger me-2"></i>
-                                                    <strong>{% trans "Dropoff Zones" %}</strong>
-                                                </div>
-                                                <div class="card-body">
-                                                    {% for dz in route.dropoff_zones.all %}
-                                                    <div class="row g-2 align-items-center mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
-                                                        <div class="col-md-3">
-                                                            <strong>{{ dz.name }}</strong>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Price" %}</span>
-                                                                <input type="number" name="route_price_{{ route.id }}_0_{{ dz.id }}" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Cost" %}</span>
-                                                                <input type="number" name="route_cost_{{ route.id }}_0_{{ dz.id }}" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    {% endfor %}
-                                                </div>
-                                            </div>
-                                            {% endif %}
-
-                                            <!-- Default pricing -->
-                                            <div class="card border-warning">
-                                                <div class="card-header bg-warning bg-opacity-10">
-                                                    <i class="bi bi-asterisk text-warning me-2"></i>
-                                                    <strong>{% trans "Default Pricing" %}</strong>
-                                                    <small class="text-muted ms-2">{% trans "(Fallback when no zone matches)" %}</small>
-                                                </div>
-                                                <div class="card-body">
-                                                    <div class="row g-2 align-items-center">
-                                                        <div class="col-md-2">
-                                                            <span class="text-muted">{% trans "Base route price" %}</span>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Price" %}</span>
-                                                                <input type="number" name="route_price_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Cost" %}</span>
-                                                                <input type="number" name="route_cost_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">{% trans "Min." %}</span>
-                                                                <input type="number" name="route_min_hours_{{ route.id }}_0_0" class="form-control" min="0" placeholder="0">
-                                                                <span class="input-group-text">{% trans "hrs" %}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {% else %}
-                                            <!-- No zones - simple pricing -->
-                                            <div class="row g-3">
+                                            <!-- Base route pricing -->
+                                            <div class="row g-3 mb-3">
                                                 <div class="col-md-3">
                                                     <label class="form-label">{% trans "Price" %} ({{ CURRENCY }})</label>
-                                                    <input type="number" name="route_price_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
+                                                    <input type="number" name="route_price_{{ route.id }}" class="form-control" step="0.01" min="0" placeholder="0.00">
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label class="form-label">{% trans "Cost" %} ({{ COST_CURRENCY }})</label>
-                                                    <input type="number" name="route_cost_{{ route.id }}_0_0" class="form-control" step="0.01" min="0" placeholder="0.00">
+                                                    <input type="number" name="route_cost_{{ route.id }}" class="form-control" step="0.01" min="0" placeholder="0.00">
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label class="form-label">{% trans "Min. Booking" %}</label>
                                                     <div class="input-group">
-                                                        <input type="number" name="route_min_hours_{{ route.id }}_0_0" class="form-control" min="0" placeholder="0">
+                                                        <input type="number" name="route_min_hours_{{ route.id }}" class="form-control" min="0" placeholder="0">
                                                         <span class="input-group-text">{% trans "hrs" %}</span>
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            {% if route.pickup_zones.all or route.dropoff_zones.all %}
+                                            <!-- Sub-zone adjustments -->
+                                            <div class="row g-3">
+                                                {% if route.pickup_zones.all %}
+                                                <div class="col-md-6">
+                                                    <small class="text-muted fw-bold d-block mb-1"><i class="bi bi-geo-alt text-success me-1"></i>{% trans "Sub-Origin Adjustments" %}</small>
+                                                    {% for pz in route.pickup_zones.all %}
+                                                    <div class="input-group input-group-sm mb-1">
+                                                        <span class="input-group-text" style="min-width: 140px; font-size: 0.8rem;">{{ pz.name }}</span>
+                                                        <span class="input-group-text">+</span>
+                                                        <input type="number" step="0.01" class="form-control" name="route_{{ route.id }}_pickup_adj_{{ pz.id }}" min="0" placeholder="0">
+                                                        <span class="input-group-text">{{ CURRENCY }}</span>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                                {% if route.dropoff_zones.all %}
+                                                <div class="col-md-6">
+                                                    <small class="text-muted fw-bold d-block mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{% trans "Sub-Destination Adjustments" %}</small>
+                                                    {% for dz in route.dropoff_zones.all %}
+                                                    <div class="input-group input-group-sm mb-1">
+                                                        <span class="input-group-text" style="min-width: 140px; font-size: 0.8rem;">{{ dz.name }}</span>
+                                                        <span class="input-group-text">+</span>
+                                                        <input type="number" step="0.01" class="form-control" name="route_{{ route.id }}_dropoff_adj_{{ dz.id }}" min="0" placeholder="0">
+                                                        <span class="input-group-text">{{ CURRENCY }}</span>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
                                             </div>
                                             {% endif %}
                                         </div>

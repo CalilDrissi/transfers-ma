@@ -351,28 +351,39 @@ def vehicle_create(request, service_type='transfer'):
                                 pass
 
                     # Save route pricing for transfer vehicles
-                    # New format: route_price_{route_id}_{pickup_zone_id}_{dropoff_zone_id}
-                    # Where 0 means "any/default" (null in database)
+                    # Format: route_price_{route_id} for base price
+                    # route_{route_id}_pickup_adj_{zone_id} for sub-origin adjustments
+                    # route_{route_id}_dropoff_adj_{zone_id} for sub-destination adjustments
                     import re
-                    route_zone_pattern = re.compile(r'route_price_(\d+)_(\d+)_(\d+)')
+                    route_price_pattern = re.compile(r'route_price_(\d+)$')
 
                     for key, value in request.POST.items():
-                        match = route_zone_pattern.match(key)
+                        match = route_price_pattern.match(key)
                         if match and value:
-                            route_id, pickup_zone_id, dropoff_zone_id = match.groups()
-                            cost_key = f'route_cost_{route_id}_{pickup_zone_id}_{dropoff_zone_id}'
-                            min_hours_key = f'route_min_hours_{route_id}_{pickup_zone_id}_{dropoff_zone_id}'
-                            cost_value = request.POST.get(cost_key) or None
-                            min_hours = request.POST.get(min_hours_key) or None
+                            route_id = match.group(1)
+                            cost_value = request.POST.get(f'route_cost_{route_id}') or None
+                            min_hours = request.POST.get(f'route_min_hours_{route_id}') or None
+
+                            # Collect sub-zone adjustments
+                            pickup_adjs = {}
+                            dropoff_adjs = {}
+                            for adj_key, adj_value in request.POST.items():
+                                if adj_key.startswith(f'route_{route_id}_pickup_adj_') and adj_value:
+                                    zone_id = adj_key.replace(f'route_{route_id}_pickup_adj_', '')
+                                    pickup_adjs[zone_id] = str(adj_value)
+                                elif adj_key.startswith(f'route_{route_id}_dropoff_adj_') and adj_value:
+                                    zone_id = adj_key.replace(f'route_{route_id}_dropoff_adj_', '')
+                                    dropoff_adjs[zone_id] = str(adj_value)
+
                             try:
                                 VehicleRoutePricing.objects.create(
                                     vehicle=vehicle,
                                     route_id=route_id,
-                                    pickup_zone_id=int(pickup_zone_id) if pickup_zone_id != '0' else None,
-                                    dropoff_zone_id=int(dropoff_zone_id) if dropoff_zone_id != '0' else None,
                                     price=value,
                                     cost=cost_value,
                                     min_booking_hours=min_hours,
+                                    pickup_zone_adjustments=pickup_adjs,
+                                    dropoff_zone_adjustments=dropoff_adjs,
                                     is_active=True
                                 )
                             except Exception:
