@@ -459,6 +459,8 @@
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_pickup_zone">
+                <input type="hidden" name="latitude" value="{{ route.origin_latitude }}">
+                <input type="hidden" name="longitude" value="{{ route.origin_longitude }}">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Add Sub-Origin Radius" %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -469,22 +471,22 @@
                         <input type="text" class="form-control" id="pickup_zone_name" name="zone_name" required placeholder="e.g., Airport Terminal, City Center">
                     </div>
                     <div id="pickupZoneMap" class="zones-map-container mb-3"></div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label for="pickup_lat" class="form-label">{% trans "Latitude" %}</label>
-                            <input type="number" step="0.0000001" class="form-control" id="pickup_lat" name="latitude" required>
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <label class="form-label">
+                                {% trans "Radius" %}: <span id="pickup_radius_display" class="radius-value">5</span> km
+                            </label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="range" class="form-range flex-grow-1" id="pickup_radius_slider" name="radius_km" min="1" max="{{ route.origin_radius_km|default:50 }}" value="5" step="1">
+                                <div class="input-group input-group-sm" style="width: 130px;">
+                                    <input type="number" class="form-control" id="pickup_radius_max" value="{{ route.origin_radius_km|default:50 }}" min="1">
+                                    <span class="input-group-text">max</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="pickup_lng" class="form-label">{% trans "Longitude" %}</label>
-                            <input type="number" step="0.0000001" class="form-control" id="pickup_lng" name="longitude" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="pickup_radius" class="form-label">{% trans "Radius (km)" %}</label>
-                            <input type="number" step="0.1" class="form-control" id="pickup_radius" name="radius_km" value="5" min="0.5" max="50">
-                        </div>
-                        <div class="col-md-2">
+                        <div class="col-auto">
                             <label for="pickup_color" class="form-label">{% trans "Color" %}</label>
-                            <input type="color" class="form-control form-control-color w-100" id="pickup_color" name="color" value="#28a745">
+                            <input type="color" class="form-control form-control-color" id="pickup_color" name="color" value="#28a745">
                         </div>
                     </div>
                 </div>
@@ -504,6 +506,8 @@
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_dropoff_zone">
+                <input type="hidden" name="latitude" value="{{ route.destination_latitude }}">
+                <input type="hidden" name="longitude" value="{{ route.destination_longitude }}">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Add Sub-Destination Radius" %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -514,22 +518,22 @@
                         <input type="text" class="form-control" id="dropoff_zone_name" name="zone_name" required placeholder="e.g., City Center, Hotel District">
                     </div>
                     <div id="dropoffZoneMap" class="zones-map-container mb-3"></div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label for="dropoff_lat" class="form-label">{% trans "Latitude" %}</label>
-                            <input type="number" step="0.0000001" class="form-control" id="dropoff_lat" name="latitude" required>
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <label class="form-label">
+                                {% trans "Radius" %}: <span id="dropoff_radius_display" class="radius-value">5</span> km
+                            </label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="range" class="form-range flex-grow-1" id="dropoff_radius_slider" name="radius_km" min="1" max="{{ route.destination_radius_km|default:50 }}" value="5" step="1">
+                                <div class="input-group input-group-sm" style="width: 130px;">
+                                    <input type="number" class="form-control" id="dropoff_radius_max" value="{{ route.destination_radius_km|default:50 }}" min="1">
+                                    <span class="input-group-text">max</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="dropoff_lng" class="form-label">{% trans "Longitude" %}</label>
-                            <input type="number" step="0.0000001" class="form-control" id="dropoff_lng" name="longitude" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="dropoff_radius" class="form-label">{% trans "Radius (km)" %}</label>
-                            <input type="number" step="0.1" class="form-control" id="dropoff_radius" name="radius_km" value="5" min="0.5" max="50">
-                        </div>
-                        <div class="col-md-2">
+                        <div class="col-auto">
                             <label for="dropoff_color" class="form-label">{% trans "Color" %}</label>
-                            <input type="color" class="form-control form-control-color w-100" id="dropoff_color" name="color" value="#dc3545">
+                            <input type="color" class="form-control form-control-color" id="dropoff_color" name="color" value="#dc3545">
                         </div>
                     </div>
                 </div>
@@ -549,9 +553,6 @@
 let originMap, destinationMap;
 let originMarker, destinationMarker;
 let originCircle, destinationCircle;
-let pickupZoneMap, dropoffZoneMap;
-let pickupZoneMarker, dropoffZoneMarker;
-let pickupZoneCircle, dropoffZoneCircle;
 let geocoder;
 
 // Initial values from Django
@@ -663,112 +664,67 @@ function initMaps() {
     });
 
     // Initialize zone maps when modals are shown
-    document.getElementById('addPickupZoneModal').addEventListener('shown.bs.modal', function() {
-        if (!pickupZoneMap) {
-            pickupZoneMap = new google.maps.Map(document.getElementById('pickupZoneMap'), {
-                center: originCenter,
-                zoom: 10,
-                mapTypeControl: false,
-                streetViewControl: false,
-            });
-            pickupZoneMap.addListener('click', function(e) {
-                updateZoneLocation(e.latLng.lat(), e.latLng.lng(), 'pickup');
-            });
-            // Draw parent origin radius
-            if (initialOriginLat && initialOriginLng) {
+    function initZoneModal(modalId, mapElId, center, parentRadius, existingZones, sliderEl, displayEl, maxEl, color) {
+        var map = null;
+        var newCircle = null;
+        document.getElementById(modalId).addEventListener('shown.bs.modal', function() {
+            if (!map) {
+                map = new google.maps.Map(document.getElementById(mapElId), {
+                    center: center,
+                    zoom: 10,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    draggableCursor: 'default',
+                });
+                // Parent radius (gray dashed)
                 new google.maps.Circle({
-                    map: pickupZoneMap,
-                    center: { lat: initialOriginLat, lng: initialOriginLng },
-                    radius: initialOriginRadius * 1000,
-                    fillColor: '#000000',
-                    fillOpacity: 0.05,
-                    strokeColor: '#333333',
-                    strokeOpacity: 0.4,
-                    strokeWeight: 2,
-                    strokeDashArray: '4 4',
+                    map: map, center: center, radius: parentRadius * 1000,
+                    fillColor: '#000', fillOpacity: 0.05, strokeColor: '#333', strokeOpacity: 0.4, strokeWeight: 2,
                 });
                 new google.maps.Marker({
-                    position: { lat: initialOriginLat, lng: initialOriginLng },
-                    map: pickupZoneMap,
+                    position: center, map: map,
                     icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: '#333', fillOpacity: 0.6, strokeColor: '#fff', strokeWeight: 1 },
-                    title: 'Origin: ' + '{{ route.origin_name|escapejs }}' + ' (' + initialOriginRadius + ' km)',
                 });
+                // Existing sub-zones
+                existingZones.forEach(function(z) {
+                    new google.maps.Circle({
+                        map: map, center: { lat: z.lat, lng: z.lng }, radius: z.radius * 1000,
+                        fillColor: z.color, fillOpacity: 0.15, strokeColor: z.color, strokeOpacity: 0.6, strokeWeight: 1,
+                    });
+                });
+                // New zone circle (driven by slider)
+                newCircle = new google.maps.Circle({
+                    map: map, center: center, radius: parseInt(sliderEl.value) * 1000,
+                    fillColor: color, fillOpacity: 0.2, strokeColor: color, strokeOpacity: 0.8, strokeWeight: 2,
+                });
+                fitBoundsToCircle(map, newCircle);
             }
-            // Draw existing sub-origin zones
-            existingPickupZones.forEach(function(z) {
-                new google.maps.Circle({
-                    map: pickupZoneMap,
-                    center: { lat: z.lat, lng: z.lng },
-                    radius: z.radius * 1000,
-                    fillColor: z.color,
-                    fillOpacity: 0.15,
-                    strokeColor: z.color,
-                    strokeOpacity: 0.6,
-                    strokeWeight: 1,
-                });
-                new google.maps.Marker({
-                    position: { lat: z.lat, lng: z.lng },
-                    map: pickupZoneMap,
-                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5, fillColor: z.color, fillOpacity: 0.8, strokeColor: '#fff', strokeWeight: 1 },
-                    title: z.name + ' (' + z.radius + ' km)',
-                });
-            });
-        }
-        google.maps.event.trigger(pickupZoneMap, 'resize');
-    });
+            google.maps.event.trigger(map, 'resize');
+        });
+        // Slider controls new circle
+        sliderEl.addEventListener('input', function() {
+            var r = parseInt(this.value);
+            displayEl.textContent = r;
+            if (newCircle) { newCircle.setRadius(r * 1000); fitBoundsToCircle(map, newCircle); }
+        });
+        // Max input controls slider range
+        maxEl.addEventListener('input', function() {
+            var max = parseInt(this.value) || 50;
+            sliderEl.max = max;
+            if (parseInt(sliderEl.value) > max) { sliderEl.value = max; sliderEl.dispatchEvent(new Event('input')); }
+        });
+    }
 
-    document.getElementById('addDropoffZoneModal').addEventListener('shown.bs.modal', function() {
-        if (!dropoffZoneMap) {
-            dropoffZoneMap = new google.maps.Map(document.getElementById('dropoffZoneMap'), {
-                center: destCenter,
-                zoom: 10,
-                mapTypeControl: false,
-                streetViewControl: false,
-            });
-            dropoffZoneMap.addListener('click', function(e) {
-                updateZoneLocation(e.latLng.lat(), e.latLng.lng(), 'dropoff');
-            });
-            // Draw parent destination radius
-            if (initialDestLat && initialDestLng) {
-                new google.maps.Circle({
-                    map: dropoffZoneMap,
-                    center: { lat: initialDestLat, lng: initialDestLng },
-                    radius: initialDestRadius * 1000,
-                    fillColor: '#000000',
-                    fillOpacity: 0.05,
-                    strokeColor: '#333333',
-                    strokeOpacity: 0.4,
-                    strokeWeight: 2,
-                });
-                new google.maps.Marker({
-                    position: { lat: initialDestLat, lng: initialDestLng },
-                    map: dropoffZoneMap,
-                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: '#333', fillOpacity: 0.6, strokeColor: '#fff', strokeWeight: 1 },
-                    title: 'Destination: ' + '{{ route.destination_name|escapejs }}' + ' (' + initialDestRadius + ' km)',
-                });
-            }
-            // Draw existing sub-destination zones
-            existingDropoffZones.forEach(function(z) {
-                new google.maps.Circle({
-                    map: dropoffZoneMap,
-                    center: { lat: z.lat, lng: z.lng },
-                    radius: z.radius * 1000,
-                    fillColor: z.color,
-                    fillOpacity: 0.15,
-                    strokeColor: z.color,
-                    strokeOpacity: 0.6,
-                    strokeWeight: 1,
-                });
-                new google.maps.Marker({
-                    position: { lat: z.lat, lng: z.lng },
-                    map: dropoffZoneMap,
-                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5, fillColor: z.color, fillOpacity: 0.8, strokeColor: '#fff', strokeWeight: 1 },
-                    title: z.name + ' (' + z.radius + ' km)',
-                });
-            });
-        }
-        google.maps.event.trigger(dropoffZoneMap, 'resize');
-    });
+    if (initialOriginLat && initialOriginLng) {
+        initZoneModal('addPickupZoneModal', 'pickupZoneMap', originCenter, initialOriginRadius, existingPickupZones,
+            document.getElementById('pickup_radius_slider'), document.getElementById('pickup_radius_display'),
+            document.getElementById('pickup_radius_max'), '#28a745');
+    }
+    if (initialDestLat && initialDestLng) {
+        initZoneModal('addDropoffZoneModal', 'dropoffZoneMap', destCenter, initialDestRadius, existingDropoffZones,
+            document.getElementById('dropoff_radius_slider'), document.getElementById('dropoff_radius_display'),
+            document.getElementById('dropoff_radius_max'), '#dc3545');
+    }
 }
 
 function updateLocation(lat, lng, isOrigin, initialRadius) {
@@ -840,79 +796,6 @@ function updateLocation(lat, lng, isOrigin, initialRadius) {
     fitBoundsToCircle(map, circle);
 }
 
-function updateZoneLocation(lat, lng, type) {
-    const isPickup = type === 'pickup';
-    const map = isPickup ? pickupZoneMap : dropoffZoneMap;
-    const color = isPickup ? '#28a745' : '#dc3545';
-    const radiusInput = document.getElementById(isPickup ? 'pickup_radius' : 'dropoff_radius');
-    const radius = parseFloat(radiusInput.value) || 5;
-
-    // Update input fields
-    document.getElementById(isPickup ? 'pickup_lat' : 'dropoff_lat').value = lat.toFixed(7);
-    document.getElementById(isPickup ? 'pickup_lng' : 'dropoff_lng').value = lng.toFixed(7);
-
-    const position = { lat: lat, lng: lng };
-
-    // Remove existing marker and circle
-    if (isPickup) {
-        if (pickupZoneMarker) pickupZoneMarker.setMap(null);
-        if (pickupZoneCircle) pickupZoneCircle.setMap(null);
-    } else {
-        if (dropoffZoneMarker) dropoffZoneMarker.setMap(null);
-        if (dropoffZoneCircle) dropoffZoneCircle.setMap(null);
-    }
-
-    // Create new marker
-    const marker = new google.maps.Marker({
-        position: position,
-        map: map,
-        draggable: true,
-        icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: color,
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 2,
-        }
-    });
-
-    // Create new circle
-    const circle = new google.maps.Circle({
-        map: map,
-        center: position,
-        radius: radius * 1000,
-        fillColor: color,
-        fillOpacity: 0.2,
-        strokeColor: color,
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
-    });
-
-    // Handle marker drag
-    marker.addListener('dragend', function() {
-        const pos = marker.getPosition();
-        document.getElementById(isPickup ? 'pickup_lat' : 'dropoff_lat').value = pos.lat().toFixed(7);
-        document.getElementById(isPickup ? 'pickup_lng' : 'dropoff_lng').value = pos.lng().toFixed(7);
-        circle.setCenter(pos);
-    });
-
-    // Store references
-    if (isPickup) {
-        pickupZoneMarker = marker;
-        pickupZoneCircle = circle;
-    } else {
-        dropoffZoneMarker = marker;
-        dropoffZoneCircle = circle;
-    }
-
-    // Update circle on radius change
-    radiusInput.addEventListener('input', function() {
-        circle.setRadius(parseFloat(this.value) * 1000);
-    });
-
-    fitBoundsToCircle(map, circle);
-}
 
 function fitBoundsToCircle(map, circle) {
     map.fitBounds(circle.getBounds());
