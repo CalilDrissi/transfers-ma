@@ -111,9 +111,18 @@
                                 </div>
 
                                 <div class="mb-2">
-                                    <label for="origin_radius_km" class="form-label">{% trans "Default Radius (km)" %}</label>
-                                    <input type="number" class="form-control" id="origin_radius_km" name="origin_radius_km"
-                                           value="{{ route.origin_radius_km }}" min="1" step="0.1">
+                                    <label for="origin_radius_km" class="form-label">
+                                        {% trans "Default Radius" %}: <span id="origin_radius_display" class="radius-value">{{ route.origin_radius_km }}</span> km
+                                    </label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range flex-grow-1" id="origin_radius_slider"
+                                               min="1" max="{{ route.origin_radius_km|default:50 }}" value="{{ route.origin_radius_km }}" step="1">
+                                        <div class="input-group input-group-sm" style="width: 100px;">
+                                            <input type="number" class="form-control" id="origin_radius_max" value="{{ route.origin_radius_km|default:50 }}" min="1" title="Max range">
+                                            <span class="input-group-text">km</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="origin_radius_km" name="origin_radius_km" value="{{ route.origin_radius_km }}">
                                 </div>
                             </div>
                         </div>
@@ -144,9 +153,18 @@
                                 </div>
 
                                 <div class="mb-2">
-                                    <label for="destination_radius_km" class="form-label">{% trans "Default Radius (km)" %}</label>
-                                    <input type="number" class="form-control" id="destination_radius_km" name="destination_radius_km"
-                                           value="{{ route.destination_radius_km }}" min="1" step="0.1">
+                                    <label for="destination_radius_km" class="form-label">
+                                        {% trans "Default Radius" %}: <span id="destination_radius_display" class="radius-value">{{ route.destination_radius_km }}</span> km
+                                    </label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range flex-grow-1" id="destination_radius_slider"
+                                               min="1" max="{{ route.destination_radius_km|default:50 }}" value="{{ route.destination_radius_km }}" step="1">
+                                        <div class="input-group input-group-sm" style="width: 100px;">
+                                            <input type="number" class="form-control" id="destination_radius_max" value="{{ route.destination_radius_km|default:50 }}" min="1" title="Max range">
+                                            <span class="input-group-text">km</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="destination_radius_km" name="destination_radius_km" value="{{ route.destination_radius_km }}">
                                 </div>
                             </div>
                         </div>
@@ -605,20 +623,42 @@ function initMaps() {
         updateLocation(e.latLng.lat(), e.latLng.lng(), false);
     });
 
-    // Radius number inputs
-    document.getElementById('origin_radius_km').addEventListener('input', function() {
-        const radius = parseFloat(this.value) || 1;
+    // Radius sliders
+    document.getElementById('origin_radius_slider').addEventListener('input', function() {
+        var radius = parseInt(this.value);
+        document.getElementById('origin_radius_km').value = radius;
+        document.getElementById('origin_radius_display').textContent = radius;
         if (originCircle) {
             originCircle.setRadius(radius * 1000);
             fitBoundsToCircle(originMap, originCircle);
         }
     });
+    document.getElementById('origin_radius_max').addEventListener('input', function() {
+        var max = parseInt(this.value) || 50;
+        var slider = document.getElementById('origin_radius_slider');
+        slider.max = max;
+        if (parseInt(slider.value) > max) {
+            slider.value = max;
+            slider.dispatchEvent(new Event('input'));
+        }
+    });
 
-    document.getElementById('destination_radius_km').addEventListener('input', function() {
-        const radius = parseFloat(this.value) || 1;
+    document.getElementById('destination_radius_slider').addEventListener('input', function() {
+        var radius = parseInt(this.value);
+        document.getElementById('destination_radius_km').value = radius;
+        document.getElementById('destination_radius_display').textContent = radius;
         if (destinationCircle) {
             destinationCircle.setRadius(radius * 1000);
             fitBoundsToCircle(destinationMap, destinationCircle);
+        }
+    });
+    document.getElementById('destination_radius_max').addEventListener('input', function() {
+        var max = parseInt(this.value) || 50;
+        var slider = document.getElementById('destination_radius_slider');
+        slider.max = max;
+        if (parseInt(slider.value) > max) {
+            slider.value = max;
+            slider.dispatchEvent(new Event('input'));
         }
     });
 
