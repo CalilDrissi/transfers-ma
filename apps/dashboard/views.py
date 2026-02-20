@@ -2118,3 +2118,18 @@ def payout_list(request):
         'all_companies': all_companies,
     }
     return render(request, 'dashboard/payouts/list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def booking_form(request):
+    """Embedded booking form for testing the WP plugin widget."""
+    try:
+        site_settings = SiteSettings.get_settings()
+    except Exception:
+        site_settings = None
+
+    context = {
+        'site_settings': site_settings,
+    }
+    return render(request, 'dashboard/booking_form.html', context)

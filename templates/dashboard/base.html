@@ -372,6 +372,13 @@
                     <span class="nav-link-text">{% trans "API Keys" %}</span>
                 </a>
             </li>
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard:booking_form' %}" class="nav-link {% active_link request '/booking-form/' %}" title="{% trans 'Booking Form' %}">
+                    <i class="bi bi-ui-checks-grid"></i>
+                    <span class="nav-link-text">{% trans "Booking Form" %}</span>
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-footer mt-auto pt-3 border-top border-secondary">

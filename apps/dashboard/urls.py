@@ -73,4 +73,7 @@ urlpatterns = [
     # Rentals
     path('rentals/', views.rental_list, name='rental_list'),
     path('rentals/<int:pk>/', views.rental_detail_view, name='rental_detail'),
+
+    # Booking Form (test widget)
+    path('booking-form/', views.booking_form, name='booking_form'),
 ]

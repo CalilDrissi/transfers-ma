@@ -1,0 +1,788 @@
+{% extends "dashboard/base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Booking Form" %}{% endblock %}
+{% block page_title %}{% trans "Booking Form" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Booking Widget CSS (from WP plugin tb-booking.css) */
+.tb-booking-widget {
+    --tb-primary: #1a1a2e;
+    --tb-accent: #e94560;
+    --tb-accent-hover: #d63d56;
+    --tb-light-bg: #f8f9fa;
+    --tb-text-dark: #1a1a2e;
+    --tb-text-muted: #6c757d;
+    --tb-border: #e0e0e0;
+    --tb-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --tb-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
+    --tb-success: #10b981;
+    --tb-error: #dc3545;
+    --tb-radius: 12px;
+    --tb-radius-sm: 8px;
+    --tb-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.tb-booking-widget { font-family: var(--tb-font); color: var(--tb-text-dark); line-height: 1.5; max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
+.tb-booking-widget *, .tb-booking-widget *::before, .tb-booking-widget *::after { box-sizing: border-box; }
+.tb-step { display: none; }
+.tb-step--active { display: block; }
+.tb-progress { display: flex; align-items: center; justify-content: center; gap: 0; padding: 1.5rem 0; margin-bottom: 1.5rem; }
+.tb-progress__step { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; color: var(--tb-text-muted); font-size: 0.9rem; font-weight: 500; }
+.tb-progress__step--active { color: var(--tb-accent); font-weight: 600; }
+.tb-progress__step--completed { color: var(--tb-success); }
+.tb-progress__number { width: 30px; height: 30px; border-radius: 50%; background: var(--tb-border); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; flex-shrink: 0; }
+.tb-progress__step--active .tb-progress__number { background: var(--tb-accent); color: #fff; }
+.tb-progress__step--completed .tb-progress__number { background: var(--tb-success); color: #fff; }
+.tb-progress__connector { width: 40px; height: 2px; background: var(--tb-border); }
+.tb-progress__label { display: none; }
+@media (min-width: 576px) { .tb-progress__label { display: inline; } }
+.tb-card { background: #fff; border-radius: var(--tb-radius); padding: 2rem; box-shadow: var(--tb-shadow); margin-bottom: 1.5rem; }
+.tb-card__title { font-size: 1.25rem; font-weight: 700; margin: 0 0 1.5rem; }
+.tb-form-group { margin-bottom: 1.25rem; }
+.tb-form-row { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+@media (min-width: 576px) { .tb-form-row { grid-template-columns: 1fr 1fr; } .tb-form-group--half { margin-bottom: 0; } }
+.tb-label { display: block; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tb-text-muted); margin-bottom: 0.5rem; }
+.tb-input { width: 100%; padding: 12px 14px; border: 2px solid var(--tb-border); border-radius: var(--tb-radius-sm); font-size: 1rem; font-family: var(--tb-font); color: var(--tb-text-dark); background: #fff; transition: border-color 0.2s; }
+.tb-input:focus { outline: none; border-color: var(--tb-accent); box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1); }
+.tb-input--error { border-color: var(--tb-error); }
+.tb-select { width: 100%; padding: 12px 14px; border: 2px solid var(--tb-border); border-radius: var(--tb-radius-sm); font-size: 1rem; font-family: var(--tb-font); color: var(--tb-text-dark); background: #fff; cursor: pointer; appearance: auto; }
+.tb-select:focus { outline: none; border-color: var(--tb-accent); }
+.tb-input-wrapper { position: relative; }
+.tb-input-wrapper .tb-input { padding-left: 38px; }
+.tb-input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--tb-accent); font-size: 0.75rem; z-index: 1; pointer-events: none; }
+.tb-counter { display: flex; align-items: center; border: 2px solid var(--tb-border); border-radius: var(--tb-radius-sm); overflow: hidden; }
+.tb-counter__btn { width: 44px; height: 44px; border: none; background: var(--tb-light-bg); font-size: 1.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; color: var(--tb-text-dark); }
+.tb-counter__btn:hover { background: var(--tb-border); }
+.tb-counter__value { flex: 1; text-align: center; border: none; font-size: 1rem; font-weight: 600; font-family: var(--tb-font); background: #fff; -moz-appearance: textfield; color: var(--tb-text-dark); }
+.tb-counter__value::-webkit-inner-spin-button, .tb-counter__value::-webkit-outer-spin-button { -webkit-appearance: none; }
+.tb-checkbox-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; }
+.tb-checkbox-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--tb-accent); }
+.tb-field-error { color: var(--tb-error); font-size: 0.85rem; margin-top: 0.25rem; min-height: 0; }
+.tb-alert { padding: 12px 16px; border-radius: var(--tb-radius-sm); margin-bottom: 1rem; font-size: 0.95rem; }
+.tb-alert--error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.tb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 14px 28px; border: none; border-radius: var(--tb-radius-sm); font-size: 1rem; font-weight: 600; font-family: var(--tb-font); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.tb-btn--primary { background: var(--tb-accent); color: #fff; }
+.tb-btn--primary:hover:not(:disabled) { background: var(--tb-accent-hover); }
+.tb-btn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.tb-btn--full { width: 100%; }
+.tb-btn--loading { pointer-events: none; opacity: 0.7; }
+.tb-btn-back { display: inline-flex; align-items: center; gap: 0.25rem; background: none; border: none; color: var(--tb-text-muted); font-size: 0.95rem; font-weight: 500; font-family: var(--tb-font); cursor: pointer; padding: 0.5rem 0; margin-bottom: 1rem; }
+.tb-btn-back:hover { color: var(--tb-accent); }
+.tb-form-actions { margin-top: 1.5rem; }
+.tb-autocomplete-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-radius: var(--tb-radius); box-shadow: var(--tb-shadow-lg); margin-top: 4px; z-index: 100; max-height: 280px; overflow-y: auto; display: none; }
+.tb-autocomplete-dropdown.tb-show { display: block; }
+.tb-autocomplete-item { padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--tb-border); font-size: 0.95rem; }
+.tb-autocomplete-item:last-child { border-bottom: none; }
+.tb-autocomplete-item:hover { background: var(--tb-light-bg); }
+.tb-autocomplete-item__icon { color: var(--tb-accent); flex-shrink: 0; }
+.tb-autocomplete-item__name { font-weight: 500; }
+.tb-autocomplete-item__type { font-size: 0.8rem; color: var(--tb-text-muted); }
+.tb-step2-layout, .tb-step3-layout { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 768px) { .tb-step2-layout, .tb-step3-layout { grid-template-columns: 1fr 340px; } }
+.tb-route-summary { background: #fff; border-radius: var(--tb-radius); padding: 1.25rem; box-shadow: var(--tb-shadow); margin-bottom: 1.5rem; }
+.tb-route-points { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.tb-route-point { display: flex; align-items: center; gap: 0.4rem; font-weight: 500; }
+.tb-route-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.tb-route-dot--pickup { background: var(--tb-accent); }
+.tb-route-dot--dropoff { background: var(--tb-primary); }
+.tb-route-arrow { color: var(--tb-text-muted); }
+.tb-route-meta { display: flex; gap: 1.5rem; margin-top: 0.5rem; color: var(--tb-text-muted); font-size: 0.9rem; }
+.tb-section-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; }
+.tb-section-subtitle { color: var(--tb-text-muted); font-size: 0.9rem; margin: -0.5rem 0 1rem; }
+.tb-vehicles-container { display: flex; flex-direction: column; gap: 0.75rem; }
+.tb-vehicle-card { background: #fff; border-radius: var(--tb-radius); padding: 1.25rem; box-shadow: var(--tb-shadow); cursor: pointer; transition: all 0.2s; border: 2px solid transparent; display: flex; gap: 1rem; }
+.tb-vehicle-card:hover { border-color: var(--tb-accent); transform: translateY(-1px); }
+.tb-vehicle-card.tb-selected { border-color: var(--tb-accent); background: rgba(233, 69, 96, 0.02); }
+.tb-vehicle-image { width: 100px; height: 70px; background: var(--tb-light-bg); border-radius: var(--tb-radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 2rem; color: var(--tb-text-muted); }
+.tb-vehicle-info { flex: 1; min-width: 0; }
+.tb-vehicle-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.15rem; }
+.tb-vehicle-desc { color: var(--tb-text-muted); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.tb-vehicle-specs { display: flex; gap: 1rem; font-size: 0.85rem; color: var(--tb-text-muted); }
+.tb-vehicle-features { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.tb-feature-tag { background: var(--tb-light-bg); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; color: var(--tb-text-muted); }
+.tb-vehicle-price { text-align: right; flex-shrink: 0; min-width: 90px; }
+.tb-price-value { font-size: 1.5rem; font-weight: 800; color: var(--tb-accent); }
+.tb-price-label { font-size: 0.75rem; color: var(--tb-text-muted); }
+.tb-extras-section { margin-top: 2rem; }
+.tb-extra-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: 1px solid var(--tb-border); border-radius: var(--tb-radius-sm); margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s; gap: 1rem; }
+.tb-extra-item:hover { border-color: var(--tb-accent); }
+.tb-extra-item.tb-selected { border-color: var(--tb-accent); background: rgba(233, 69, 96, 0.02); }
+.tb-extra-info { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; }
+.tb-extra-check { width: 20px; height: 20px; border: 2px solid var(--tb-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 0.75rem; color: transparent; }
+.tb-extra-item.tb-selected .tb-extra-check { background: var(--tb-accent); border-color: var(--tb-accent); color: #fff; }
+.tb-extra-name { font-weight: 500; }
+.tb-extra-desc { font-size: 0.8rem; color: var(--tb-text-muted); }
+.tb-extra-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+.tb-extra-qty { display: flex; align-items: center; gap: 0.5rem; }
+.tb-extra-qty button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--tb-border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: all 0.2s; }
+.tb-extra-qty button:hover { border-color: var(--tb-accent); color: var(--tb-accent); }
+.tb-extra-price { font-weight: 600; color: var(--tb-accent); white-space: nowrap; }
+.tb-sidebar { background: #fff; border-radius: var(--tb-radius); padding: 1.5rem; box-shadow: var(--tb-shadow); position: sticky; top: 100px; }
+.tb-sidebar__title { font-weight: 700; margin: 0 0 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--tb-border); }
+.tb-summary-item { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.9rem; }
+.tb-summary-label { color: var(--tb-text-muted); }
+.tb-summary-value { font-weight: 500; text-align: right; max-width: 60%; word-break: break-word; }
+.tb-summary-total { font-weight: 700; font-size: 1.1rem; padding-top: 1rem; margin-top: 0.75rem; border-top: 1px solid var(--tb-border); }
+.tb-sidebar .tb-btn { margin-top: 1.25rem; }
+.tb-loading { text-align: center; padding: 3rem 1rem; color: var(--tb-text-muted); }
+.tb-spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--tb-border); border-top-color: var(--tb-accent); border-radius: 50%; animation: tb-spin 0.6s linear infinite; vertical-align: middle; margin-right: 0.5rem; }
+@keyframes tb-spin { to { transform: rotate(360deg); } }
+.tb-confirmation { text-align: center; padding: 3rem 1rem; max-width: 500px; margin: 0 auto; }
+.tb-confirmation__icon { width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; color: var(--tb-success); }
+.tb-confirmation__title { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; }
+.tb-confirmation__subtitle { color: var(--tb-text-muted); margin: 0 0 1.5rem; }
+.tb-confirmation__ref { display: inline-block; font-size: 1.4rem; font-weight: 700; color: var(--tb-accent); background: rgba(233, 69, 96, 0.1); padding: 0.75rem 1.5rem; border-radius: var(--tb-radius-sm); margin-bottom: 1.5rem; }
+.tb-confirmation__email { color: var(--tb-text-muted); margin-bottom: 2rem; }
+#tb-stripe-element { padding: 1rem 0; }
+.pac-container { z-index: 100000 !important; font-family: var(--tb-font); border-radius: var(--tb-radius) !important; border: none !important; box-shadow: var(--tb-shadow-lg) !important; margin-top: 4px !important; }
+.pac-item { padding: 10px 14px !important; cursor: pointer !important; border-bottom: 1px solid var(--tb-border) !important; }
+.pac-item:hover { background: var(--tb-light-bg) !important; }
+.tb-no-route { text-align: center; padding: 3rem 1.5rem; background: #fff; border-radius: var(--tb-radius); box-shadow: var(--tb-shadow); }
+.tb-no-route__icon { color: var(--tb-accent); margin-bottom: 1.25rem; }
+.tb-no-route__message { font-size: 1.1rem; color: var(--tb-text-dark); line-height: 1.6; max-width: 480px; margin: 0 auto 1.5rem; }
+.tb-no-route__contacts { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
+.tb-no-route__contact-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 10px 20px; border-radius: var(--tb-radius-sm); font-size: 0.95rem; font-weight: 600; text-decoration: none; transition: all 0.2s; border: 2px solid var(--tb-border); color: var(--tb-text-dark); }
+.tb-no-route__contact-btn:hover { border-color: var(--tb-accent); color: var(--tb-accent); }
+.tb-no-route__contact-btn--whatsapp { background: #25D366; border-color: #25D366; color: #fff; }
+.tb-no-route__contact-btn--whatsapp:hover { background: #1da851; border-color: #1da851; color: #fff; }
+@media (max-width: 767px) {
+    .tb-vehicle-card { flex-direction: column; }
+    .tb-vehicle-image { width: 100%; height: 60px; }
+    .tb-vehicle-price { text-align: left; margin-top: 0.5rem; }
+    .tb-sidebar { position: static; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <small class="text-muted">
+        <i class="bi bi-info-circle"></i>
+        {% trans "This is the embedded booking form widget for testing. It connects directly to the API." %}
+    </small>
+</div>
+
+<!-- Booking Widget -->
+<div id="tb-booking-widget" class="tb-booking-widget" dir="ltr">
+
+    <!-- Progress Bar -->
+    <div class="tb-progress">
+        <div class="tb-progress__step tb-progress__step--active" data-step="1">
+            <span class="tb-progress__number">1</span>
+            <span class="tb-progress__label">{% trans "Route" %}</span>
+        </div>
+        <div class="tb-progress__connector"></div>
+        <div class="tb-progress__step" data-step="2">
+            <span class="tb-progress__number">2</span>
+            <span class="tb-progress__label">{% trans "Vehicle" %}</span>
+        </div>
+        <div class="tb-progress__connector"></div>
+        <div class="tb-progress__step" data-step="3">
+            <span class="tb-progress__number">3</span>
+            <span class="tb-progress__label">{% trans "Payment" %}</span>
+        </div>
+    </div>
+
+    <!-- Step 1: Route -->
+    <div id="tb-step-1" class="tb-step tb-step--active">
+        <div class="tb-card">
+            <h3 class="tb-card__title">{% trans "Book Your Transfer" %}</h3>
+            <div class="tb-form">
+                <div class="tb-form-group">
+                    <label class="tb-label" for="tb-transfer-type">{% trans "Transfer Type" %}</label>
+                    <select id="tb-transfer-type" class="tb-select">
+                        <option value="">{% trans "Select type..." %}</option>
+                    </select>
+                    <div class="tb-field-error" data-field="transferType"></div>
+                </div>
+                <div class="tb-form-group">
+                    <label class="tb-label" for="tb-pickup-location">{% trans "Pickup Location" %}</label>
+                    <div class="tb-input-wrapper">
+                        <span class="tb-input-icon">&#9679;</span>
+                        <input type="text" id="tb-pickup-location" class="tb-input" placeholder="{% trans 'City, airport, or hotel...' %}" autocomplete="off">
+                        <div class="tb-autocomplete-dropdown" id="tb-pickup-dropdown"></div>
+                    </div>
+                    <div class="tb-field-error" data-field="pickup"></div>
+                </div>
+                <div class="tb-form-group">
+                    <label class="tb-label" for="tb-dropoff-location">{% trans "Drop-off Location" %}</label>
+                    <div class="tb-input-wrapper">
+                        <span class="tb-input-icon">&#9650;</span>
+                        <input type="text" id="tb-dropoff-location" class="tb-input" placeholder="{% trans 'City, airport, or hotel...' %}" autocomplete="off">
+                        <div class="tb-autocomplete-dropdown" id="tb-dropoff-dropdown"></div>
+                    </div>
+                    <div class="tb-field-error" data-field="dropoff"></div>
+                </div>
+                <div class="tb-form-row">
+                    <div class="tb-form-group tb-form-group--half">
+                        <label class="tb-label" for="tb-pickup-datetime">{% trans "Date & Time" %}</label>
+                        <input type="datetime-local" id="tb-pickup-datetime" class="tb-input">
+                        <div class="tb-field-error" data-field="datetime"></div>
+                    </div>
+                    <div class="tb-form-group tb-form-group--half">
+                        <label class="tb-label" for="tb-passengers">{% trans "Passengers" %}</label>
+                        <div class="tb-counter">
+                            <button type="button" class="tb-counter__btn" data-action="decrease" data-target="tb-passengers">-</button>
+                            <input type="number" id="tb-passengers" class="tb-counter__value" value="1" min="1" max="20" readonly>
+                            <button type="button" class="tb-counter__btn" data-action="increase" data-target="tb-passengers">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tb-form-group" id="tb-round-trip-group" style="display: none;">
+                    <label class="tb-checkbox-label">
+                        <input type="checkbox" id="tb-round-trip">
+                        <span>{% trans "Round trip" %}</span>
+                    </label>
+                </div>
+                <div class="tb-form-group" id="tb-return-datetime-group" style="display: none;">
+                    <label class="tb-label" for="tb-return-datetime">{% trans "Return Date & Time" %}</label>
+                    <input type="datetime-local" id="tb-return-datetime" class="tb-input">
+                    <div class="tb-field-error" data-field="returnDatetime"></div>
+                </div>
+                <div class="tb-form-group" id="tb-flight-group" style="display: none;">
+                    <label class="tb-label" for="tb-flight-number">{% trans "Flight Number" %}</label>
+                    <input type="text" id="tb-flight-number" class="tb-input" placeholder="{% trans 'e.g. AT 1234' %}">
+                </div>
+                <div id="tb-no-route-container" style="display:none;"></div>
+                <div class="tb-form-actions">
+                    <button type="button" id="tb-btn-search" class="tb-btn tb-btn--primary tb-btn--full">
+                        {% trans "Search Vehicles" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Vehicle -->
+    <div id="tb-step-2" class="tb-step">
+        <div class="tb-step2-layout">
+            <div class="tb-step2-main">
+                <button type="button" class="tb-btn-back" data-back="1">
+                    &larr; {% trans "Back to search" %}
+                </button>
+                <div class="tb-route-summary">
+                    <div class="tb-route-points">
+                        <span class="tb-route-point">
+                            <span class="tb-route-dot tb-route-dot--pickup"></span>
+                            <span id="tb-result-pickup">--</span>
+                        </span>
+                        <span class="tb-route-arrow">&rarr;</span>
+                        <span class="tb-route-point">
+                            <span class="tb-route-dot tb-route-dot--dropoff"></span>
+                            <span id="tb-result-dropoff">--</span>
+                        </span>
+                    </div>
+                    <div class="tb-route-meta">
+                        <span id="tb-result-distance">--</span>
+                        <span id="tb-result-duration">--</span>
+                    </div>
+                </div>
+                <h4 class="tb-section-title">{% trans "Choose your vehicle" %}</h4>
+                <div id="tb-vehicles-container" class="tb-vehicles-container">
+                    <div class="tb-loading">{% trans "Loading vehicles..." %}</div>
+                </div>
+                <div id="tb-extras-section" class="tb-extras-section" style="display: none;">
+                    <h4 class="tb-section-title">{% trans "Add extras" %}</h4>
+                    <p class="tb-section-subtitle">{% trans "Optional services to enhance your journey" %}</p>
+                    <div id="tb-extras-container"></div>
+                </div>
+            </div>
+            <div class="tb-step2-sidebar">
+                <div class="tb-sidebar">
+                    <h5 class="tb-sidebar__title">{% trans "Booking Summary" %}</h5>
+                    <div class="tb-summary-item">
+                        <span class="tb-summary-label">{% trans "Route" %}</span>
+                        <span class="tb-summary-value" id="tb-sidebar-route">--</span>
+                    </div>
+                    <div class="tb-summary-item">
+                        <span class="tb-summary-label">{% trans "Date" %}</span>
+                        <span class="tb-summary-value" id="tb-sidebar-date">--</span>
+                    </div>
+                    <div class="tb-summary-item">
+                        <span class="tb-summary-label">{% trans "Vehicle" %}</span>
+                        <span class="tb-summary-value" id="tb-sidebar-vehicle">{% trans "Not selected" %}</span>
+                    </div>
+                    <div class="tb-summary-item">
+                        <span class="tb-summary-label">{% trans "Passengers" %}</span>
+                        <span class="tb-summary-value" id="tb-sidebar-passengers">--</span>
+                    </div>
+                    <div id="tb-sidebar-extras-list"></div>
+                    <div class="tb-summary-item tb-summary-total">
+                        <span>{% trans "Total" %}</span>
+                        <span id="tb-sidebar-total">--</span>
+                    </div>
+                    <button type="button" id="tb-btn-continue" class="tb-btn tb-btn--primary tb-btn--full" disabled>
+                        {% trans "Continue" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Payment -->
+    <div id="tb-step-3" class="tb-step">
+        <div class="tb-step3-layout">
+            <div class="tb-step3-main">
+                <button type="button" class="tb-btn-back" data-back="2">
+                    &larr; {% trans "Back to vehicle" %}
+                </button>
+                <div class="tb-card">
+                    <h4 class="tb-card__title">{% trans "Passenger Details" %}</h4>
+                    <div class="tb-form-row">
+                        <div class="tb-form-group tb-form-group--half">
+                            <label class="tb-label" for="tb-customer-name">{% trans "Full Name" %} *</label>
+                            <input type="text" id="tb-customer-name" class="tb-input" placeholder="{% trans 'John Doe' %}">
+                            <div class="tb-field-error" data-field="name"></div>
+                        </div>
+                        <div class="tb-form-group tb-form-group--half">
+                            <label class="tb-label" for="tb-customer-email">{% trans "Email" %} *</label>
+                            <input type="email" id="tb-customer-email" class="tb-input" placeholder="{% trans 'john@example.com' %}">
+                            <div class="tb-field-error" data-field="email"></div>
+                        </div>
+                    </div>
+                    <div class="tb-form-row">
+                        <div class="tb-form-group tb-form-group--half">
+                            <label class="tb-label" for="tb-customer-phone">{% trans "Phone" %} *</label>
+                            <input type="tel" id="tb-customer-phone" class="tb-input" placeholder="{% trans '+212 600 000 000' %}">
+                            <div class="tb-field-error" data-field="phone"></div>
+                        </div>
+                        <div class="tb-form-group tb-form-group--half">
+                            <label class="tb-label" for="tb-special-requests">{% trans "Special Requests" %}</label>
+                            <input type="text" id="tb-special-requests" class="tb-input" placeholder="{% trans 'Optional' %}">
+                        </div>
+                    </div>
+                </div>
+                <div class="tb-card" id="tb-payment-card">
+                    <h4 class="tb-card__title">{% trans "Payment" %}</h4>
+                    <div id="tb-payment-errors" class="tb-alert tb-alert--error" style="display: none;"></div>
+                    <button type="button" id="tb-pay-button" class="tb-btn tb-btn--primary tb-btn--full">
+                        {% trans "Pay Now" %}
+                    </button>
+                    <div id="tb-stripe-element" style="display: none;"></div>
+                    <button type="button" id="tb-confirm-payment-btn" class="tb-btn tb-btn--primary tb-btn--full" style="display: none;">
+                        {% trans "Confirm Payment" %}
+                    </button>
+                </div>
+            </div>
+            <div class="tb-step3-sidebar">
+                <div class="tb-sidebar">
+                    <h5 class="tb-sidebar__title">{% trans "Order Summary" %}</h5>
+                    <div class="tb-summary-item">
+                        <span class="tb-summary-label">{% trans "Route" %}</span>
+                        <span class="tb-summary-value" id="tb-order-route">--</span>
+                    </div>
+                    <div class="tb-summary-item">
+                        <span class="tb-summary-label">{% trans "Date & Time" %}</span>
+                        <span class="tb-summary-value" id="tb-order-datetime">--</span>
+                    </div>
+                    <div class="tb-summary-item">
+                        <span class="tb-summary-label">{% trans "Vehicle" %}</span>
+                        <span class="tb-summary-value" id="tb-order-vehicle">--</span>
+                    </div>
+                    <div class="tb-summary-item">
+                        <span class="tb-summary-label">{% trans "Passengers" %}</span>
+                        <span class="tb-summary-value" id="tb-order-passengers">--</span>
+                    </div>
+                    <div id="tb-order-extras-list"></div>
+                    <div class="tb-summary-item tb-summary-total">
+                        <span>{% trans "Total" %}</span>
+                        <span id="tb-order-total">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation -->
+    <div id="tb-confirmation" class="tb-step">
+        <div class="tb-confirmation">
+            <div class="tb-confirmation__icon">&#10003;</div>
+            <h2 class="tb-confirmation__title">{% trans "Booking Confirmed!" %}</h2>
+            <p class="tb-confirmation__subtitle">{% trans "Your transfer has been successfully booked." %}</p>
+            <div class="tb-confirmation__ref" id="tb-confirmation-ref">--</div>
+            <p class="tb-confirmation__email">
+                {% trans "Confirmation email sent to" %}<br>
+                <strong id="tb-confirmation-email">--</strong>
+            </p>
+            <button type="button" id="tb-book-another" class="tb-btn tb-btn--primary">
+                {% trans "Book Another Transfer" %}
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Stripe.js -->
+{% if site_settings and site_settings.stripe_publishable_key %}
+<script src="https://js.stripe.com/v3/"></script>
+{% endif %}
+
+<!-- tbConfig: replaces the WP localized config -->
+<script>
+var tbConfig = {
+    stripePublishableKey: '{{ site_settings.stripe_publishable_key|default:""|escapejs }}',
+    googleMapsApiKey: '{{ site_settings.google_maps_api_key|default:""|escapejs }}',
+    currencySymbol: '{{ site_settings.default_currency|default:"MAD"|escapejs }}',
+    currencyPosition: 'after',
+    enableRoundTrip: true,
+    enableFlightNumber: true,
+    isRtl: false,
+    lang: '{{ LANGUAGE_CODE|default:"en" }}',
+    showNoRouteMessage: true,
+    noRouteMessage: "{% trans 'This route is not currently available. Please contact us for a custom quote.' %}",
+    contact: {
+        phone: '{{ site_settings.contact_phone|default:""|escapejs }}',
+        email: '{{ site_settings.contact_email|default:""|escapejs }}',
+        whatsapp: ''
+    },
+    transferTypes: [
+        { value: 'airport_pickup',  label: "{% trans 'Airport Pickup' %}" },
+        { value: 'airport_dropoff', label: "{% trans 'Airport Drop-off' %}" },
+        { value: 'city_to_city',    label: "{% trans 'City to City' %}" },
+        { value: 'port_transfer',   label: "{% trans 'Port Transfer' %}" }
+    ],
+    i18n: {
+        selectPickup:       "{% trans 'Select pickup location' %}",
+        selectDropoff:      "{% trans 'Select drop-off location' %}",
+        selectType:         "{% trans 'Please select a transfer type' %}",
+        selectDatetime:     "{% trans 'Please select date and time' %}",
+        selectVehicle:      "{% trans 'Please select a vehicle' %}",
+        required:           "{% trans 'This field is required' %}",
+        invalidEmail:       "{% trans 'Please enter a valid email' %}",
+        invalidPhone:       "{% trans 'Please enter a valid phone number' %}",
+        loading:            "{% trans 'Loading...' %}",
+        processing:         "{% trans 'Processing...' %}",
+        noVehicles:         "{% trans 'No vehicles available for this route.' %}",
+        errorGeneric:       "{% trans 'Something went wrong. Please try again.' %}",
+        paymentFailed:      "{% trans 'Payment failed. Please try again.' %}",
+        distance:           "{% trans 'Distance' %}",
+        duration:           "{% trans 'Est. Duration' %}",
+        passengers:         "{% trans 'passengers' %}",
+        bags:               "{% trans 'bags' %}",
+        totalPrice:         "{% trans 'total price' %}",
+        perItem:            "{% trans '/each' %}",
+        returnDateRequired: "{% trans 'Return date is required for round trips' %}",
+        minBookingTime:     "{% trans 'We can only accept bookings for this route with a minimum of {hours} hours notice.' %}"
+    }
+};
+</script>
+
+<!-- API endpoints mapping (replaces WP AJAX proxy) -->
+<script>
+var TB_API_ENDPOINTS = {
+    google_maps_config: { method: 'GET',  path: '/api/v1/locations/google-maps-config/' },
+    get_pricing:        { method: 'GET',  path: '/api/v1/locations/routes/get_pricing/' },
+    get_extras:         { method: 'GET',  path: '/api/v1/transfers/extras/' },
+    get_categories:     { method: 'GET',  path: '/api/v1/vehicles/categories/' },
+    get_quote:          { method: 'POST', path: '/api/v1/transfers/quote/' },
+    create_booking:     { method: 'POST', path: '/api/v1/transfers/' },
+    create_payment:     { method: 'POST', path: '/api/v1/payments/' },
+    confirm_payment:    { method: 'POST', path: '/api/v1/payments/confirm/' }
+};
+</script>
+
+<!-- tb-utils.js -->
+<script>
+(function () {
+    'use strict';
+    window.TB = window.TB || {};
+    TB.Utils = {
+        formatPrice: function (amount, currency, position) {
+            currency = currency || tbConfig.currencySymbol;
+            position = position || tbConfig.currencyPosition;
+            var num = Math.round(parseFloat(amount));
+            if (isNaN(num)) return '--';
+            if (position === 'before') return currency + ' ' + num;
+            return num + ' ' + currency;
+        },
+        formatDate: function (dateStr) {
+            if (!dateStr) return '--';
+            var d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        },
+        formatDateTime: function (dateStr) {
+            if (!dateStr) return '--';
+            var d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' ' +
+                   d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        },
+        formatDuration: function (minutes) {
+            if (!minutes) return '--';
+            var h = Math.floor(minutes / 60);
+            var m = minutes % 60;
+            if (h > 0 && m > 0) return h + 'h ' + m + 'min';
+            if (h > 0) return h + 'h';
+            return m + ' min';
+        },
+        shortName: function (name) {
+            if (!name) return '--';
+            return name.split(',')[0].trim();
+        },
+        validateEmail: function (email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); },
+        validatePhone: function (phone) { return /^[\+]?[\d\s\-()]{8,}$/.test(phone); },
+        escapeHtml: function (str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        },
+        showFieldError: function (field, message) {
+            var el = document.querySelector('.tb-field-error[data-field="' + field + '"]');
+            if (el) el.textContent = message;
+            var input = el ? el.previousElementSibling : null;
+            if (input && input.classList) input.classList.add('tb-input--error');
+        },
+        clearFieldErrors: function () {
+            var errors = document.querySelectorAll('.tb-field-error');
+            for (var i = 0; i < errors.length; i++) errors[i].textContent = '';
+            var inputs = document.querySelectorAll('.tb-input--error');
+            for (var j = 0; j < inputs.length; j++) inputs[j].classList.remove('tb-input--error');
+        },
+        showAlert: function (containerId, message) {
+            var el = document.getElementById(containerId);
+            if (el) { el.textContent = message; el.style.display = 'block'; }
+        },
+        hideAlert: function (containerId) {
+            var el = document.getElementById(containerId);
+            if (el) el.style.display = 'none';
+        },
+        setButtonLoading: function (btn, loading) {
+            if (!btn) return;
+            if (loading) {
+                btn._origText = btn.textContent;
+                btn.innerHTML = '<span class="tb-spinner"></span> ' + tbConfig.i18n.processing;
+                btn.classList.add('tb-btn--loading');
+                btn.disabled = true;
+            } else {
+                btn.textContent = btn._origText || '';
+                btn.classList.remove('tb-btn--loading');
+                btn.disabled = false;
+            }
+        }
+    };
+})();
+</script>
+
+<!-- tb-api.js (modified: direct REST calls instead of WP AJAX proxy) -->
+<script>
+(function () {
+    'use strict';
+    window.TB = window.TB || {};
+
+    function getCookie(name) {
+        var value = '; ' + document.cookie;
+        var parts = value.split('; ' + name + '=');
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    TB.API = {
+        _call: function (endpoint, params) {
+            return new Promise(function (resolve, reject) {
+                var config = TB_API_ENDPOINTS[endpoint];
+                if (!config) {
+                    reject({ message: 'Unknown endpoint: ' + endpoint });
+                    return;
+                }
+
+                var url = config.path;
+                var options = {
+                    method: config.method,
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                };
+
+                if (config.method === 'GET' && params) {
+                    var qs = Object.keys(params).map(function (k) {
+                        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+                    }).join('&');
+                    if (qs) url += '?' + qs;
+                } else if (config.method === 'POST' && params) {
+                    options.headers['Content-Type'] = 'application/json';
+                    var csrfToken = getCookie('csrftoken');
+                    if (csrfToken) {
+                        options.headers['X-CSRFToken'] = csrfToken;
+                    }
+                    options.body = JSON.stringify(params);
+                }
+
+                fetch(url, options)
+                    .then(function (response) {
+                        if (!response.ok) {
+                            return response.json().then(function (data) {
+                                var msg = data.message || data.error || data.detail || tbConfig.i18n.errorGeneric;
+                                reject({ message: msg, data: data });
+                            }).catch(function () {
+                                reject({ message: 'HTTP ' + response.status });
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        if (data !== undefined) resolve(data);
+                    })
+                    .catch(function (err) {
+                        if (!err.message || err.message.indexOf('HTTP') === -1) {
+                            reject({ message: err.message || tbConfig.i18n.errorGeneric });
+                        }
+                    });
+            });
+        },
+
+        getGoogleMapsConfig: function () { return this._call('google_maps_config'); },
+        getPricing: function (originLat, originLng, destLat, destLng, passengers) {
+            return this._call('get_pricing', {
+                origin_lat: originLat, origin_lng: originLng,
+                destination_lat: destLat, destination_lng: destLng,
+                passengers: passengers
+            });
+        },
+        getExtras: function () { return this._call('get_extras'); },
+        getCategories: function () { return this._call('get_categories'); },
+        getQuote: function (quoteData) { return this._call('get_quote', quoteData); },
+        createBooking: function (bookingData) { return this._call('create_booking', bookingData); },
+        createPayment: function (bookingId, gatewayType) {
+            return this._call('create_payment', {
+                booking_type: 'transfer',
+                booking_id: bookingId,
+                gateway_type: gatewayType || 'stripe'
+            });
+        },
+        confirmPayment: function (paymentRef) {
+            return this._call('confirm_payment', { payment_ref: paymentRef });
+        }
+    };
+})();
+</script>
+
+<!-- tb-state.js -->
+<script>
+(function () {
+    'use strict';
+    window.TB = window.TB || {};
+    var STORAGE_KEY = 'tb_booking_state';
+    var defaults = {
+        step: 1, transferType: '', pickupAddress: '', pickupLat: null, pickupLng: null,
+        dropoffAddress: '', dropoffLat: null, dropoffLng: null, pickupDatetime: '',
+        passengers: 1, isRoundTrip: false, returnDatetime: '', flightNumber: '',
+        pricingData: null, vehicleOptions: [], selectedVehicle: null, extras: [],
+        selectedExtras: [], quoteData: null, customerName: '', customerEmail: '',
+        customerPhone: '', specialRequests: '', bookingId: null, bookingRef: '',
+        paymentRef: '', totalPrice: 0, currency: 'MAD'
+    };
+    var _data = {};
+    function cloneDefaults() { return JSON.parse(JSON.stringify(defaults)); }
+    TB.State = {
+        get: function (key) { return _data.hasOwnProperty(key) ? _data[key] : null; },
+        set: function (key, value) { _data[key] = value; },
+        getAll: function () { return JSON.parse(JSON.stringify(_data)); },
+        save: function () { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(_data)); } catch (e) {} },
+        load: function () {
+            try {
+                var saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) { _data = Object.assign(cloneDefaults(), JSON.parse(saved)); }
+                else { _data = cloneDefaults(); }
+            } catch (e) { _data = cloneDefaults(); }
+        },
+        reset: function () { _data = cloneDefaults(); try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} }
+    };
+    TB.State.load();
+})();
+</script>
+
+<!-- tb-step1.js -->
+<script>
+{% include "dashboard/booking_form_step1.js" %}
+</script>
+
+<!-- tb-step2.js -->
+<script>
+{% include "dashboard/booking_form_step2.js" %}
+</script>
+
+<!-- tb-step3.js -->
+<script>
+{% include "dashboard/booking_form_step3.js" %}
+</script>
+
+<!-- tb-wizard.js -->
+<script>
+(function () {
+    'use strict';
+    window.TB = window.TB || {};
+    TB.Wizard = {
+        currentStep: 1,
+        init: function () {
+            TB.State.set('step', 1);
+            this.currentStep = 1;
+            this.showStep(1);
+            TB.Step1.init();
+            var bookAnother = document.getElementById('tb-book-another');
+            if (bookAnother) {
+                bookAnother.addEventListener('click', function () { TB.Wizard.resetAndRestart(); });
+            }
+        },
+        showStep: function (step) {
+            var steps = document.querySelectorAll('.tb-step');
+            for (var i = 0; i < steps.length; i++) steps[i].classList.remove('tb-step--active');
+            var target = document.getElementById('tb-step-' + step);
+            if (target) target.classList.add('tb-step--active');
+            this.updateProgress(step);
+            this.currentStep = step;
+            TB.State.set('step', step);
+            if (step === 2) TB.Step2.init();
+            if (step === 3) TB.Step3.init();
+            var widget = document.getElementById('tb-booking-widget');
+            if (widget) widget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        updateProgress: function (step) {
+            var progressSteps = document.querySelectorAll('.tb-progress__step');
+            for (var i = 0; i < progressSteps.length; i++) {
+                var stepNum = parseInt(progressSteps[i].getAttribute('data-step'));
+                progressSteps[i].classList.remove('tb-progress__step--active', 'tb-progress__step--completed');
+                if (stepNum === step) progressSteps[i].classList.add('tb-progress__step--active');
+                else if (stepNum < step) progressSteps[i].classList.add('tb-progress__step--completed');
+            }
+        },
+        showConfirmation: function () {
+            var steps = document.querySelectorAll('.tb-step');
+            for (var i = 0; i < steps.length; i++) steps[i].classList.remove('tb-step--active');
+            var confirm = document.getElementById('tb-confirmation');
+            if (confirm) confirm.classList.add('tb-step--active');
+            var progressSteps = document.querySelectorAll('.tb-progress__step');
+            for (var j = 0; j < progressSteps.length; j++) {
+                progressSteps[j].classList.remove('tb-progress__step--active');
+                progressSteps[j].classList.add('tb-progress__step--completed');
+            }
+            var widget = document.getElementById('tb-booking-widget');
+            if (widget) widget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        resetAndRestart: function () {
+            TB.State.reset();
+            var inputs = document.querySelectorAll('#tb-booking-widget input, #tb-booking-widget select, #tb-booking-widget textarea');
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].type === 'checkbox') inputs[i].checked = false;
+                else if (inputs[i].type === 'number') inputs[i].value = inputs[i].getAttribute('value') || '1';
+                else if (inputs[i].tagName === 'SELECT') inputs[i].selectedIndex = 0;
+                else inputs[i].value = '';
+            }
+            var returnGroup = document.getElementById('tb-return-datetime-group');
+            if (returnGroup) returnGroup.style.display = 'none';
+            var flightGroup = document.getElementById('tb-flight-group');
+            if (flightGroup) flightGroup.style.display = 'none';
+            this.showStep(1);
+            TB.Step1.init();
+        }
+    };
+    document.addEventListener('DOMContentLoaded', function () {
+        if (document.getElementById('tb-booking-widget')) TB.Wizard.init();
+    });
+})();
+</script>
+{% endblock %}
