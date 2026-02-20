@@ -1093,16 +1093,19 @@ def route_detail(request, pk):
             radius = request.POST.get('radius_km') or 5
 
             if all([name, lat, lng]):
-                RoutePickupZone.objects.create(
-                    route=route,
-                    name=name,
-                    center_latitude=lat,
-                    center_longitude=lng,
-                    radius_km=radius,
-                    color=request.POST.get('color', '#28a745'),
-                    price_adjustment=request.POST.get('price_adjustment') or 0
-                )
-                messages.success(request, f'Pickup zone "{name}" added successfully.')
+                if RoutePickupZone.objects.filter(route=route, name__iexact=name).exists():
+                    messages.error(request, f'A sub-origin radius named "{name}" already exists on this route.')
+                else:
+                    RoutePickupZone.objects.create(
+                        route=route,
+                        name=name,
+                        center_latitude=lat,
+                        center_longitude=lng,
+                        radius_km=radius,
+                        color=request.POST.get('color', '#28a745'),
+                        price_adjustment=request.POST.get('price_adjustment') or 0
+                    )
+                    messages.success(request, f'Sub-origin radius "{name}" added successfully.')
             else:
                 messages.error(request, 'Name and coordinates are required.')
 
@@ -1134,16 +1137,19 @@ def route_detail(request, pk):
             radius = request.POST.get('radius_km') or 5
 
             if all([name, lat, lng]):
-                RouteDropoffZone.objects.create(
-                    route=route,
-                    name=name,
-                    center_latitude=lat,
-                    center_longitude=lng,
-                    radius_km=radius,
-                    color=request.POST.get('color', '#dc3545'),
-                    price_adjustment=request.POST.get('price_adjustment') or 0
-                )
-                messages.success(request, f'Dropoff zone "{name}" added successfully.')
+                if RouteDropoffZone.objects.filter(route=route, name__iexact=name).exists():
+                    messages.error(request, f'A sub-destination radius named "{name}" already exists on this route.')
+                else:
+                    RouteDropoffZone.objects.create(
+                        route=route,
+                        name=name,
+                        center_latitude=lat,
+                        center_longitude=lng,
+                        radius_km=radius,
+                        color=request.POST.get('color', '#dc3545'),
+                        price_adjustment=request.POST.get('price_adjustment') or 0
+                    )
+                    messages.success(request, f'Sub-destination radius "{name}" added successfully.')
             else:
                 messages.error(request, 'Name and coordinates are required.')
 

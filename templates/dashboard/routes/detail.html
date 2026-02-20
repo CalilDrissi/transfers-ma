@@ -550,6 +550,18 @@ const initialDestLat = {{ route.destination_latitude|default:"null" }};
 const initialDestLng = {{ route.destination_longitude|default:"null" }};
 const initialDestRadius = {{ route.destination_radius_km|default:"10" }};
 
+// Existing sub-zones for map display
+const existingPickupZones = [
+    {% for zone in pickup_zones %}
+    { name: "{{ zone.name|escapejs }}", lat: {{ zone.center_latitude }}, lng: {{ zone.center_longitude }}, radius: {{ zone.radius_km }}, color: "{{ zone.color }}" }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+const existingDropoffZones = [
+    {% for zone in dropoff_zones %}
+    { name: "{{ zone.name|escapejs }}", lat: {{ zone.center_latitude }}, lng: {{ zone.center_longitude }}, radius: {{ zone.radius_km }}, color: "{{ zone.color }}" }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
 function initMaps() {
     // Default center (Morocco)
     const defaultCenter = { lat: 31.7917, lng: -7.0926 };
@@ -632,6 +644,45 @@ function initMaps() {
             pickupZoneMap.addListener('click', function(e) {
                 updateZoneLocation(e.latLng.lat(), e.latLng.lng(), 'pickup');
             });
+            // Draw parent origin radius
+            if (initialOriginLat && initialOriginLng) {
+                new google.maps.Circle({
+                    map: pickupZoneMap,
+                    center: { lat: initialOriginLat, lng: initialOriginLng },
+                    radius: initialOriginRadius * 1000,
+                    fillColor: '#000000',
+                    fillOpacity: 0.05,
+                    strokeColor: '#333333',
+                    strokeOpacity: 0.4,
+                    strokeWeight: 2,
+                    strokeDashArray: '4 4',
+                });
+                new google.maps.Marker({
+                    position: { lat: initialOriginLat, lng: initialOriginLng },
+                    map: pickupZoneMap,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: '#333', fillOpacity: 0.6, strokeColor: '#fff', strokeWeight: 1 },
+                    title: 'Origin: ' + '{{ route.origin_name|escapejs }}' + ' (' + initialOriginRadius + ' km)',
+                });
+            }
+            // Draw existing sub-origin zones
+            existingPickupZones.forEach(function(z) {
+                new google.maps.Circle({
+                    map: pickupZoneMap,
+                    center: { lat: z.lat, lng: z.lng },
+                    radius: z.radius * 1000,
+                    fillColor: z.color,
+                    fillOpacity: 0.15,
+                    strokeColor: z.color,
+                    strokeOpacity: 0.6,
+                    strokeWeight: 1,
+                });
+                new google.maps.Marker({
+                    position: { lat: z.lat, lng: z.lng },
+                    map: pickupZoneMap,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5, fillColor: z.color, fillOpacity: 0.8, strokeColor: '#fff', strokeWeight: 1 },
+                    title: z.name + ' (' + z.radius + ' km)',
+                });
+            });
         }
         google.maps.event.trigger(pickupZoneMap, 'resize');
     });
@@ -646,6 +697,44 @@ function initMaps() {
             });
             dropoffZoneMap.addListener('click', function(e) {
                 updateZoneLocation(e.latLng.lat(), e.latLng.lng(), 'dropoff');
+            });
+            // Draw parent destination radius
+            if (initialDestLat && initialDestLng) {
+                new google.maps.Circle({
+                    map: dropoffZoneMap,
+                    center: { lat: initialDestLat, lng: initialDestLng },
+                    radius: initialDestRadius * 1000,
+                    fillColor: '#000000',
+                    fillOpacity: 0.05,
+                    strokeColor: '#333333',
+                    strokeOpacity: 0.4,
+                    strokeWeight: 2,
+                });
+                new google.maps.Marker({
+                    position: { lat: initialDestLat, lng: initialDestLng },
+                    map: dropoffZoneMap,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: '#333', fillOpacity: 0.6, strokeColor: '#fff', strokeWeight: 1 },
+                    title: 'Destination: ' + '{{ route.destination_name|escapejs }}' + ' (' + initialDestRadius + ' km)',
+                });
+            }
+            // Draw existing sub-destination zones
+            existingDropoffZones.forEach(function(z) {
+                new google.maps.Circle({
+                    map: dropoffZoneMap,
+                    center: { lat: z.lat, lng: z.lng },
+                    radius: z.radius * 1000,
+                    fillColor: z.color,
+                    fillOpacity: 0.15,
+                    strokeColor: z.color,
+                    strokeOpacity: 0.6,
+                    strokeWeight: 1,
+                });
+                new google.maps.Marker({
+                    position: { lat: z.lat, lng: z.lng },
+                    map: dropoffZoneMap,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5, fillColor: z.color, fillOpacity: 0.8, strokeColor: '#fff', strokeWeight: 1 },
+                    title: z.name + ' (' + z.radius + ' km)',
+                });
             });
         }
         google.maps.event.trigger(dropoffZoneMap, 'resize');
