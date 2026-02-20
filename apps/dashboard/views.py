@@ -614,11 +614,9 @@ def vehicle_detail(request, pk):
             rp.route_pickup_zones = list(pickup_zones) if pickup_zones.exists() else None
             rp.route_dropoff_zones = list(dropoff_zones) if dropoff_zones.exists() else None
 
-        # Get all active routes for the dropdown
+        # Get routes for the add dropdown (exclude already-priced ones)
         all_routes = Route.objects.filter(is_active=True).order_by('order', 'name')
-
-        # Get existing route pricing IDs to exclude from dropdown
-        existing_route_ids = vehicle.route_pricing.values_list('route_id', flat=True)
+        existing_route_ids = set(vehicle.route_pricing.filter(is_active=True).values_list('route_id', flat=True))
         available_routes = all_routes.exclude(id__in=existing_route_ids)
 
     # Get vehicle images

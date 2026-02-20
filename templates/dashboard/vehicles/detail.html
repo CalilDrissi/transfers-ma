@@ -247,7 +247,6 @@
                 <div class="row">
                     <!-- Add Pricing Form -->
                     <div class="col-lg-4">
-                        {% if available_ranges %}
                         <form method="post" class="p-3 bg-light rounded h-100">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="add_zone_pricing">
@@ -265,6 +264,9 @@
                                     </optgroup>
                                     {% endfor %}
                                 </select>
+                                {% if not available_ranges %}
+                                <small class="text-muted">{% trans "All zone ranges have pricing. Remove one below to re-add it." %}</small>
+                                {% endif %}
                             </div>
                             <div class="row g-2 mb-3">
                                 <div class="col-6">
@@ -285,18 +287,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" {% if not available_ranges %}disabled{% endif %}>
                                 <i class="bi bi-plus-lg me-1"></i>{% trans "Add Pricing" %}
                             </button>
                         </form>
-                        {% else %}
-                        <div class="alert alert-info h-100 d-flex align-items-center justify-content-center">
-                            <div class="text-center">
-                                <i class="bi bi-info-circle display-4 mb-2"></i>
-                                <p class="mb-0">{% trans "All zone ranges have pricing configured." %}</p>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
 
                     <!-- Existing Pricing -->
@@ -390,7 +384,6 @@
                 <div class="row">
                     <!-- Add Route Pricing Form -->
                     <div class="col-lg-4">
-                        {% if available_routes %}
                         <form method="post" class="p-3 bg-light rounded h-100">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="add_route_pricing">
@@ -403,6 +396,9 @@
                                     <option value="{{ route.id }}">{{ route.name }} ({{ route.distance_km }} km)</option>
                                     {% endfor %}
                                 </select>
+                                {% if not available_routes %}
+                                <small class="text-muted">{% trans "All routes have pricing. Remove one below to re-add it." %}</small>
+                                {% endif %}
                             </div>
                             <div class="row g-2 mb-3">
                                 <div class="col-6">
@@ -423,18 +419,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" {% if not available_routes %}disabled{% endif %}>
                                 <i class="bi bi-plus-lg me-1"></i>{% trans "Add Pricing" %}
                             </button>
                         </form>
-                        {% else %}
-                        <div class="alert alert-info h-100 d-flex align-items-center justify-content-center">
-                            <div class="text-center">
-                                <i class="bi bi-info-circle display-4 mb-2"></i>
-                                <p class="mb-0">{% trans "All routes have pricing configured." %}</p>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
 
                     <!-- Existing Route Pricing -->
