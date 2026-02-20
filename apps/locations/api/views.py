@@ -423,7 +423,8 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(data)
 
         # No matching route - calculate distance and use category pricing
-        distance_km = haversine_distance(origin_lat, origin_lng, dest_lat, dest_lng)
+        distance_km = float(haversine_distance(origin_lat, origin_lng, dest_lat, dest_lng))
+        duration_minutes = None
 
         # Try to get actual driving distance
         try:
@@ -432,9 +433,12 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                 float(dest_lat), float(dest_lng)
             )
             if distance_result.get('distance_km'):
-                distance_km = distance_result['distance_km']
+                distance_km = float(distance_result['distance_km'])
                 duration_minutes = distance_result.get('duration_minutes')
         except Exception:
+            pass
+
+        if duration_minutes is None:
             duration_minutes = int(distance_km * 1.5)  # Estimate 40 km/h average
 
         # Build vehicle options from categories
@@ -470,8 +474,8 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
             'origin_name': request.query_params.get('origin_name', 'Pickup'),
             'destination_name': request.query_params.get('destination_name', 'Dropoff'),
             'distance_km': round(distance_km, 1),
-            'estimated_duration_minutes': duration_minutes if 'duration_minutes' in locals() else int(distance_km * 1.5),
-            'duration_display': f"{int(distance_km * 1.5 / 60)}h {int(distance_km * 1.5) % 60}min",
+            'estimated_duration_minutes': duration_minutes,
+            'duration_display': f"{duration_minutes // 60}h {duration_minutes % 60}min",
             'vehicle_options': sorted(vehicle_options, key=lambda x: x['price'])
         })
 
