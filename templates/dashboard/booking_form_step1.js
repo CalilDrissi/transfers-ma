@@ -21,31 +21,196 @@
         { name: 'Meknes', type: 'City', lat: 33.8935, lng: -5.5547 }
     ];
 
-    var pickupAutocomplete = null;
-    var dropoffAutocomplete = null;
+    var autocompleteInstances = {};
+    var googleReady = false;
+    var googleOptions = null;
+    var paxDropdownOpen = false;
+
+    function inferTransferType(pickup, dropoff) {
+        var airportRe = /airport|aéroport|aeroport|menara|mohammed v|ibn battouta|al massira|saiss/i;
+        var portRe = /port|marina|harbour|harbor/i;
+        if (airportRe.test(pickup)) return 'airport_pickup';
+        if (airportRe.test(dropoff)) return 'airport_dropoff';
+        if (portRe.test(pickup) || portRe.test(dropoff)) return 'port_transfer';
+        return 'city_to_city';
+    }
+
+    function updateFlightBar() {
+        var flightBar = document.getElementById('tb-flight-bar');
+        if (!flightBar) return;
+        var legs = TB.State.get('legs') || [];
+        var mode = TB.State.get('mode');
+        var showFlight = false;
+        if (mode === 'multi-city') {
+            for (var i = 0; i < legs.length; i++) {
+                if (legs[i].transferType === 'airport_pickup' || legs[i].transferType === 'airport_dropoff') {
+                    showFlight = true; break;
+                }
+            }
+        } else {
+            var leg = legs[0];
+            if (leg && (leg.transferType === 'airport_pickup' || leg.transferType === 'airport_dropoff')) {
+                showFlight = true;
+            }
+        }
+        flightBar.style.display = (showFlight && tbConfig.enableFlightNumber) ? 'block' : 'none';
+    }
 
     TB.Step1 = {
         init: function () {
-            this.populateTransferTypes();
             this.setMinDatetime();
             this.bindEvents();
             this.initAutocomplete();
             this.restoreState();
-            this.toggleFeatures();
         },
-        populateTransferTypes: function () {
-            var select = document.getElementById('tb-transfer-type');
-            if (!select || select.options.length > 1) return;
-            var types = tbConfig.transferTypes || [];
-            for (var i = 0; i < types.length; i++) {
-                var opt = document.createElement('option');
-                opt.value = types[i].value;
-                opt.textContent = types[i].label;
-                select.appendChild(opt);
+
+        /* ── Mode management ── */
+        switchMode: function (mode) {
+            TB.State.set('mode', mode);
+            var singleBar = document.getElementById('tb-single-bar');
+            var multiBar = document.getElementById('tb-multi-bar');
+            var returnField = document.getElementById('tb-return-field');
+
+            // Update tab active state
+            var tabs = document.querySelectorAll('.tb-mode-tab');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.toggle('tb-mode-tab--active', tabs[i].getAttribute('data-mode') === mode);
+            }
+
+            if (mode === 'multi-city') {
+                if (singleBar) singleBar.style.display = 'none';
+                if (multiBar) multiBar.style.display = 'block';
+                // Ensure at least 2 legs
+                var legs = TB.State.get('legs') || [];
+                if (legs.length < 2) {
+                    this.addLeg();
+                }
+                this.renderAllLegs();
+            } else {
+                if (singleBar) singleBar.style.display = 'block';
+                if (multiBar) multiBar.style.display = 'none';
+                if (returnField) {
+                    returnField.style.display = (mode === 'round-trip') ? 'flex' : 'none';
+                }
+                var addReturnBtn = document.getElementById('tb-add-return');
+                if (addReturnBtn) {
+                    addReturnBtn.style.display = (mode === 'round-trip') ? 'none' : 'block';
+                }
+                TB.State.set('isRoundTrip', mode === 'round-trip');
+            }
+            updateFlightBar();
+        },
+
+        /* ── Leg management (multi-city) ── */
+        addLeg: function () {
+            var legs = TB.State.get('legs') || [];
+            if (legs.length >= 5) return;
+            var prevLeg = legs.length > 0 ? legs[legs.length - 1] : null;
+            var newLeg = {
+                pickupAddress: prevLeg ? prevLeg.dropoffAddress : '',
+                pickupLat: prevLeg ? prevLeg.dropoffLat : null,
+                pickupLng: prevLeg ? prevLeg.dropoffLng : null,
+                dropoffAddress: '', dropoffLat: null, dropoffLng: null,
+                pickupDatetime: '', transferType: '', flightNumber: '',
+                pricingData: null, vehicleOptions: [], selectedVehicle: null,
+                selectedExtras: [], quoteData: null, bookingId: null,
+                bookingRef: '', paymentRef: '', totalPrice: 0
+            };
+            legs.push(newLeg);
+            TB.State.set('legs', legs);
+            return legs.length - 1;
+        },
+
+        removeLeg: function (idx) {
+            var legs = TB.State.get('legs') || [];
+            if (legs.length <= 2) return;
+            this.destroyAutocompleteForLeg(idx);
+            legs.splice(idx, 1);
+            TB.State.set('legs', legs);
+            // Destroy autocomplete for all legs after idx and rebuild
+            for (var i = idx; i < legs.length; i++) {
+                this.destroyAutocompleteForLeg(i + 1); // old index
+            }
+            this.renderAllLegs();
+        },
+
+        renderAllLegs: function () {
+            var container = document.getElementById('tb-legs-container');
+            if (!container) return;
+            var legs = TB.State.get('legs') || [];
+            var html = '';
+            for (var i = 0; i < legs.length; i++) {
+                html += this.renderLegRow(i, legs[i]);
+            }
+            container.innerHTML = html;
+            // Init autocomplete for each leg
+            for (var j = 0; j < legs.length; j++) {
+                this.initAutocompleteForLeg(j);
+                this.setMinDatetimeForInput(container.querySelector('[data-leg="' + j + '"][data-field="datetime"]'));
+            }
+            // Update add button visibility
+            var addBtn = document.getElementById('tb-add-leg');
+            if (addBtn) addBtn.style.display = legs.length >= 5 ? 'none' : 'flex';
+            // Bind remove buttons
+            var removeBtns = container.querySelectorAll('.tb-leg-row__remove');
+            for (var k = 0; k < removeBtns.length; k++) {
+                removeBtns[k].addEventListener('click', function () {
+                    var idx = parseInt(this.closest('.tb-leg-row').getAttribute('data-leg-index'));
+                    TB.Step1.removeLeg(idx);
+                });
+            }
+            // Bind datetime inputs
+            var dtInputs = container.querySelectorAll('input[data-field="datetime"]');
+            for (var d = 0; d < dtInputs.length; d++) {
+                dtInputs[d].addEventListener('change', function () {
+                    var legIdx = parseInt(this.getAttribute('data-leg'));
+                    var legs = TB.State.get('legs') || [];
+                    if (legs[legIdx]) {
+                        legs[legIdx].pickupDatetime = this.value;
+                        TB.State.set('legs', legs);
+                    }
+                });
             }
         },
+
+        renderLegRow: function (idx, leg) {
+            var i18n = tbConfig.i18n || {};
+            var legs = TB.State.get('legs') || [];
+            var canRemove = legs.length > 2;
+            var html = '<div class="tb-leg-row" data-leg-index="' + idx + '">';
+            html += '<div class="tb-leg-row__number">' + (idx + 1) + '</div>';
+            html += '<div class="tb-leg-row__fields">';
+            html += '<div class="tb-pill-bar__field tb-pill-bar__field--from">';
+            html += '<label class="tb-pill-bar__label">' + (i18n.from || 'From') + '</label>';
+            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="pickup" placeholder="' + (i18n.selectPickup || 'City, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.pickupAddress || '') + '">';
+            html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="pickup"></div>';
+            html += '</div>';
+            html += '<div class="tb-pill-bar__field tb-pill-bar__field--to">';
+            html += '<label class="tb-pill-bar__label">' + (i18n.to || 'To') + '</label>';
+            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="dropoff" placeholder="' + (i18n.selectDropoff || 'City, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.dropoffAddress || '') + '">';
+            html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="dropoff"></div>';
+            html += '</div>';
+            html += '<div class="tb-pill-bar__field tb-pill-bar__field--date">';
+            html += '<label class="tb-pill-bar__label">' + (i18n.departure || 'Departure') + '</label>';
+            html += '<input type="datetime-local" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="datetime" value="' + (leg.pickupDatetime || '') + '">';
+            html += '</div>';
+            html += '</div>';
+            if (canRemove) {
+                html += '<button type="button" class="tb-leg-row__remove" title="Remove">&times;</button>';
+            }
+            html += '</div>';
+            return html;
+        },
+
+        /* ── Datetime ── */
         setMinDatetime: function () {
-            var input = document.getElementById('tb-pickup-datetime');
+            var input = document.querySelector('#tb-single-bar input[data-field="datetime"]');
+            this.setMinDatetimeForInput(input);
+            var returnInput = document.getElementById('tb-return-datetime');
+            this.setMinDatetimeForInput(returnInput);
+        },
+
+        setMinDatetimeForInput: function (input) {
             if (!input) return;
             var now = new Date();
             now.setMinutes(now.getMinutes() + 60);
@@ -57,121 +222,307 @@
                 input.value = tomorrow.toISOString().slice(0, 16);
             }
         },
-        toggleFeatures: function () {
-            var rtGroup = document.getElementById('tb-round-trip-group');
-            if (rtGroup) rtGroup.style.display = tbConfig.enableRoundTrip ? 'block' : 'none';
-        },
+
+        /* ── Events ── */
         bindEvents: function () {
             var self = this;
-            var btn = document.getElementById('tb-btn-search');
-            if (btn) btn.addEventListener('click', function () { self.onNext(); });
-            var typeSelect = document.getElementById('tb-transfer-type');
-            if (typeSelect) typeSelect.addEventListener('change', function () {
-                self.toggleFlightNumber();
-                TB.State.set('transferType', this.value);
-            });
-            var rtCheckbox = document.getElementById('tb-round-trip');
-            if (rtCheckbox) rtCheckbox.addEventListener('change', function () {
-                TB.State.set('isRoundTrip', this.checked);
-                var returnGroup = document.getElementById('tb-return-datetime-group');
-                if (returnGroup) returnGroup.style.display = this.checked ? 'block' : 'none';
-            });
-            var counterBtns = document.querySelectorAll('.tb-counter__btn');
-            for (var i = 0; i < counterBtns.length; i++) {
-                counterBtns[i].addEventListener('click', function () {
-                    var target = document.getElementById(this.getAttribute('data-target'));
-                    if (!target) return;
-                    var val = parseInt(target.value) || 1;
-                    var min = parseInt(target.getAttribute('min')) || 1;
-                    var max = parseInt(target.getAttribute('max')) || 20;
-                    if (this.getAttribute('data-action') === 'increase') val = Math.min(val + 1, max);
-                    else val = Math.max(val - 1, min);
-                    target.value = val;
-                    TB.State.set('passengers', val);
+
+            // Mode tabs
+            var modeTabs = document.querySelectorAll('.tb-mode-tab');
+            for (var i = 0; i < modeTabs.length; i++) {
+                modeTabs[i].addEventListener('click', function () {
+                    self.switchMode(this.getAttribute('data-mode'));
                 });
             }
-            var dtInput = document.getElementById('tb-pickup-datetime');
-            if (dtInput) dtInput.addEventListener('change', function () { TB.State.set('pickupDatetime', this.value); });
+
+            // Search button
+            var btn = document.getElementById('tb-btn-search');
+            if (btn) btn.addEventListener('click', function () { self.onNext(); });
+
+            // Multi-city search button
+            var multiBtn = document.getElementById('tb-btn-search-multi');
+            if (multiBtn) multiBtn.addEventListener('click', function () { self.onNext(); });
+
+            // Single bar datetime
+            var dtInput = document.querySelector('#tb-single-bar input[data-field="datetime"]');
+            if (dtInput) dtInput.addEventListener('change', function () {
+                var legs = TB.State.get('legs') || [];
+                if (legs[0]) { legs[0].pickupDatetime = this.value; TB.State.set('legs', legs); }
+                TB.State.set('pickupDatetime', this.value);
+            });
+
+            // Return datetime
             var returnDt = document.getElementById('tb-return-datetime');
-            if (returnDt) returnDt.addEventListener('change', function () { TB.State.set('returnDatetime', this.value); });
+            if (returnDt) returnDt.addEventListener('change', function () {
+                TB.State.set('returnDatetime', this.value);
+            });
+
+            // Return add/remove toggle
+            var addReturnBtn = document.getElementById('tb-add-return');
+            if (addReturnBtn) addReturnBtn.addEventListener('click', function () {
+                self.switchMode('round-trip');
+            });
+            var removeReturnBtn = document.getElementById('tb-remove-return');
+            if (removeReturnBtn) removeReturnBtn.addEventListener('click', function () {
+                self.switchMode('one-way');
+                TB.State.set('returnDatetime', '');
+                var ri = document.getElementById('tb-return-datetime');
+                if (ri) ri.value = '';
+            });
+
+            // Swap button
+            var swapBtn = document.getElementById('tb-swap-btn');
+            if (swapBtn) swapBtn.addEventListener('click', function () { self.swapLocations(0); });
+
+            // Flight number
             var flightInput = document.getElementById('tb-flight-number');
-            if (flightInput) flightInput.addEventListener('input', function () { TB.State.set('flightNumber', this.value); });
+            if (flightInput) flightInput.addEventListener('input', function () {
+                TB.State.set('flightNumber', this.value);
+                var legs = TB.State.get('legs') || [];
+                if (legs[0]) { legs[0].flightNumber = this.value; TB.State.set('legs', legs); }
+            });
+
+            // Pax/Luggage dropdown
+            var paxPill = document.getElementById('tb-pax-pill');
+            if (paxPill) paxPill.addEventListener('click', function (e) {
+                e.stopPropagation();
+                self.togglePaxDropdown();
+            });
+
+            // Pax/Luggage steppers
+            var stepperBtns = document.querySelectorAll('.tb-pax-stepper__btn');
+            for (var s = 0; s < stepperBtns.length; s++) {
+                stepperBtns[s].addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var target = this.getAttribute('data-target');
+                    var action = this.getAttribute('data-action');
+                    self.updateCounter(target, action);
+                });
+            }
+
+            // Multi-city pax pill
+            var paxPillMulti = document.getElementById('tb-pax-pill-multi');
+            if (paxPillMulti) paxPillMulti.addEventListener('click', function (e) {
+                e.stopPropagation();
+                self.togglePaxDropdown();
+            });
+
+            // Close pax dropdown on outside click
+            document.addEventListener('click', function () {
+                if (paxDropdownOpen) self.closePaxDropdown();
+            });
+
+            // Add leg button
+            var addLegBtn = document.getElementById('tb-add-leg');
+            if (addLegBtn) addLegBtn.addEventListener('click', function () {
+                self.addLeg();
+                self.renderAllLegs();
+            });
         },
-        toggleFlightNumber: function () {
-            var type = document.getElementById('tb-transfer-type').value;
-            var flightGroup = document.getElementById('tb-flight-group');
-            if (!flightGroup) return;
-            var isAirport = type === 'airport_pickup' || type === 'airport_dropoff';
-            flightGroup.style.display = (isAirport && tbConfig.enableFlightNumber) ? 'block' : 'none';
+
+        /* ── Swap ── */
+        swapLocations: function (legIdx) {
+            var legs = TB.State.get('legs') || [];
+            var leg = legs[legIdx];
+            if (!leg) return;
+
+            var tmpAddr = leg.pickupAddress;
+            var tmpLat = leg.pickupLat;
+            var tmpLng = leg.pickupLng;
+            leg.pickupAddress = leg.dropoffAddress;
+            leg.pickupLat = leg.dropoffLat;
+            leg.pickupLng = leg.dropoffLng;
+            leg.dropoffAddress = tmpAddr;
+            leg.dropoffLat = tmpLat;
+            leg.dropoffLng = tmpLng;
+            leg.transferType = inferTransferType(leg.pickupAddress || '', leg.dropoffAddress || '');
+            legs[legIdx] = leg;
+            TB.State.set('legs', legs);
+
+            // Sync to flat for leg 0
+            if (legIdx === 0) {
+                TB.State.syncLegToFlat(0);
+            }
+
+            // Update DOM
+            var mode = TB.State.get('mode');
+            if (mode === 'multi-city') {
+                this.renderAllLegs();
+            } else {
+                var pickupInput = document.querySelector('#tb-single-bar input[data-field="pickup"]');
+                var dropoffInput = document.querySelector('#tb-single-bar input[data-field="dropoff"]');
+                if (pickupInput) pickupInput.value = leg.pickupAddress || '';
+                if (dropoffInput) dropoffInput.value = leg.dropoffAddress || '';
+            }
+            updateFlightBar();
         },
+
+        /* ── Pax/Luggage dropdown ── */
+        togglePaxDropdown: function () {
+            if (paxDropdownOpen) this.closePaxDropdown();
+            else this.openPaxDropdown();
+        },
+
+        openPaxDropdown: function () {
+            var dd = document.getElementById('tb-pax-dropdown');
+            if (dd) dd.classList.add('tb-show');
+            paxDropdownOpen = true;
+        },
+
+        closePaxDropdown: function () {
+            var dd = document.getElementById('tb-pax-dropdown');
+            if (dd) dd.classList.remove('tb-show');
+            paxDropdownOpen = false;
+        },
+
+        updateCounter: function (target, action) {
+            var el = document.getElementById(target);
+            if (!el) return;
+            var val = parseInt(el.textContent) || 1;
+            var min = target === 'tb-pax-count' ? 1 : 0;
+            var max = 20;
+            if (action === 'increase') val = Math.min(val + 1, max);
+            else val = Math.max(val - 1, min);
+            el.textContent = val;
+
+            if (target === 'tb-pax-count') {
+                TB.State.set('passengers', val);
+            } else if (target === 'tb-luggage-count') {
+                TB.State.set('luggage', val);
+            }
+            this.updatePaxPillDisplay();
+        },
+
+        updatePaxPillDisplay: function () {
+            var pax = TB.State.get('passengers') || 1;
+            var lug = TB.State.get('luggage') || 1;
+            var text = pax + ' pax, ' + lug + ' bag' + (lug !== 1 ? 's' : '');
+            var pillText = document.getElementById('tb-pax-pill-text');
+            if (pillText) pillText.textContent = text;
+            var pillTextMulti = document.getElementById('tb-pax-pill-text-multi');
+            if (pillTextMulti) pillTextMulti.textContent = text;
+        },
+
+        /* ── Autocomplete ── */
         initAutocomplete: function () {
+            var self = this;
             if (window.google && google.maps && google.maps.places) {
-                this.setupGoogleAutocomplete();
+                googleReady = true;
+                this.prepareGoogleOptions();
+                this.initAutocompleteForLeg(0);
             } else if (!tbConfig.googleMapsApiKey) {
-                var self = this;
                 TB.API.getGoogleMapsConfig().then(function (data) {
                     if (data && data.api_key && data.enabled) self.loadGoogleMapsScript(data.api_key);
-                    else self.setupFallbackAutocomplete();
-                }).catch(function () { self.setupFallbackAutocomplete(); });
+                    else { self.initFallbackForLeg(0); }
+                }).catch(function () { self.initFallbackForLeg(0); });
             } else {
                 this.loadGoogleMapsScript(tbConfig.googleMapsApiKey);
             }
         },
+
         loadGoogleMapsScript: function (apiKey) {
             var self = this;
             var script = document.createElement('script');
             script.src = 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&libraries=places';
             script.async = true;
-            script.onload = function () { self.setupGoogleAutocomplete(); };
-            script.onerror = function () { self.setupFallbackAutocomplete(); };
+            script.onload = function () {
+                googleReady = true;
+                self.prepareGoogleOptions();
+                self.initAutocompleteForLeg(0);
+            };
+            script.onerror = function () { self.initFallbackForLeg(0); };
             document.head.appendChild(script);
         },
-        setupGoogleAutocomplete: function () {
+
+        prepareGoogleOptions: function () {
+            if (!window.google) return;
             var moroccoBounds = new google.maps.LatLngBounds(
                 new google.maps.LatLng(27.6, -13.2),
                 new google.maps.LatLng(35.9, -1.0)
             );
-            var options = {
+            googleOptions = {
                 bounds: moroccoBounds,
                 componentRestrictions: { country: 'ma' },
                 fields: ['formatted_address', 'geometry', 'name'],
                 strictBounds: false
             };
-            var pickupInput = document.getElementById('tb-pickup-location');
-            var dropoffInput = document.getElementById('tb-dropoff-location');
-            if (pickupInput) {
-                pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, options);
-                pickupAutocomplete.addListener('place_changed', function () {
-                    var place = pickupAutocomplete.getPlace();
-                    if (place.geometry) {
-                        TB.State.set('pickupAddress', place.formatted_address || place.name);
-                        TB.State.set('pickupLat', place.geometry.location.lat());
-                        TB.State.set('pickupLng', place.geometry.location.lng());
-                    }
-                });
-                pickupInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
-            }
-            if (dropoffInput) {
-                dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, options);
-                dropoffAutocomplete.addListener('place_changed', function () {
-                    var place = dropoffAutocomplete.getPlace();
-                    if (place.geometry) {
-                        TB.State.set('dropoffAddress', place.formatted_address || place.name);
-                        TB.State.set('dropoffLat', place.geometry.location.lat());
-                        TB.State.set('dropoffLng', place.geometry.location.lng());
-                    }
-                });
-                dropoffInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
+        },
+
+        initAutocompleteForLeg: function (legIdx) {
+            if (googleReady) {
+                this._setupGoogleForLeg(legIdx, 'pickup');
+                this._setupGoogleForLeg(legIdx, 'dropoff');
+            } else {
+                this.initFallbackForLeg(legIdx);
             }
         },
-        setupFallbackAutocomplete: function () {
-            this._setupFallback('tb-pickup-location', 'tb-pickup-dropdown', 'pickup');
-            this._setupFallback('tb-dropoff-location', 'tb-dropoff-dropdown', 'dropoff');
+
+        _setupGoogleForLeg: function (legIdx, field) {
+            var mode = TB.State.get('mode');
+            var container = (mode === 'multi-city') ? document.getElementById('tb-legs-container') : document.getElementById('tb-single-bar');
+            if (!container) return;
+            var input = container.querySelector('input[data-leg="' + legIdx + '"][data-field="' + field + '"]');
+            if (!input) return;
+
+            var key = legIdx + '-' + field;
+            // Destroy existing
+            if (autocompleteInstances[key]) {
+                google.maps.event.clearInstanceListeners(autocompleteInstances[key]);
+                delete autocompleteInstances[key];
+            }
+
+            var ac = new google.maps.places.Autocomplete(input, googleOptions);
+            autocompleteInstances[key] = ac;
+
+            ac.addListener('place_changed', function () {
+                var place = ac.getPlace();
+                if (place.geometry) {
+                    var addr = place.formatted_address || place.name;
+                    var lat = place.geometry.location.lat();
+                    var lng = place.geometry.location.lng();
+                    var legs = TB.State.get('legs') || [];
+                    if (!legs[legIdx]) return;
+                    if (field === 'pickup') {
+                        legs[legIdx].pickupAddress = addr;
+                        legs[legIdx].pickupLat = lat;
+                        legs[legIdx].pickupLng = lng;
+                    } else {
+                        legs[legIdx].dropoffAddress = addr;
+                        legs[legIdx].dropoffLat = lat;
+                        legs[legIdx].dropoffLng = lng;
+                    }
+                    legs[legIdx].transferType = inferTransferType(legs[legIdx].pickupAddress || '', legs[legIdx].dropoffAddress || '');
+                    TB.State.set('legs', legs);
+                    if (legIdx === 0) TB.State.syncLegToFlat(0);
+                    updateFlightBar();
+                }
+            });
+            input.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
         },
-        _setupFallback: function (inputId, dropdownId, type) {
-            var input = document.getElementById(inputId);
-            var dropdown = document.getElementById(dropdownId);
+
+        destroyAutocompleteForLeg: function (legIdx) {
+            var keys = [legIdx + '-pickup', legIdx + '-dropoff'];
+            for (var i = 0; i < keys.length; i++) {
+                if (autocompleteInstances[keys[i]]) {
+                    if (window.google) google.maps.event.clearInstanceListeners(autocompleteInstances[keys[i]]);
+                    delete autocompleteInstances[keys[i]];
+                }
+            }
+        },
+
+        initFallbackForLeg: function (legIdx) {
+            this._setupFallbackField(legIdx, 'pickup');
+            this._setupFallbackField(legIdx, 'dropoff');
+        },
+
+        _setupFallbackField: function (legIdx, field) {
+            var mode = TB.State.get('mode');
+            var container = (mode === 'multi-city') ? document.getElementById('tb-legs-container') : document.getElementById('tb-single-bar');
+            if (!container) return;
+            var input = container.querySelector('input[data-leg="' + legIdx + '"][data-field="' + field + '"]');
+            var dropdown = container.querySelector('[data-leg="' + legIdx + '"][data-dropdown="' + field + '"]');
             if (!input || !dropdown) return;
+
             input.addEventListener('input', function () {
                 var query = input.value.toLowerCase();
                 if (query.length < 2) { dropdown.classList.remove('tb-show'); return; }
@@ -183,7 +534,7 @@
                 for (var i = 0; i < matches.length; i++) {
                     var loc = matches[i];
                     html += '<div class="tb-autocomplete-item" data-name="' + TB.Utils.escapeHtml(loc.name) +
-                        '" data-lat="' + loc.lat + '" data-lng="' + loc.lng + '" data-type="' + type + '">' +
+                        '" data-lat="' + loc.lat + '" data-lng="' + loc.lng + '">' +
                         '<span class="tb-autocomplete-item__icon">' + (loc.type.indexOf('Airport') !== -1 ? '&#9992;' : '&#9679;') + '</span>' +
                         '<div><div class="tb-autocomplete-item__name">' + TB.Utils.escapeHtml(loc.name) + '</div>' +
                         '<div class="tb-autocomplete-item__type">' + TB.Utils.escapeHtml(loc.type) + '</div></div></div>';
@@ -194,22 +545,26 @@
                 for (var j = 0; j < items.length; j++) {
                     items[j].addEventListener('mousedown', function (e) {
                         e.preventDefault();
-                        var el = this;
-                        var name = el.getAttribute('data-name');
-                        var lat = parseFloat(el.getAttribute('data-lat'));
-                        var lng = parseFloat(el.getAttribute('data-lng'));
-                        var t = el.getAttribute('data-type');
+                        var name = this.getAttribute('data-name');
+                        var lat = parseFloat(this.getAttribute('data-lat'));
+                        var lng = parseFloat(this.getAttribute('data-lng'));
                         input.value = name;
                         dropdown.classList.remove('tb-show');
-                        if (t === 'pickup') {
-                            TB.State.set('pickupAddress', name);
-                            TB.State.set('pickupLat', lat);
-                            TB.State.set('pickupLng', lng);
+                        var legs = TB.State.get('legs') || [];
+                        if (!legs[legIdx]) return;
+                        if (field === 'pickup') {
+                            legs[legIdx].pickupAddress = name;
+                            legs[legIdx].pickupLat = lat;
+                            legs[legIdx].pickupLng = lng;
                         } else {
-                            TB.State.set('dropoffAddress', name);
-                            TB.State.set('dropoffLat', lat);
-                            TB.State.set('dropoffLng', lng);
+                            legs[legIdx].dropoffAddress = name;
+                            legs[legIdx].dropoffLat = lat;
+                            legs[legIdx].dropoffLng = lng;
                         }
+                        legs[legIdx].transferType = inferTransferType(legs[legIdx].pickupAddress || '', legs[legIdx].dropoffAddress || '');
+                        TB.State.set('legs', legs);
+                        if (legIdx === 0) TB.State.syncLegToFlat(0);
+                        updateFlightBar();
                     });
                 }
             });
@@ -217,74 +572,155 @@
                 setTimeout(function () { dropdown.classList.remove('tb-show'); }, 200);
             });
         },
+
+        /* ── Restore state ── */
         restoreState: function () {
             var s = TB.State.getAll();
-            var typeSelect = document.getElementById('tb-transfer-type');
-            if (typeSelect && s.transferType) typeSelect.value = s.transferType;
-            var pickupInput = document.getElementById('tb-pickup-location');
-            if (pickupInput && s.pickupAddress) pickupInput.value = s.pickupAddress;
-            var dropoffInput = document.getElementById('tb-dropoff-location');
-            if (dropoffInput && s.dropoffAddress) dropoffInput.value = s.dropoffAddress;
-            var dtInput = document.getElementById('tb-pickup-datetime');
-            if (dtInput && s.pickupDatetime) dtInput.value = s.pickupDatetime;
-            var passInput = document.getElementById('tb-passengers');
-            if (passInput && s.passengers) passInput.value = s.passengers;
-            var rtCheckbox = document.getElementById('tb-round-trip');
-            if (rtCheckbox && s.isRoundTrip) {
-                rtCheckbox.checked = true;
-                var returnGroup = document.getElementById('tb-return-datetime-group');
-                if (returnGroup) returnGroup.style.display = 'block';
-            }
+            var mode = s.mode || 'one-way';
+
+            // Restore single bar fields from leg 0
+            var legs = s.legs || [];
+            var leg0 = legs[0] || {};
+            var pickupInput = document.querySelector('#tb-single-bar input[data-field="pickup"]');
+            var dropoffInput = document.querySelector('#tb-single-bar input[data-field="dropoff"]');
+            var dtInput = document.querySelector('#tb-single-bar input[data-field="datetime"]');
+            if (pickupInput && leg0.pickupAddress) pickupInput.value = leg0.pickupAddress;
+            if (dropoffInput && leg0.dropoffAddress) dropoffInput.value = leg0.dropoffAddress;
+            if (dtInput && leg0.pickupDatetime) dtInput.value = leg0.pickupDatetime;
+
+            // Restore return datetime
             var returnDt = document.getElementById('tb-return-datetime');
             if (returnDt && s.returnDatetime) returnDt.value = s.returnDatetime;
+
+            // Restore flight number
             var flightInput = document.getElementById('tb-flight-number');
             if (flightInput && s.flightNumber) flightInput.value = s.flightNumber;
-            this.toggleFlightNumber();
+
+            // Restore pax/luggage
+            var paxCount = document.getElementById('tb-pax-count');
+            var lugCount = document.getElementById('tb-luggage-count');
+            if (paxCount) paxCount.textContent = s.passengers || 1;
+            if (lugCount) lugCount.textContent = s.luggage || 1;
+            this.updatePaxPillDisplay();
+
+            // Set mode
+            this.switchMode(mode);
+            updateFlightBar();
         },
+
+        /* ── Validation ── */
         validate: function () {
-            TB.Utils.clearFieldErrors();
+            var mode = TB.State.get('mode');
+            var legs = TB.State.get('legs') || [];
             var errors = [];
-            var type = document.getElementById('tb-transfer-type').value;
-            if (!type) errors.push({ field: 'transferType', msg: tbConfig.i18n.selectType });
-            if (!TB.State.get('pickupAddress') || !TB.State.get('pickupLat'))
-                errors.push({ field: 'pickup', msg: tbConfig.i18n.selectPickup });
-            if (!TB.State.get('dropoffAddress') || !TB.State.get('dropoffLat'))
-                errors.push({ field: 'dropoff', msg: tbConfig.i18n.selectDropoff });
-            var dt = document.getElementById('tb-pickup-datetime').value;
-            if (!dt) errors.push({ field: 'datetime', msg: tbConfig.i18n.selectDatetime });
-            if (TB.State.get('isRoundTrip')) {
-                var returnDt = document.getElementById('tb-return-datetime').value;
-                if (!returnDt) errors.push({ field: 'returnDatetime', msg: tbConfig.i18n.returnDateRequired });
+
+            // Clear previous validation
+            var invalids = document.querySelectorAll('.tb-pill-bar__field--invalid');
+            for (var v = 0; v < invalids.length; v++) invalids[v].classList.remove('tb-pill-bar__field--invalid');
+
+            if (mode === 'multi-city') {
+                for (var i = 0; i < legs.length; i++) {
+                    if (!legs[i].pickupAddress || !legs[i].pickupLat)
+                        errors.push({ leg: i, field: 'pickup', msg: tbConfig.i18n.selectPickup });
+                    if (!legs[i].dropoffAddress || !legs[i].dropoffLat)
+                        errors.push({ leg: i, field: 'dropoff', msg: tbConfig.i18n.selectDropoff });
+                    if (!legs[i].pickupDatetime)
+                        errors.push({ leg: i, field: 'datetime', msg: tbConfig.i18n.selectDatetime });
+                }
+            } else {
+                var leg = legs[0] || {};
+                if (!leg.pickupAddress || !leg.pickupLat)
+                    errors.push({ leg: 0, field: 'pickup', msg: tbConfig.i18n.selectPickup });
+                if (!leg.dropoffAddress || !leg.dropoffLat)
+                    errors.push({ leg: 0, field: 'dropoff', msg: tbConfig.i18n.selectDropoff });
+                if (!leg.pickupDatetime)
+                    errors.push({ leg: 0, field: 'datetime', msg: tbConfig.i18n.selectDatetime });
+                if (mode === 'round-trip') {
+                    var returnDt = TB.State.get('returnDatetime');
+                    if (!returnDt)
+                        errors.push({ leg: 0, field: 'return', msg: tbConfig.i18n.returnDateRequired });
+                }
             }
-            for (var i = 0; i < errors.length; i++) TB.Utils.showFieldError(errors[i].field, errors[i].msg);
-            return errors.length === 0;
+
+            // Highlight invalid fields
+            for (var e = 0; e < errors.length; e++) {
+                var err = errors[e];
+                var container = (mode === 'multi-city')
+                    ? document.querySelector('.tb-leg-row[data-leg-index="' + err.leg + '"]')
+                    : document.getElementById('tb-single-bar');
+                if (container) {
+                    var fieldEl = container.querySelector('.tb-pill-bar__field--' + err.field);
+                    if (fieldEl) fieldEl.classList.add('tb-pill-bar__field--invalid');
+                }
+                if (err.field === 'return') {
+                    var returnField = document.getElementById('tb-return-field');
+                    if (returnField) returnField.classList.add('tb-pill-bar__field--invalid');
+                }
+            }
+
+            // Shake animation
+            if (errors.length > 0) {
+                var bar = (mode === 'multi-city') ? document.getElementById('tb-multi-bar') : document.getElementById('tb-single-bar');
+                if (bar) {
+                    bar.classList.add('tb-shake');
+                    setTimeout(function () { bar.classList.remove('tb-shake'); }, 600);
+                }
+            }
+
+            return { valid: errors.length === 0, errors: errors };
         },
+
+        /* ── Save state ── */
         saveState: function () {
-            TB.State.set('transferType', document.getElementById('tb-transfer-type').value);
-            TB.State.set('pickupDatetime', document.getElementById('tb-pickup-datetime').value);
-            TB.State.set('passengers', parseInt(document.getElementById('tb-passengers').value) || 1);
-            var rtCheckbox = document.getElementById('tb-round-trip');
-            if (rtCheckbox) TB.State.set('isRoundTrip', rtCheckbox.checked);
-            var returnDt = document.getElementById('tb-return-datetime');
-            if (returnDt) TB.State.set('returnDatetime', returnDt.value);
-            var flightInput = document.getElementById('tb-flight-number');
-            if (flightInput) TB.State.set('flightNumber', flightInput.value);
+            var mode = TB.State.get('mode');
+            var legs = TB.State.get('legs') || [];
+
+            if (mode !== 'multi-city') {
+                // Sync single bar inputs to leg 0
+                var pickupInput = document.querySelector('#tb-single-bar input[data-field="pickup"]');
+                var dropoffInput = document.querySelector('#tb-single-bar input[data-field="dropoff"]');
+                var dtInput = document.querySelector('#tb-single-bar input[data-field="datetime"]');
+                if (legs[0]) {
+                    if (dtInput) legs[0].pickupDatetime = dtInput.value;
+                    // Address/lat/lng set by autocomplete callbacks
+                }
+                TB.State.set('legs', legs);
+                TB.State.syncLegToFlat(0);
+            }
             TB.State.save();
         },
+
+        /* ── Search / onNext ── */
         onNext: function () {
             this.saveState();
-            if (!this.validate()) return false;
-            var btn = document.getElementById('tb-btn-search');
+            var result = this.validate();
+            if (!result.valid) return false;
+
+            var mode = TB.State.get('mode');
+            var legs = TB.State.get('legs') || [];
+            var btn = document.getElementById(mode === 'multi-city' ? 'tb-btn-search-multi' : 'tb-btn-search');
             var container = document.getElementById('tb-no-route-container');
-            var originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = tbConfig.i18n.loading || 'Loading...';
-            container.style.display = 'none';
+            TB.Utils.setButtonLoading(btn, true);
+            if (container) container.style.display = 'none';
+
+            // Infer transfer types for all legs
+            for (var i = 0; i < legs.length; i++) {
+                legs[i].transferType = inferTransferType(legs[i].pickupAddress || '', legs[i].dropoffAddress || '');
+            }
+            TB.State.set('legs', legs);
+
+            if (mode === 'multi-city') {
+                // Multi-city: start with leg 0
+                TB.State.set('currentLegIndex', 0);
+                TB.State.syncLegToFlat(0);
+            } else {
+                TB.State.syncLegToFlat(0);
+            }
+
             var state = TB.State.getAll();
             TB.API.getPricing(state.pickupLat, state.pickupLng, state.dropoffLat, state.dropoffLng, state.passengers)
                 .then(function (data) {
-                    btn.disabled = false;
-                    btn.textContent = originalText;
+                    TB.Utils.setButtonLoading(btn, false);
                     if (data.pricing_type === 'calculated' && tbConfig.showNoRouteMessage) {
                         TB.Step1.showNoRouteMessage(container);
                         return;
@@ -299,17 +735,18 @@
                             return;
                         }
                     }
-                    container.style.display = 'none';
+                    if (container) container.style.display = 'none';
                     TB.Wizard.showStep(2);
                 }).catch(function () {
-                    btn.disabled = false;
-                    btn.textContent = originalText;
+                    TB.Utils.setButtonLoading(btn, false);
                     if (tbConfig.showNoRouteMessage) TB.Step1.showNoRouteMessage(container);
                     else TB.Wizard.showStep(2);
                 });
             return false;
         },
+
         showNoRouteMessage: function (container) {
+            if (!container) return;
             var contact = tbConfig.contact || {};
             var message = tbConfig.noRouteMessage || '';
             var html = '<div class="tb-no-route"><div class="tb-no-route__icon">';
@@ -324,7 +761,9 @@
             container.innerHTML = html;
             container.style.display = 'block';
         },
+
         showMinTimeMessage: function (container, minHours) {
+            if (!container) return;
             var html = '<div class="tb-alert tb-alert--error" style="margin-top:1rem;"><strong>';
             html += TB.Utils.escapeHtml(
                 (tbConfig.i18n.minBookingTime || 'We can only accept bookings for this route with a minimum of {hours} hours notice.')

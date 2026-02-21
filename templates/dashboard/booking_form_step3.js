@@ -133,7 +133,7 @@
                 pickup_longitude: state.pickupLng, dropoff_address: state.dropoffAddress,
                 dropoff_latitude: state.dropoffLat, dropoff_longitude: state.dropoffLng,
                 pickup_datetime: state.pickupDatetime, passengers: state.passengers,
-                luggage: state.passengers, vehicle_category_id: state.selectedVehicle.category_id,
+                luggage: state.luggage || state.passengers, vehicle_category_id: state.selectedVehicle.category_id,
                 flight_number: state.flightNumber || '', special_requests: state.specialRequests || '',
                 is_round_trip: state.isRoundTrip, extras: extrasPayload
             };
@@ -186,11 +186,19 @@
                 });
         },
         showConfirmation: function () {
-            var refEl = document.getElementById('tb-confirmation-ref');
-            var emailEl = document.getElementById('tb-confirmation-email');
-            if (refEl) refEl.textContent = TB.State.get('bookingRef');
-            if (emailEl) emailEl.textContent = TB.State.get('customerEmail');
-            TB.Wizard.showConfirmation();
+            // Save booking results to current leg
+            var currentIdx = TB.State.get('currentLegIndex') || 0;
+            var legs = TB.State.get('legs') || [];
+            if (legs[currentIdx]) {
+                legs[currentIdx].bookingId = TB.State.get('bookingId');
+                legs[currentIdx].bookingRef = TB.State.get('bookingRef');
+                legs[currentIdx].paymentRef = TB.State.get('paymentRef');
+                legs[currentIdx].totalPrice = TB.State.get('totalPrice');
+                TB.State.set('legs', legs);
+                TB.State.save();
+            }
+            // Delegate to wizard (handles multi-city loop or single confirmation)
+            TB.Wizard.onLegComplete();
         }
     };
 })();

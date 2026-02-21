@@ -152,6 +152,134 @@
     .tb-vehicle-price { text-align: left; margin-top: 0.5rem; }
     .tb-sidebar { position: static; }
 }
+
+/* ── Step 1: Dark hero background ── */
+#tb-step-1 { background: linear-gradient(135deg, #0a1628, #162544); border-radius: 16px; padding: 2rem 1.5rem; }
+
+/* ── Mode tabs ── */
+.tb-mode-tabs { display: flex; justify-content: center; gap: 4px; margin-bottom: 1.5rem; }
+.tb-mode-tab { background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; font-weight: 600; font-family: var(--tb-font); padding: 8px 20px; border-radius: 30px; cursor: pointer; transition: all 0.2s; }
+.tb-mode-tab:hover { color: rgba(255,255,255,0.9); }
+.tb-mode-tab--active { background: #fff; color: var(--tb-text-dark); }
+
+/* ── Pill bar (shared) ── */
+.tb-pill-bar__row { display: flex; align-items: stretch; background: #fff; border-radius: 50px; padding: 4px 4px 4px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.tb-pill-bar__field { flex: 1 1 0; min-width: 0; position: relative; display: flex; flex-direction: column; justify-content: center; padding: 8px 12px; }
+.tb-pill-bar__field--from { position: relative; }
+.tb-pill-bar__divider { width: 1px; height: 24px; background: #e0e0e0; align-self: center; flex-shrink: 0; }
+.tb-pill-bar__label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tb-text-muted); margin-bottom: 2px; line-height: 1; }
+.tb-pill-bar__input { border: none; background: transparent; font-size: 0.95rem; font-family: var(--tb-font); color: var(--tb-text-dark); padding: 2px 0; width: 100%; outline: none; min-width: 0; }
+.tb-pill-bar__input::placeholder { color: #adb5bd; }
+.tb-pill-bar__input:focus { outline: none; }
+
+/* Autocomplete dropdown inside pill bar */
+.tb-pill-bar__field .tb-autocomplete-dropdown { position: absolute; top: 100%; left: 0; right: 0; z-index: 100; margin-top: 8px; min-width: 280px; }
+
+/* ── Swap button ── */
+.tb-pill-bar__swap { position: absolute; right: -14px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 2px solid #e0e0e0; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; font-size: 0.75rem; color: var(--tb-text-muted); transition: all 0.2s; }
+.tb-pill-bar__swap:hover { border-color: var(--tb-accent); color: var(--tb-accent); background: #fff; }
+
+/* ── Return field ── */
+#tb-return-field { position: relative; }
+.tb-pill-bar__return-remove { position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; border-radius: 50%; background: #f0f0f0; border: none; cursor: pointer; font-size: 0.7rem; line-height: 1; display: flex; align-items: center; justify-content: center; color: var(--tb-text-muted); }
+.tb-pill-bar__return-remove:hover { background: var(--tb-error); color: #fff; }
+
+/* ── Add return button ── */
+.tb-pill-bar__add-return { border: none; background: transparent; color: var(--tb-accent); font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 8px 12px; white-space: nowrap; font-family: var(--tb-font); }
+.tb-pill-bar__add-return:hover { text-decoration: underline; }
+
+/* ── Pax pill ── */
+.tb-pill-bar__pax { position: relative; display: flex; align-items: center; padding: 0 8px; }
+.tb-pax-pill { display: flex; align-items: center; gap: 6px; background: var(--tb-light-bg); border: 1px solid var(--tb-border); border-radius: 30px; padding: 8px 14px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; font-weight: 500; color: var(--tb-text-dark); transition: border-color 0.2s; font-family: var(--tb-font); }
+.tb-pax-pill:hover { border-color: var(--tb-accent); }
+.tb-pax-pill__icon { font-size: 1rem; }
+
+/* ── Pax dropdown ── */
+.tb-pax-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border-radius: var(--tb-radius); box-shadow: var(--tb-shadow-lg); padding: 16px; z-index: 200; min-width: 220px; display: none; }
+.tb-pax-dropdown.tb-show { display: block; }
+.tb-pax-stepper { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+.tb-pax-stepper + .tb-pax-stepper { border-top: 1px solid var(--tb-border); }
+.tb-pax-stepper__label { font-size: 0.9rem; font-weight: 500; }
+.tb-pax-stepper__controls { display: flex; align-items: center; gap: 12px; }
+.tb-pax-stepper__btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--tb-border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.2s; color: var(--tb-text-dark); font-family: var(--tb-font); }
+.tb-pax-stepper__btn:hover { border-color: var(--tb-accent); color: var(--tb-accent); }
+.tb-pax-stepper__value { font-weight: 600; min-width: 20px; text-align: center; font-size: 1rem; }
+
+/* ── Search button ── */
+.tb-pill-bar__search { border-radius: 40px; padding: 12px 28px; background: var(--tb-accent); color: #fff; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap; font-family: var(--tb-font); flex-shrink: 0; align-self: center; }
+.tb-pill-bar__search:hover { background: var(--tb-accent-hover); }
+.tb-pill-bar__search:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Multi-city bar ── */
+.tb-multi-bar { display: none; }
+.tb-leg-row { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 16px; padding: 8px 12px 8px 16px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.tb-leg-row__number { width: 28px; height: 28px; border-radius: 50%; background: var(--tb-accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
+.tb-leg-row__fields { display: flex; flex: 1; align-items: stretch; gap: 8px; min-width: 0; }
+.tb-leg-row__fields .tb-pill-bar__field { background: var(--tb-light-bg); border-radius: 10px; padding: 6px 10px; }
+.tb-leg-row__remove { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--tb-border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--tb-text-muted); flex-shrink: 0; transition: all 0.2s; }
+.tb-leg-row__remove:hover { border-color: var(--tb-error); color: var(--tb-error); background: #fee2e2; }
+
+/* Add leg button */
+#tb-add-leg { display: flex; align-items: center; gap: 8px; background: transparent; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; padding: 10px 16px; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 0.9rem; font-weight: 600; font-family: var(--tb-font); margin-bottom: 12px; transition: all 0.2s; width: 100%; justify-content: center; }
+#tb-add-leg:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+
+/* Multi-city footer */
+.tb-multi-bar__footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+
+/* ── Flight bar ── */
+#tb-flight-bar { display: none; margin-top: 12px; }
+#tb-flight-bar .tb-pill-bar__input { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; color: #fff; }
+#tb-flight-bar .tb-pill-bar__input::placeholder { color: rgba(255,255,255,0.4); }
+#tb-flight-bar .tb-pill-bar__label { color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+
+/* ── No route container ── */
+#tb-no-route-container { margin-top: 1rem; }
+
+/* ── Multi-city progress indicator ── */
+#tb-multi-progress { text-align: center; color: var(--tb-accent); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; display: none; }
+
+/* ── Validation ── */
+.tb-pill-bar__field--invalid { background: rgba(220, 53, 69, 0.08) !important; }
+.tb-pill-bar__field--invalid .tb-pill-bar__input { color: var(--tb-error); }
+@keyframes tb-shake { 0%, 100% { transform: translateX(0); } 15%, 45%, 75% { transform: translateX(-6px); } 30%, 60%, 90% { transform: translateX(6px); } }
+.tb-shake { animation: tb-shake 0.5s ease-in-out; }
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+    #tb-step-1 { padding: 1.25rem 1rem; border-radius: 12px; }
+    .tb-pill-bar__row { flex-direction: column; border-radius: 16px; padding: 16px; gap: 10px; }
+    .tb-pill-bar__divider { display: none; }
+    .tb-pill-bar__field { width: 100%; border: 1px solid var(--tb-border); border-radius: 12px; padding: 12px; }
+    .tb-pill-bar__swap { position: static; transform: none; width: 100%; height: 32px; border-radius: 8px; margin: -4px 0; }
+    .tb-pill-bar__search { width: 100%; border-radius: 12px; padding: 14px; }
+    .tb-pill-bar__pax { width: 100%; padding: 0; }
+    .tb-pax-pill { width: 100%; justify-content: center; }
+    .tb-pill-bar__add-return { width: 100%; text-align: center; border: 1px dashed var(--tb-border); border-radius: 12px; padding: 12px; }
+    #tb-return-field { width: 100%; }
+
+    /* Pax dropdown as bottom sheet on mobile */
+    .tb-pax-dropdown { position: fixed; bottom: 0; left: 0; right: 0; top: auto; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); min-width: unset; padding: 20px; z-index: 1000; }
+
+    /* Multi-city leg rows */
+    .tb-leg-row { flex-direction: column; align-items: stretch; padding: 12px; }
+    .tb-leg-row__number { align-self: flex-start; }
+    .tb-leg-row__fields { flex-direction: column; }
+    .tb-leg-row__fields .tb-pill-bar__field { width: 100%; }
+    .tb-leg-row__remove { align-self: flex-end; margin-top: -20px; }
+    .tb-multi-bar__footer { flex-direction: column; }
+    .tb-multi-bar__footer .tb-pax-pill { width: 100%; justify-content: center; }
+    .tb-multi-bar__footer .tb-pill-bar__search { width: 100%; }
+}
+
+/* Prevent iOS zoom on input focus */
+.tb-pill-bar__input, .tb-pax-pill, .tb-pill-bar__search, #tb-add-leg, .tb-mode-tab { font-size: 16px; }
+@media (min-width: 769px) {
+    .tb-pill-bar__input { font-size: 0.95rem; }
+    .tb-pax-pill { font-size: 0.85rem; }
+    .tb-pill-bar__search { font-size: 0.95rem; }
+    #tb-add-leg { font-size: 0.9rem; }
+    .tb-mode-tab { font-size: 0.9rem; }
+}
 </style>
 {% endblock %}
 
@@ -165,6 +293,9 @@
 
 <!-- Booking Widget -->
 <div id="tb-booking-widget" class="tb-booking-widget" dir="ltr">
+
+    <!-- Multi-city progress indicator -->
+    <div id="tb-multi-progress"></div>
 
     <!-- Progress Bar -->
     <div class="tb-progress">
@@ -186,72 +317,95 @@
 
     <!-- Step 1: Route -->
     <div id="tb-step-1" class="tb-step tb-step--active">
-        <div class="tb-card">
-            <h3 class="tb-card__title">{% trans "Book Your Transfer" %}</h3>
-            <div class="tb-form">
-                <div class="tb-form-group">
-                    <label class="tb-label" for="tb-transfer-type">{% trans "Transfer Type" %}</label>
-                    <select id="tb-transfer-type" class="tb-select">
-                        <option value="">{% trans "Select type..." %}</option>
-                    </select>
-                    <div class="tb-field-error" data-field="transferType"></div>
+
+        <!-- Mode tabs -->
+        <div class="tb-mode-tabs">
+            <button type="button" class="tb-mode-tab tb-mode-tab--active" data-mode="one-way">{% trans "One-way" %}</button>
+            <button type="button" class="tb-mode-tab" data-mode="round-trip">{% trans "Round trip" %}</button>
+            <button type="button" class="tb-mode-tab" data-mode="multi-city">{% trans "Multi-city" %}</button>
+        </div>
+
+        <!-- Single trip pill bar (one-way & round-trip) -->
+        <div id="tb-single-bar">
+            <div class="tb-pill-bar__row">
+                <div class="tb-pill-bar__field tb-pill-bar__field--from">
+                    <label class="tb-pill-bar__label">{% trans "From" %}</label>
+                    <input type="text" class="tb-pill-bar__input" data-leg="0" data-field="pickup" placeholder="{% trans 'City, airport, or hotel...' %}" autocomplete="off">
+                    <div class="tb-autocomplete-dropdown" data-leg="0" data-dropdown="pickup"></div>
+                    <button type="button" class="tb-pill-bar__swap" id="tb-swap-btn" title="{% trans 'Swap locations' %}">&#8652;</button>
                 </div>
-                <div class="tb-form-group">
-                    <label class="tb-label" for="tb-pickup-location">{% trans "Pickup Location" %}</label>
-                    <div class="tb-input-wrapper">
-                        <span class="tb-input-icon">&#9679;</span>
-                        <input type="text" id="tb-pickup-location" class="tb-input" placeholder="{% trans 'City, airport, or hotel...' %}" autocomplete="off">
-                        <div class="tb-autocomplete-dropdown" id="tb-pickup-dropdown"></div>
-                    </div>
-                    <div class="tb-field-error" data-field="pickup"></div>
+                <div class="tb-pill-bar__divider"></div>
+                <div class="tb-pill-bar__field tb-pill-bar__field--to">
+                    <label class="tb-pill-bar__label">{% trans "To" %}</label>
+                    <input type="text" class="tb-pill-bar__input" data-leg="0" data-field="dropoff" placeholder="{% trans 'City, airport, or hotel...' %}" autocomplete="off">
+                    <div class="tb-autocomplete-dropdown" data-leg="0" data-dropdown="dropoff"></div>
                 </div>
-                <div class="tb-form-group">
-                    <label class="tb-label" for="tb-dropoff-location">{% trans "Drop-off Location" %}</label>
-                    <div class="tb-input-wrapper">
-                        <span class="tb-input-icon">&#9650;</span>
-                        <input type="text" id="tb-dropoff-location" class="tb-input" placeholder="{% trans 'City, airport, or hotel...' %}" autocomplete="off">
-                        <div class="tb-autocomplete-dropdown" id="tb-dropoff-dropdown"></div>
-                    </div>
-                    <div class="tb-field-error" data-field="dropoff"></div>
+                <div class="tb-pill-bar__divider"></div>
+                <div class="tb-pill-bar__field tb-pill-bar__field--date">
+                    <label class="tb-pill-bar__label">{% trans "Departure" %}</label>
+                    <input type="datetime-local" class="tb-pill-bar__input" data-leg="0" data-field="datetime">
                 </div>
-                <div class="tb-form-row">
-                    <div class="tb-form-group tb-form-group--half">
-                        <label class="tb-label" for="tb-pickup-datetime">{% trans "Date & Time" %}</label>
-                        <input type="datetime-local" id="tb-pickup-datetime" class="tb-input">
-                        <div class="tb-field-error" data-field="datetime"></div>
+                <div class="tb-pill-bar__divider"></div>
+                <div class="tb-pill-bar__field tb-pill-bar__field--return" id="tb-return-field" style="display:none;">
+                    <label class="tb-pill-bar__label">{% trans "Return" %}</label>
+                    <input type="datetime-local" class="tb-pill-bar__input" id="tb-return-datetime" data-field="return-datetime">
+                    <button type="button" class="tb-pill-bar__return-remove" id="tb-remove-return" title="{% trans 'Remove return' %}">&times;</button>
+                </div>
+                <button type="button" class="tb-pill-bar__add-return" id="tb-add-return">+ {% trans "Return" %}</button>
+                <div class="tb-pill-bar__divider"></div>
+                <div class="tb-pill-bar__pax">
+                    <div class="tb-pax-pill" id="tb-pax-pill">
+                        <span class="tb-pax-pill__icon">&#128100;</span>
+                        <span id="tb-pax-pill-text">1 pax, 1 bag</span>
+                        <span>&#9662;</span>
                     </div>
-                    <div class="tb-form-group tb-form-group--half">
-                        <label class="tb-label" for="tb-passengers">{% trans "Passengers" %}</label>
-                        <div class="tb-counter">
-                            <button type="button" class="tb-counter__btn" data-action="decrease" data-target="tb-passengers">-</button>
-                            <input type="number" id="tb-passengers" class="tb-counter__value" value="1" min="1" max="20" readonly>
-                            <button type="button" class="tb-counter__btn" data-action="increase" data-target="tb-passengers">+</button>
+                    <div class="tb-pax-dropdown" id="tb-pax-dropdown">
+                        <div class="tb-pax-stepper">
+                            <span class="tb-pax-stepper__label">{% trans "Passengers" %}</span>
+                            <div class="tb-pax-stepper__controls">
+                                <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="decrease">-</button>
+                                <span class="tb-pax-stepper__value" id="tb-pax-count">1</span>
+                                <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="increase">+</button>
+                            </div>
+                        </div>
+                        <div class="tb-pax-stepper">
+                            <span class="tb-pax-stepper__label">{% trans "Luggage" %}</span>
+                            <div class="tb-pax-stepper__controls">
+                                <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="decrease">-</button>
+                                <span class="tb-pax-stepper__value" id="tb-luggage-count">1</span>
+                                <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="increase">+</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="tb-form-group" id="tb-round-trip-group" style="display: none;">
-                    <label class="tb-checkbox-label">
-                        <input type="checkbox" id="tb-round-trip">
-                        <span>{% trans "Round trip" %}</span>
-                    </label>
-                </div>
-                <div class="tb-form-group" id="tb-return-datetime-group" style="display: none;">
-                    <label class="tb-label" for="tb-return-datetime">{% trans "Return Date & Time" %}</label>
-                    <input type="datetime-local" id="tb-return-datetime" class="tb-input">
-                    <div class="tb-field-error" data-field="returnDatetime"></div>
-                </div>
-                <div class="tb-form-group" id="tb-flight-group" style="display: none;">
-                    <label class="tb-label" for="tb-flight-number">{% trans "Flight Number" %}</label>
-                    <input type="text" id="tb-flight-number" class="tb-input" placeholder="{% trans 'e.g. AT 1234' %}">
-                </div>
-                <div id="tb-no-route-container" style="display:none;"></div>
-                <div class="tb-form-actions">
-                    <button type="button" id="tb-btn-search" class="tb-btn tb-btn--primary tb-btn--full">
-                        {% trans "Search Vehicles" %}
-                    </button>
-                </div>
+                <button type="button" id="tb-btn-search" class="tb-pill-bar__search">{% trans "Search" %}</button>
             </div>
         </div>
+
+        <!-- Multi-city bar -->
+        <div id="tb-multi-bar" class="tb-multi-bar">
+            <div id="tb-legs-container"></div>
+            <button type="button" id="tb-add-leg">+ {% trans "Add another transfer" %}</button>
+            <div class="tb-multi-bar__footer">
+                <div class="tb-pill-bar__pax" style="position:relative;">
+                    <div class="tb-pax-pill" id="tb-pax-pill-multi">
+                        <span class="tb-pax-pill__icon">&#128100;</span>
+                        <span id="tb-pax-pill-text-multi">1 pax, 1 bag</span>
+                        <span>&#9662;</span>
+                    </div>
+                </div>
+                <button type="button" id="tb-btn-search-multi" class="tb-pill-bar__search">{% trans "Search" %}</button>
+            </div>
+        </div>
+
+        <!-- Flight number (shown below bar when airport detected) -->
+        <div id="tb-flight-bar">
+            <label class="tb-pill-bar__label">{% trans "Flight Number" %}</label>
+            <input type="text" id="tb-flight-number" class="tb-pill-bar__input" placeholder="{% trans 'e.g. AT 1234' %}" autocomplete="off">
+        </div>
+
+        <!-- Error display -->
+        <div id="tb-no-route-container" style="display:none;"></div>
     </div>
 
     <!-- Step 2: Vehicle -->
@@ -464,7 +618,19 @@ var tbConfig = {
         totalPrice:         "{% trans 'total price' %}",
         perItem:            "{% trans '/each' %}",
         returnDateRequired: "{% trans 'Return date is required for round trips' %}",
-        minBookingTime:     "{% trans 'We can only accept bookings for this route with a minimum of {hours} hours notice.' %}"
+        minBookingTime:     "{% trans 'We can only accept bookings for this route with a minimum of {hours} hours notice.' %}",
+        oneWay:             "{% trans 'One-way' %}",
+        roundTrip:          "{% trans 'Round trip' %}",
+        multiCity:          "{% trans 'Multi-city' %}",
+        addReturn:          "{% trans 'Add return' %}",
+        addTransfer:        "{% trans 'Add another transfer' %}",
+        swapLocations:      "{% trans 'Swap locations' %}",
+        transferOf:         "{% trans 'Transfer {current} of {total}' %}",
+        allTransfersBooked: "{% trans 'All transfers booked!' %}",
+        luggage:            "{% trans 'Luggage' %}",
+        from:               "{% trans 'From' %}",
+        to:                 "{% trans 'To' %}",
+        departure:          "{% trans 'Departure' %}"
     }
 };
 </script>
@@ -667,10 +833,21 @@ var TB_API_ENDPOINTS = {
     'use strict';
     window.TB = window.TB || {};
     var STORAGE_KEY = 'tb_booking_state';
+    var defaultLeg = {
+        pickupAddress: '', pickupLat: null, pickupLng: null,
+        dropoffAddress: '', dropoffLat: null, dropoffLng: null,
+        pickupDatetime: '', transferType: '', flightNumber: '',
+        pricingData: null, vehicleOptions: [], selectedVehicle: null,
+        selectedExtras: [], quoteData: null, bookingId: null,
+        bookingRef: '', paymentRef: '', totalPrice: 0
+    };
     var defaults = {
-        step: 1, transferType: '', pickupAddress: '', pickupLat: null, pickupLng: null,
+        step: 1, mode: 'one-way', currentLegIndex: 0,
+        legs: [JSON.parse(JSON.stringify(defaultLeg))],
+        /* flat fields kept for backward compat with Steps 2/3 */
+        transferType: '', pickupAddress: '', pickupLat: null, pickupLng: null,
         dropoffAddress: '', dropoffLat: null, dropoffLng: null, pickupDatetime: '',
-        passengers: 1, isRoundTrip: false, returnDatetime: '', flightNumber: '',
+        passengers: 1, luggage: 1, isRoundTrip: false, returnDatetime: '', flightNumber: '',
         pricingData: null, vehicleOptions: [], selectedVehicle: null, extras: [],
         selectedExtras: [], quoteData: null, customerName: '', customerEmail: '',
         customerPhone: '', specialRequests: '', bookingId: null, bookingRef: '',
@@ -689,8 +866,59 @@ var TB_API_ENDPOINTS = {
                 if (saved) { _data = Object.assign(cloneDefaults(), JSON.parse(saved)); }
                 else { _data = cloneDefaults(); }
             } catch (e) { _data = cloneDefaults(); }
+            // Ensure legs array exists (for older saved states)
+            if (!_data.legs || !_data.legs.length) {
+                _data.legs = [JSON.parse(JSON.stringify(defaultLeg))];
+            }
         },
-        reset: function () { _data = cloneDefaults(); try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} }
+        reset: function () { _data = cloneDefaults(); try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} },
+        syncLegToFlat: function (idx) {
+            var legs = _data.legs || [];
+            var leg = legs[idx];
+            if (!leg) return;
+            _data.transferType = leg.transferType || '';
+            _data.pickupAddress = leg.pickupAddress || '';
+            _data.pickupLat = leg.pickupLat;
+            _data.pickupLng = leg.pickupLng;
+            _data.dropoffAddress = leg.dropoffAddress || '';
+            _data.dropoffLat = leg.dropoffLat;
+            _data.dropoffLng = leg.dropoffLng;
+            _data.pickupDatetime = leg.pickupDatetime || '';
+            _data.flightNumber = leg.flightNumber || '';
+            // Reset step 2/3 selections for new leg
+            _data.pricingData = leg.pricingData || null;
+            _data.vehicleOptions = leg.vehicleOptions || [];
+            _data.selectedVehicle = leg.selectedVehicle || null;
+            _data.selectedExtras = leg.selectedExtras || [];
+            _data.quoteData = leg.quoteData || null;
+            _data.bookingId = leg.bookingId || null;
+            _data.bookingRef = leg.bookingRef || '';
+            _data.paymentRef = leg.paymentRef || '';
+            _data.totalPrice = leg.totalPrice || 0;
+        },
+        saveFlatToLeg: function (idx) {
+            var legs = _data.legs || [];
+            if (!legs[idx]) return;
+            legs[idx].transferType = _data.transferType;
+            legs[idx].pickupAddress = _data.pickupAddress;
+            legs[idx].pickupLat = _data.pickupLat;
+            legs[idx].pickupLng = _data.pickupLng;
+            legs[idx].dropoffAddress = _data.dropoffAddress;
+            legs[idx].dropoffLat = _data.dropoffLat;
+            legs[idx].dropoffLng = _data.dropoffLng;
+            legs[idx].pickupDatetime = _data.pickupDatetime;
+            legs[idx].flightNumber = _data.flightNumber;
+            legs[idx].pricingData = _data.pricingData;
+            legs[idx].vehicleOptions = _data.vehicleOptions;
+            legs[idx].selectedVehicle = _data.selectedVehicle;
+            legs[idx].selectedExtras = _data.selectedExtras;
+            legs[idx].quoteData = _data.quoteData;
+            legs[idx].bookingId = _data.bookingId;
+            legs[idx].bookingRef = _data.bookingRef;
+            legs[idx].paymentRef = _data.paymentRef;
+            legs[idx].totalPrice = _data.totalPrice;
+            _data.legs = legs;
+        }
     };
     TB.State.load();
 })();
@@ -749,19 +977,82 @@ var TB_API_ENDPOINTS = {
                 if (stepNum === step) progressSteps[i].classList.add('tb-progress__step--active');
                 else if (stepNum < step) progressSteps[i].classList.add('tb-progress__step--completed');
             }
+            // Multi-city progress indicator
+            var multiProgress = document.getElementById('tb-multi-progress');
+            if (multiProgress) {
+                var mode = TB.State.get('mode');
+                if (mode === 'multi-city' && step > 1) {
+                    var legs = TB.State.get('legs') || [];
+                    var currentIdx = TB.State.get('currentLegIndex') || 0;
+                    var text = (tbConfig.i18n.transferOf || 'Transfer {current} of {total}')
+                        .replace('{current}', currentIdx + 1)
+                        .replace('{total}', legs.length);
+                    multiProgress.textContent = text;
+                    multiProgress.style.display = 'block';
+                } else {
+                    multiProgress.style.display = 'none';
+                }
+            }
         },
         showConfirmation: function () {
             var steps = document.querySelectorAll('.tb-step');
             for (var i = 0; i < steps.length; i++) steps[i].classList.remove('tb-step--active');
-            var confirm = document.getElementById('tb-confirmation');
-            if (confirm) confirm.classList.add('tb-step--active');
+            var confirmEl = document.getElementById('tb-confirmation');
+            if (confirmEl) confirmEl.classList.add('tb-step--active');
             var progressSteps = document.querySelectorAll('.tb-progress__step');
             for (var j = 0; j < progressSteps.length; j++) {
                 progressSteps[j].classList.remove('tb-progress__step--active');
                 progressSteps[j].classList.add('tb-progress__step--completed');
             }
+            var multiProgress = document.getElementById('tb-multi-progress');
+            if (multiProgress) multiProgress.style.display = 'none';
             var widget = document.getElementById('tb-booking-widget');
             if (widget) widget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        onLegComplete: function () {
+            var mode = TB.State.get('mode');
+            var currentIdx = TB.State.get('currentLegIndex') || 0;
+            var legs = TB.State.get('legs') || [];
+
+            // Save Step 2/3 results back to current leg
+            TB.State.saveFlatToLeg(currentIdx);
+            TB.State.save();
+
+            if (mode === 'multi-city' && currentIdx < legs.length - 1) {
+                // More legs remain — advance to next
+                var nextIdx = currentIdx + 1;
+                TB.State.set('currentLegIndex', nextIdx);
+                TB.State.syncLegToFlat(nextIdx);
+                // Reset step 2/3 UI selections
+                TB.State.set('selectedVehicle', null);
+                TB.State.set('selectedExtras', []);
+                TB.State.set('quoteData', null);
+                TB.State.save();
+                // Show Step 2 for next leg
+                this.showStep(2);
+            } else if (mode === 'multi-city') {
+                // All legs done — show multi-city confirmation
+                this.showMultiCityConfirmation();
+            } else {
+                // Single leg — show normal confirmation
+                var refEl = document.getElementById('tb-confirmation-ref');
+                var emailEl = document.getElementById('tb-confirmation-email');
+                if (refEl) refEl.textContent = TB.State.get('bookingRef');
+                if (emailEl) emailEl.textContent = TB.State.get('customerEmail');
+                this.showConfirmation();
+            }
+        },
+        showMultiCityConfirmation: function () {
+            var legs = TB.State.get('legs') || [];
+            var refs = [];
+            for (var i = 0; i < legs.length; i++) {
+                if (legs[i].bookingRef) refs.push(legs[i].bookingRef);
+            }
+            var refEl = document.getElementById('tb-confirmation-ref');
+            var emailEl = document.getElementById('tb-confirmation-email');
+            if (refEl) refEl.textContent = refs.join(', ');
+            if (emailEl) emailEl.textContent = TB.State.get('customerEmail');
+            this.showConfirmation();
         },
         resetAndRestart: function () {
             TB.State.reset();
@@ -772,10 +1063,10 @@ var TB_API_ENDPOINTS = {
                 else if (inputs[i].tagName === 'SELECT') inputs[i].selectedIndex = 0;
                 else inputs[i].value = '';
             }
-            var returnGroup = document.getElementById('tb-return-datetime-group');
-            if (returnGroup) returnGroup.style.display = 'none';
-            var flightGroup = document.getElementById('tb-flight-group');
-            if (flightGroup) flightGroup.style.display = 'none';
+            var flightBar = document.getElementById('tb-flight-bar');
+            if (flightBar) flightBar.style.display = 'none';
+            var multiProgress = document.getElementById('tb-multi-progress');
+            if (multiProgress) multiProgress.style.display = 'none';
             this.showStep(1);
             TB.Step1.init();
         }
