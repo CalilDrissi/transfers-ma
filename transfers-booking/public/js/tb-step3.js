@@ -169,21 +169,48 @@
         },
 
         renderGatewaySelector: function () {
+            var self = this;
             var selector = document.getElementById('tb-gateway-selector');
             if (!selector) return;
 
-            var gateways = [];
-            if (tbConfig.enableStripe) gateways.push('stripe');
-            if (tbConfig.enableCash) gateways.push('cash');
-            if (tbConfig.enablePaypal) gateways.push('paypal');
+            // Fetch active gateways from Django API
+            TB.API.getGateways()
+                .then(function (data) {
+                    // data is an array of gateway objects with gateway_type field
+                    var gateways = [];
+                    var results = data.results || data;
+                    for (var i = 0; i < results.length; i++) {
+                        gateways.push(results[i].gateway_type);
+                    }
 
-            // If no gateways configured, default to stripe
-            if (gateways.length === 0) gateways.push('stripe');
+                    // Fallback: if API returned nothing, use WP config flags
+                    if (gateways.length === 0) {
+                        if (tbConfig.enableStripe) gateways.push('stripe');
+                        if (tbConfig.enableCash) gateways.push('cash');
+                        if (tbConfig.enablePaypal) gateways.push('paypal');
+                    }
+                    if (gateways.length === 0) gateways.push('stripe');
 
+                    self._applyGatewaySelector(selector, gateways);
+                })
+                .catch(function () {
+                    // On API failure, fall back to WP config flags
+                    var gateways = [];
+                    if (tbConfig.enableStripe) gateways.push('stripe');
+                    if (tbConfig.enableCash) gateways.push('cash');
+                    if (tbConfig.enablePaypal) gateways.push('paypal');
+                    if (gateways.length === 0) gateways.push('stripe');
+
+                    self._applyGatewaySelector(selector, gateways);
+                });
+        },
+
+        _applyGatewaySelector: function (selector, gateways) {
             // Show/hide each option
             var options = selector.querySelectorAll('.tb-gateway-option');
             for (var i = 0; i < options.length; i++) {
                 var gw = options[i].getAttribute('data-gateway');
+                options[i].classList.remove('tb-gateway-option--active');
                 if (gateways.indexOf(gw) !== -1) {
                     options[i].style.display = '';
                 } else {
@@ -192,10 +219,11 @@
             }
 
             // Auto-select first available
-            var firstRadio = selector.querySelector('.tb-gateway-option[style=""] input[type="radio"], .tb-gateway-option:not([style*="display: none"]) input[type="radio"]');
-            if (firstRadio) {
-                firstRadio.checked = true;
-                firstRadio.closest('.tb-gateway-option').classList.add('tb-gateway-option--active');
+            var firstVisible = selector.querySelector('.tb-gateway-option:not([style*="display: none"])');
+            if (firstVisible) {
+                var radio = firstVisible.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+                firstVisible.classList.add('tb-gateway-option--active');
             }
 
             // Only show selector if more than one gateway
@@ -203,18 +231,11 @@
                 selector.style.display = 'flex';
             } else {
                 selector.style.display = 'none';
-                // Ensure the single gateway radio is checked
-                for (var j = 0; j < options.length; j++) {
-                    var gwType = options[j].getAttribute('data-gateway');
-                    var radio = options[j].querySelector('input[type="radio"]');
-                    if (gateways.indexOf(gwType) !== -1 && radio) {
-                        radio.checked = true;
-                    }
-                }
             }
 
-            // Hide deposit options for cash
+            // Update button text and deposit visibility for selected gateway
             this.updateDepositVisibility();
+            this.updatePayButtonText();
         },
 
         getSelectedGateway: function () {

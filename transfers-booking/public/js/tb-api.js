@@ -87,6 +87,10 @@
             return this._call('confirm_payment', {
                 payment_ref: paymentRef
             });
+        },
+
+        getGateways: function () {
+            return this._call('get_gateways');
         }
     };
 })();
