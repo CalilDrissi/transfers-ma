@@ -39,17 +39,19 @@
             <span class="tb-receipt__label"><?php esc_html_e('Passengers', 'transfers-booking'); ?></span>
             <span class="tb-receipt__value" id="tb-receipt-passengers">--</span>
         </div>
-        <div class="tb-receipt__divider"></div>
-        <div class="tb-receipt__row">
-            <span class="tb-receipt__label"><?php esc_html_e('Base price', 'transfers-booking'); ?></span>
-            <span class="tb-receipt__value" id="tb-receipt-base-price">--</span>
+        <!-- Price Details -->
+        <div class="tb-receipt__section">
+            <div class="tb-receipt__section-title"><?php esc_html_e('Price Details', 'transfers-booking'); ?></div>
+            <div class="tb-receipt__row">
+                <span class="tb-receipt__label"><?php esc_html_e('Transfer', 'transfers-booking'); ?></span>
+                <span class="tb-receipt__value" id="tb-receipt-base-price">--</span>
+            </div>
+            <div id="tb-receipt-extras-list"></div>
+            <div class="tb-receipt__row" id="tb-receipt-roundtrip-row" style="display:none;">
+                <span class="tb-receipt__label"><?php esc_html_e('Round trip', 'transfers-booking'); ?></span>
+                <span class="tb-receipt__value">&times; 2</span>
+            </div>
         </div>
-        <div id="tb-receipt-extras-list"></div>
-        <div class="tb-receipt__row" id="tb-receipt-roundtrip-row" style="display:none;">
-            <span class="tb-receipt__label"><?php esc_html_e('Round trip', 'transfers-booking'); ?></span>
-            <span class="tb-receipt__value">&times; 2</span>
-        </div>
-        <div class="tb-receipt__divider"></div>
         <div class="tb-receipt__row tb-receipt__row--total">
             <span class="tb-receipt__label"><?php esc_html_e('Total', 'transfers-booking'); ?></span>
             <span class="tb-receipt__value" id="tb-receipt-total">--</span>
