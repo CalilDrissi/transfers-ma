@@ -2,6 +2,9 @@
 
 <div id="tb-booking-widget" class="tb-booking-widget" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
 
+    <!-- Multi-city progress indicator -->
+    <div id="tb-multi-progress"></div>
+
     <!-- Progress Bar -->
     <div class="tb-progress">
         <div class="tb-progress__step tb-progress__step--active" data-step="1">

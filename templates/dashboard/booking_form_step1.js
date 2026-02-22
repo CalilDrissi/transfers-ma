@@ -503,7 +503,20 @@
 
         openPaxDropdown: function () {
             var dd = document.getElementById('tb-pax-dropdown');
-            if (dd) dd.classList.add('tb-show');
+            if (!dd) return;
+            // Position dropdown below the active pax pill
+            var mode = TB.State.get('mode');
+            var pill = document.getElementById(mode === 'multi-city' ? 'tb-pax-pill-multi' : 'tb-pax-pill');
+            if (pill && window.innerWidth > 768) {
+                var rect = pill.getBoundingClientRect();
+                var step = document.getElementById('tb-step-1');
+                var stepRect = step ? step.getBoundingClientRect() : { left: 0, top: 0 };
+                dd.style.position = 'absolute';
+                dd.style.top = (rect.bottom - stepRect.top + 8) + 'px';
+                dd.style.right = Math.max(0, stepRect.right - rect.right) + 'px';
+                dd.style.left = 'auto';
+            }
+            dd.classList.add('tb-show');
             paxDropdownOpen = true;
         },
 

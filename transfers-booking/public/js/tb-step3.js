@@ -210,7 +210,7 @@
                 dropoff_longitude: state.dropoffLng,
                 pickup_datetime: state.pickupDatetime,
                 passengers: state.passengers,
-                luggage: state.passengers,
+                luggage: state.luggage || state.passengers,
                 vehicle_category_id: state.selectedVehicle.category_id,
                 flight_number: state.flightNumber || '',
                 special_requests: state.specialRequests || '',

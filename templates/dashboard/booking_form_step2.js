@@ -271,7 +271,20 @@
             if (total && quote.total_price) total.textContent = TB.Utils.formatPrice(quote.total_price, quote.currency);
         },
         validate: function () {
-            if (!TB.State.get('selectedVehicle')) { alert(tbConfig.i18n.selectVehicle); return false; }
+            if (!TB.State.get('selectedVehicle')) {
+                var container = document.getElementById('tb-vehicles-container');
+                if (container) {
+                    // Remove any previous inline error
+                    var prev = container.querySelector('.tb-alert--error');
+                    if (prev) prev.remove();
+                    var errDiv = document.createElement('div');
+                    errDiv.className = 'tb-alert tb-alert--error';
+                    errDiv.textContent = tbConfig.i18n.selectVehicle;
+                    container.insertBefore(errDiv, container.firstChild);
+                    errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return false;
+            }
             return true;
         },
         onNext: function () {

@@ -154,7 +154,7 @@
 }
 
 /* ── Step 1: Dark hero background ── */
-#tb-step-1 { background: linear-gradient(135deg, #0a1628, #162544); border-radius: 16px; padding: 2rem 1.5rem; }
+#tb-step-1 { background: linear-gradient(135deg, #0a1628, #162544); border-radius: 16px; padding: 2rem 1.5rem; position: relative; }
 
 /* ── Mode tabs ── */
 .tb-mode-tabs { display: flex; justify-content: center; gap: 4px; margin-bottom: 1.5rem; }
@@ -195,7 +195,7 @@
 .tb-pax-pill__icon { font-size: 1rem; }
 
 /* ── Pax dropdown ── */
-.tb-pax-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border-radius: var(--tb-radius); box-shadow: var(--tb-shadow-lg); padding: 16px; z-index: 200; min-width: 220px; display: none; }
+.tb-pax-dropdown { position: absolute; top: auto; right: 0; background: #fff; border-radius: var(--tb-radius); box-shadow: var(--tb-shadow-lg); padding: 16px; z-index: 200; min-width: 220px; display: none; }
 .tb-pax-dropdown.tb-show { display: block; }
 .tb-pax-stepper { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
 .tb-pax-stepper + .tb-pax-stepper { border-top: 1px solid var(--tb-border); }
@@ -276,6 +276,22 @@
 .tb-return-toggle input { accent-color: var(--tb-accent); width: 18px; height: 18px; }
 .tb-leg-row--return .tb-leg-row__number { background: var(--tb-text-muted); font-size: 0.7rem; }
 .tb-leg-row--return .tb-pill-bar__input[readonly] { opacity: 0.6; cursor: default; }
+
+/* ── Gateway options ── */
+.tb-gateways-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+.tb-gateway-option { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid var(--tb-border); border-radius: var(--tb-radius-sm); cursor: pointer; transition: all 0.2s; }
+.tb-gateway-option:hover { border-color: var(--tb-accent); }
+.tb-gateway-option--selected { border-color: var(--tb-accent); background: rgba(233, 69, 96, 0.02); }
+.tb-gateway-option__radio { width: 20px; height: 20px; border: 2px solid var(--tb-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+.tb-gateway-option--selected .tb-gateway-option__radio { border-color: var(--tb-accent); }
+.tb-gateway-option--selected .tb-gateway-option__radio::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--tb-accent); }
+.tb-gateway-option__info { flex: 1; }
+.tb-gateway-option__label { font-weight: 600; font-size: 0.95rem; }
+.tb-gateway-option__desc { font-size: 0.8rem; color: var(--tb-text-muted); margin-top: 2px; }
+
+/* ── Coupon input row ── */
+.tb-coupon-input-row { display: flex; gap: 8px; }
+.tb-coupon-input-row .tb-input { flex: 1; }
 
 /* Prevent iOS zoom on input focus */
 .tb-pill-bar__input, .tb-pax-pill, .tb-pill-bar__search, #tb-add-leg, .tb-mode-tab { font-size: 16px; }
@@ -365,24 +381,6 @@
                         <span id="tb-pax-pill-text">1 pax, 1 bag</span>
                         <span>&#9662;</span>
                     </div>
-                    <div class="tb-pax-dropdown" id="tb-pax-dropdown">
-                        <div class="tb-pax-stepper">
-                            <span class="tb-pax-stepper__label">{% trans "Passengers" %}</span>
-                            <div class="tb-pax-stepper__controls">
-                                <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="decrease">-</button>
-                                <span class="tb-pax-stepper__value" id="tb-pax-count">1</span>
-                                <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="increase">+</button>
-                            </div>
-                        </div>
-                        <div class="tb-pax-stepper">
-                            <span class="tb-pax-stepper__label">{% trans "Luggage" %}</span>
-                            <div class="tb-pax-stepper__controls">
-                                <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="decrease">-</button>
-                                <span class="tb-pax-stepper__value" id="tb-luggage-count">1</span>
-                                <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="increase">+</button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <button type="button" id="tb-btn-search" class="tb-pill-bar__search">{% trans "Search" %}</button>
             </div>
@@ -416,6 +414,26 @@
 
         <!-- Error display -->
         <div id="tb-no-route-container" style="display:none;"></div>
+
+        <!-- Pax/luggage dropdown (shared by single & multi-city) -->
+        <div class="tb-pax-dropdown" id="tb-pax-dropdown">
+            <div class="tb-pax-stepper">
+                <span class="tb-pax-stepper__label">{% trans "Passengers" %}</span>
+                <div class="tb-pax-stepper__controls">
+                    <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="decrease">-</button>
+                    <span class="tb-pax-stepper__value" id="tb-pax-count">1</span>
+                    <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="increase">+</button>
+                </div>
+            </div>
+            <div class="tb-pax-stepper">
+                <span class="tb-pax-stepper__label">{% trans "Luggage" %}</span>
+                <div class="tb-pax-stepper__controls">
+                    <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="decrease">-</button>
+                    <span class="tb-pax-stepper__value" id="tb-luggage-count">1</span>
+                    <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="increase">+</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Step 2: Vehicle -->
@@ -517,13 +535,40 @@
                         </div>
                     </div>
                 </div>
+                <div class="tb-card" id="tb-coupon-card">
+                    <h4 class="tb-card__title">{% trans "Promo Code" %}</h4>
+                    <div class="tb-coupon-input-row" id="tb-coupon-input-row" style="display:flex;gap:8px;">
+                        <input type="text" id="tb-coupon-code" class="tb-input" placeholder="{% trans 'Enter code' %}">
+                        <button type="button" id="tb-coupon-apply" class="tb-btn tb-btn--primary" style="padding:12px 20px;">{% trans "Apply" %}</button>
+                    </div>
+                    <div id="tb-coupon-success" style="display:none;background:rgba(16,185,129,0.1);color:#065f46;padding:10px 14px;border-radius:var(--tb-radius-sm);margin-top:8px;display:none;">
+                        <span id="tb-coupon-message"></span>
+                        <button type="button" id="tb-coupon-remove" style="background:none;border:none;color:var(--tb-error);cursor:pointer;margin-left:8px;font-weight:600;">{% trans "Remove" %}</button>
+                    </div>
+                    <div id="tb-coupon-error" class="tb-alert tb-alert--error" style="display:none;margin-top:8px;"></div>
+                </div>
                 <div class="tb-card" id="tb-payment-card">
                     <h4 class="tb-card__title">{% trans "Payment" %}</h4>
                     <div id="tb-payment-errors" class="tb-alert tb-alert--error" style="display: none;"></div>
-                    <button type="button" id="tb-pay-button" class="tb-btn tb-btn--primary tb-btn--full">
+                    <div id="tb-gateways-container" class="tb-gateways-container">
+                        <div class="tb-loading"><span class="tb-spinner"></span> {% trans "Loading payment methods..." %}</div>
+                    </div>
+                    <div id="tb-stripe-container" style="display:none;">
+                        <div id="tb-stripe-element"></div>
+                    </div>
+                    <div id="tb-paypal-container" style="display:none;">
+                        <p style="color:var(--tb-text-muted);font-size:0.9rem;text-align:center;padding:12px;">
+                            {% trans "You will be redirected to PayPal to complete payment." %}
+                        </p>
+                    </div>
+                    <div id="tb-cash-container" style="display:none;">
+                        <p style="color:var(--tb-text-muted);font-size:0.9rem;text-align:center;padding:12px;">
+                            {% trans "Pay the full amount to your driver in cash." %}
+                        </p>
+                    </div>
+                    <button type="button" id="tb-pay-button" class="tb-btn tb-btn--primary tb-btn--full" style="display:none;">
                         {% trans "Pay Now" %}
                     </button>
-                    <div id="tb-stripe-element" style="display: none;"></div>
                     <button type="button" id="tb-confirm-payment-btn" class="tb-btn tb-btn--primary tb-btn--full" style="display: none;">
                         {% trans "Confirm Payment" %}
                     </button>
@@ -549,9 +594,21 @@
                         <span class="tb-summary-value" id="tb-order-passengers">--</span>
                     </div>
                     <div id="tb-order-extras-list"></div>
+                    <div id="tb-order-discount-row" class="tb-summary-item" style="display:none;color:var(--tb-success);">
+                        <span class="tb-summary-label" id="tb-order-discount-label">{% trans "Discount" %}</span>
+                        <span class="tb-summary-value" id="tb-order-discount-value">--</span>
+                    </div>
                     <div class="tb-summary-item tb-summary-total">
                         <span>{% trans "Total" %}</span>
                         <span id="tb-order-total">--</span>
+                    </div>
+                    <div id="tb-order-deposit-row" class="tb-summary-item" style="display:none;">
+                        <span class="tb-summary-label">{% trans "Deposit" %}</span>
+                        <span class="tb-summary-value" id="tb-order-deposit">--</span>
+                    </div>
+                    <div id="tb-order-remaining-row" class="tb-summary-item" style="display:none;color:var(--tb-text-muted);font-size:0.85rem;">
+                        <span class="tb-summary-label">{% trans "Remaining to driver" %}</span>
+                        <span class="tb-summary-value" id="tb-order-remaining">--</span>
                     </div>
                 </div>
             </div>
@@ -583,10 +640,16 @@
 <script src="https://js.stripe.com/v3/"></script>
 {% endif %}
 
+<!-- PayPal SDK -->
+{% if site_settings and site_settings.paypal_client_id %}
+<script src="https://www.paypal.com/sdk/js?client-id={{ site_settings.paypal_client_id }}&currency={{ site_settings.default_currency|default:'MAD' }}"></script>
+{% endif %}
+
 <!-- tbConfig: replaces the WP localized config -->
 <script>
 var tbConfig = {
     stripePublishableKey: '{{ site_settings.stripe_publishable_key|default:""|escapejs }}',
+    paypalClientId: '{{ site_settings.paypal_client_id|default:""|escapejs }}',
     googleMapsApiKey: '{{ site_settings.google_maps_api_key|default:""|escapejs }}',
     currencySymbol: '{{ site_settings.default_currency|default:"MAD"|escapejs }}',
     currencyPosition: 'after',
@@ -599,7 +662,7 @@ var tbConfig = {
     contact: {
         phone: '{{ site_settings.contact_phone|default:""|escapejs }}',
         email: '{{ site_settings.contact_email|default:""|escapejs }}',
-        whatsapp: ''
+        whatsapp: '{{ site_settings.contact_whatsapp|default:""|escapejs }}'
     },
     transferTypes: [
         { value: 'airport_pickup',  label: "{% trans 'Airport Pickup' %}" },
@@ -641,7 +704,25 @@ var tbConfig = {
         from:               "{% trans 'From' %}",
         to:                 "{% trans 'To' %}",
         departure:          "{% trans 'Departure' %}",
-        returnToStart:      "{% trans 'Return to start' %}"
+        returnToStart:      "{% trans 'Return to start' %}",
+        selectPayment:      "{% trans 'Please select a payment method' %}",
+        payFull:            "{% trans 'Pay full amount' %}",
+        payDeposit:         "{% trans 'Pay deposit' %}",
+        depositOnly:        "{% trans 'deposit' %}",
+        remainingToDriver:  "{% trans 'Remaining to driver' %}",
+        toDriver:           "{% trans 'to driver' %}",
+        payCash:            "{% trans 'Pay Cash to Driver' %}",
+        cashDescription:    "{% trans 'Pay the full amount to your driver in cash' %}",
+        payWithPaypal:      "{% trans 'Pay with PayPal' %}",
+        paypalInfo:         "{% trans 'You will be redirected to PayPal to complete payment.' %}",
+        apply:              "{% trans 'Apply' %}",
+        discount:           "{% trans 'Discount' %}",
+        invalidCoupon:      "{% trans 'Invalid coupon code' %}",
+        couponApplied:      "{% trans 'Coupon applied' %}",
+        removeCoupon:       "{% trans 'Remove' %}",
+        payNow:             "{% trans 'Pay Now' %}",
+        depositBreakdown:   "{% trans 'Deposit' %}",
+        remainingAmount:    "{% trans 'Remaining' %}"
     }
 };
 </script>
@@ -656,7 +737,9 @@ var TB_API_ENDPOINTS = {
     get_quote:          { method: 'POST', path: '/api/v1/transfers/quote/' },
     create_booking:     { method: 'POST', path: '/api/v1/transfers/' },
     create_payment:     { method: 'POST', path: '/api/v1/payments/' },
-    confirm_payment:    { method: 'POST', path: '/api/v1/payments/confirm/' }
+    confirm_payment:    { method: 'POST', path: '/api/v1/payments/confirm/' },
+    get_gateways:       { method: 'GET',  path: '/api/v1/payments/gateways/' },
+    validate_coupon:    { method: 'POST', path: '/api/v1/payments/coupons/validate/' }
 };
 </script>
 
@@ -824,16 +907,24 @@ var TB_API_ENDPOINTS = {
         getCategories: function () { return this._call('get_categories'); },
         getQuote: function (quoteData) { return this._call('get_quote', quoteData); },
         createBooking: function (bookingData) { return this._call('create_booking', bookingData); },
-        createPayment: function (bookingId, gatewayType) {
-            return this._call('create_payment', {
-                booking_type: 'transfer',
-                booking_id: bookingId,
-                gateway_type: gatewayType || 'stripe'
-            });
+        createPayment: function (paymentData) {
+            if (typeof paymentData === 'number' || typeof paymentData === 'string') {
+                // Legacy: createPayment(bookingId, gatewayType)
+                var bookingId = paymentData;
+                var gatewayType = arguments[1] || 'stripe';
+                paymentData = {
+                    booking_type: 'transfer',
+                    booking_id: bookingId,
+                    gateway_type: gatewayType
+                };
+            }
+            return this._call('create_payment', paymentData);
         },
         confirmPayment: function (paymentRef) {
             return this._call('confirm_payment', { payment_ref: paymentRef });
-        }
+        },
+        getGateways: function () { return this._call('get_gateways'); },
+        validateCoupon: function (data) { return this._call('validate_coupon', data); }
     };
 })();
 </script>
@@ -1078,6 +1169,31 @@ var TB_API_ENDPOINTS = {
             if (flightBar) flightBar.style.display = 'none';
             var multiProgress = document.getElementById('tb-multi-progress');
             if (multiProgress) multiProgress.style.display = 'none';
+            // Clear multi-city state
+            var legsContainer = document.getElementById('tb-legs-container');
+            if (legsContainer) legsContainer.innerHTML = '';
+            var returnCheck = document.getElementById('tb-return-to-start-check');
+            if (returnCheck) returnCheck.checked = false;
+            var returnToggle = document.getElementById('tb-return-to-start');
+            if (returnToggle) returnToggle.style.display = 'none';
+            // Reset mode tabs to one-way
+            var tabs = document.querySelectorAll('.tb-mode-tab');
+            for (var t = 0; t < tabs.length; t++) {
+                tabs[t].classList.toggle('tb-mode-tab--active', tabs[t].getAttribute('data-mode') === 'one-way');
+            }
+            var singleBar = document.getElementById('tb-single-bar');
+            if (singleBar) singleBar.style.display = 'block';
+            var multiBar = document.getElementById('tb-multi-bar');
+            if (multiBar) multiBar.style.display = 'none';
+            // Reset pax/luggage display
+            var paxCount = document.getElementById('tb-pax-count');
+            var lugCount = document.getElementById('tb-luggage-count');
+            if (paxCount) paxCount.textContent = '1';
+            if (lugCount) lugCount.textContent = '1';
+            var pillText = document.getElementById('tb-pax-pill-text');
+            if (pillText) pillText.textContent = '1 pax, 1 bag';
+            var pillTextMulti = document.getElementById('tb-pax-pill-text-multi');
+            if (pillTextMulti) pillTextMulti.textContent = '1 pax, 1 bag';
             this.showStep(1);
             TB.Step1.init();
         }

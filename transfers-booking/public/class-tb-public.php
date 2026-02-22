@@ -509,6 +509,17 @@ class TB_Public {
                 // Rental strings
                 'selectCity'         => __('Select a city', 'transfers-booking'),
                 'minBookingTime'     => __('We can only accept bookings for this route with a minimum of {hours} hours notice.', 'transfers-booking'),
+                // Multi-city / pill-bar strings
+                'departure'          => __('Departure', 'transfers-booking'),
+                'transferOf'         => __('Transfer {current} of {total}', 'transfers-booking'),
+                'luggage'            => __('Luggage', 'transfers-booking'),
+                'oneWay'             => __('One-way', 'transfers-booking'),
+                'roundTrip'          => __('Round trip', 'transfers-booking'),
+                'multiCity'          => __('Multi-city', 'transfers-booking'),
+                'addTransfer'        => __('Add another transfer', 'transfers-booking'),
+                'returnToStart'      => __('Return to start', 'transfers-booking'),
+                'swapLocations'      => __('Swap locations', 'transfers-booking'),
+                'allTransfersBooked' => __('All transfers have been booked!', 'transfers-booking'),
                 'pickupFuture'       => __('Pickup date must be in the future', 'transfers-booking'),
                 'returnAfterPickup'  => __('Return date must be after pickup date', 'transfers-booking'),
                 'noInsurance'        => __('No additional insurance', 'transfers-booking'),

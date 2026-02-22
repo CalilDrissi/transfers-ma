@@ -205,6 +205,12 @@ class SiteSettings(models.Model):
         max_length=20,
         blank=True
     )
+    contact_whatsapp = models.CharField(
+        _('Contact WhatsApp'),
+        max_length=20,
+        blank=True,
+        help_text=_('WhatsApp number for contact (e.g. 212600000000)')
+    )
     default_currency = models.CharField(
         _('Default Currency'),
         max_length=3,
