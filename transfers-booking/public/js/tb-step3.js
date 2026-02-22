@@ -727,6 +727,8 @@
 
         showConfirmation: function () {
             var state = TB.State.getAll();
+            var quote = state.quoteData || {};
+            var currency = state.currency || 'MAD';
 
             // Set confirmation data
             var refEl = document.getElementById('tb-confirmation-ref');
@@ -751,7 +753,36 @@
             setEl('tb-receipt-vehicle', vehicle ? vehicle.category_name : '--');
             setEl('tb-receipt-passengers', state.passengers);
             setEl('tb-receipt-payment', gatewayLabel);
-            setEl('tb-receipt-total', TB.Utils.formatPrice(state.totalPrice, state.currency));
+
+            // Price breakdown
+            var basePrice = quote.base_price || (vehicle ? vehicle.price : 0);
+            setEl('tb-receipt-base-price', TB.Utils.formatPrice(basePrice, currency));
+
+            // Extras
+            var extrasListEl = document.getElementById('tb-receipt-extras-list');
+            if (extrasListEl) {
+                var extras = quote.extras || [];
+                var html = '';
+                for (var i = 0; i < extras.length; i++) {
+                    var e = extras[i];
+                    html += '<div class="tb-receipt__row">';
+                    html += '<span class="tb-receipt__label">' + TB.Utils.escapeHtml(e.name);
+                    if (e.quantity > 1) html += ' &times; ' + e.quantity;
+                    html += '</span>';
+                    html += '<span class="tb-receipt__value">' + TB.Utils.formatPrice(e.price, currency) + '</span>';
+                    html += '</div>';
+                }
+                extrasListEl.innerHTML = html;
+            }
+
+            // Round trip
+            var rtRow = document.getElementById('tb-receipt-roundtrip-row');
+            if (rtRow) {
+                rtRow.style.display = (quote.is_round_trip || state.isRoundTrip) ? '' : 'none';
+            }
+
+            // Total
+            setEl('tb-receipt-total', TB.Utils.formatPrice(state.totalPrice, currency));
 
             // Download receipt handler
             var dlBtn = document.getElementById('tb-download-receipt');
@@ -766,6 +797,12 @@
 
         downloadReceipt: function (state, gatewayLabel) {
             var vehicle = state.selectedVehicle;
+            var quote = state.quoteData || {};
+            var currency = state.currency || 'MAD';
+            var basePrice = quote.base_price || (vehicle ? vehicle.price : 0);
+            var extras = quote.extras || [];
+            var isRoundTrip = quote.is_round_trip || state.isRoundTrip;
+
             var html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
                 + '<title>Receipt ' + TB.Utils.escapeHtml(state.bookingRef || '') + '</title>'
                 + '<style>'
@@ -777,6 +814,7 @@
                 + 'td{padding:10px 0;border-bottom:1px solid #eee;}'
                 + 'td:first-child{color:#6c757d;width:40%;}'
                 + 'td:last-child{text-align:right;font-weight:500;}'
+                + '.divider td{border-bottom:2px solid #ddd;padding:0;}'
                 + '.total td{border-bottom:none;border-top:2px solid #1a1a2e;font-size:1.1rem;font-weight:700;}'
                 + '.footer{text-align:center;color:#6c757d;font-size:0.8rem;margin-top:32px;}'
                 + '@media print{body{margin:0;} .no-print{display:none;}}'
@@ -790,8 +828,22 @@
                 + '<tr><td>Drop-off</td><td>' + TB.Utils.escapeHtml(state.dropoffAddress || '') + '</td></tr>'
                 + '<tr><td>Vehicle</td><td>' + TB.Utils.escapeHtml(vehicle ? vehicle.category_name : '--') + '</td></tr>'
                 + '<tr><td>Passengers</td><td>' + (state.passengers || 1) + '</td></tr>'
+                + '<tr class="divider"><td colspan="2"></td></tr>'
+                + '<tr><td>Base price</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(basePrice, currency)) + '</td></tr>';
+
+            for (var i = 0; i < extras.length; i++) {
+                var e = extras[i];
+                var label = e.name;
+                if (e.quantity > 1) label += ' x ' + e.quantity;
+                html += '<tr><td>' + TB.Utils.escapeHtml(label) + '</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(e.price, currency)) + '</td></tr>';
+            }
+
+            if (isRoundTrip) {
+                html += '<tr><td>Round trip</td><td>&times; 2</td></tr>';
+            }
+
+            html += '<tr class="total"><td>Total</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(state.totalPrice, currency)) + '</td></tr>'
                 + '<tr><td>Payment</td><td>' + TB.Utils.escapeHtml(gatewayLabel) + '</td></tr>'
-                + '<tr class="total"><td>Total</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(state.totalPrice, state.currency)) + '</td></tr>'
                 + '</table>'
                 + '<div class="footer">Thank you for booking with Transfers.ma<br>support@transfers.ma</div>'
                 + '</body></html>';

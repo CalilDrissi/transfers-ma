@@ -5,6 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 from decimal import Decimal
 from apps.accounts.permissions import HasAPIKeyOrIsAuthenticated
+from apps.accounts.models import SiteSettings
 from apps.transfers.models import Transfer, TransferExtra
 from .serializers import (
     TransferSerializer,
@@ -277,7 +278,7 @@ class TransferViewSet(viewsets.ModelViewSet):
             'total_price': float(total),
             'deposit_percentage': float(deposit_percentage),
             'deposit_amount': float(deposit_amount),
-            'currency': 'MAD'
+            'currency': SiteSettings.get_settings().default_currency
         })
 
     def _calculate_price(self, distance_km, vehicle_category):

@@ -39,14 +39,24 @@
             <span class="tb-receipt__label"><?php esc_html_e('Passengers', 'transfers-booking'); ?></span>
             <span class="tb-receipt__value" id="tb-receipt-passengers">--</span>
         </div>
+        <div class="tb-receipt__divider"></div>
         <div class="tb-receipt__row">
-            <span class="tb-receipt__label"><?php esc_html_e('Payment', 'transfers-booking'); ?></span>
-            <span class="tb-receipt__value" id="tb-receipt-payment">--</span>
+            <span class="tb-receipt__label"><?php esc_html_e('Base price', 'transfers-booking'); ?></span>
+            <span class="tb-receipt__value" id="tb-receipt-base-price">--</span>
+        </div>
+        <div id="tb-receipt-extras-list"></div>
+        <div class="tb-receipt__row" id="tb-receipt-roundtrip-row" style="display:none;">
+            <span class="tb-receipt__label"><?php esc_html_e('Round trip', 'transfers-booking'); ?></span>
+            <span class="tb-receipt__value">&times; 2</span>
         </div>
         <div class="tb-receipt__divider"></div>
         <div class="tb-receipt__row tb-receipt__row--total">
             <span class="tb-receipt__label"><?php esc_html_e('Total', 'transfers-booking'); ?></span>
             <span class="tb-receipt__value" id="tb-receipt-total">--</span>
+        </div>
+        <div class="tb-receipt__row">
+            <span class="tb-receipt__label"><?php esc_html_e('Payment', 'transfers-booking'); ?></span>
+            <span class="tb-receipt__value" id="tb-receipt-payment">--</span>
         </div>
         <button type="button" id="tb-download-receipt" class="tb-btn tb-btn--outline tb-btn--full">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 12v2h12v-2"/></svg>
