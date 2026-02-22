@@ -9,7 +9,7 @@
     TB.Utils = {
 
         formatPrice: function (amount, currency, position) {
-            currency = currency || tbConfig.currencySymbol;
+            currency = currency || (TB.State && TB.State.get('currency')) || tbConfig.currencySymbol;
             position = position || tbConfig.currencyPosition;
             var num = Math.round(parseFloat(amount));
             if (isNaN(num)) return '--';

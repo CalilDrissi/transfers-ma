@@ -116,11 +116,13 @@ class TransferCreateSerializer(serializers.ModelSerializer):
         base_price = self._calculate_base_price(distance_km, vehicle_category)
 
         # Create transfer
+        from apps.accounts.models import SiteSettings
         transfer = Transfer.objects.create(
             vehicle_category=vehicle_category,
             distance_km=distance_km,
             duration_minutes=duration_minutes,
             base_price=base_price,
+            currency=SiteSettings.get_settings().default_currency,
             **validated_data
         )
 
