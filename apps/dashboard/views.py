@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from apps.accounts.models import User, SiteSettings
 from apps.accounts.api_keys import APIKey
-from apps.transfers.models import Transfer
+from apps.transfers.models import Transfer, TransferExtra
 from apps.trips.models import (
     TripBooking, Trip, TripImage, TripHighlight, TripItineraryStop,
     TripPriceTier, TripContentBlock, TripFAQ
@@ -1962,6 +1962,67 @@ def coupon_detail(request, pk):
 
     context = {'coupon': coupon}
     return render(request, 'dashboard/coupons/detail.html', context)
+
+
+# Extras Views
+@login_required
+@user_passes_test(is_admin)
+def extra_list(request):
+    """List all transfer extras."""
+    extras = TransferExtra.objects.all().order_by('name')
+    context = {'extras': extras}
+    return render(request, 'dashboard/extras/list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def extra_create(request):
+    """Create a new transfer extra."""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            TransferExtra.objects.create(
+                name=name,
+                description=request.POST.get('description', ''),
+                price=request.POST.get('price', 0),
+                is_per_item=request.POST.get('is_per_item') == 'on',
+                is_active=request.POST.get('is_active') == 'on',
+            )
+            messages.success(request, f'Extra "{name}" created successfully.')
+            return redirect('dashboard:extra_list')
+        else:
+            messages.error(request, 'Name is required.')
+
+    return render(request, 'dashboard/extras/create.html')
+
+
+@login_required
+@user_passes_test(is_admin)
+def extra_detail(request, pk):
+    """Edit/delete a transfer extra."""
+    extra = get_object_or_404(TransferExtra, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_extra':
+            extra.name = request.POST.get('name', extra.name).strip()
+            extra.description = request.POST.get('description', '')
+            extra.price = request.POST.get('price', extra.price)
+            extra.is_per_item = request.POST.get('is_per_item') == 'on'
+            extra.is_active = request.POST.get('is_active') == 'on'
+            extra.save()
+            messages.success(request, 'Extra updated successfully.')
+
+        elif action == 'delete_extra':
+            extra.delete()
+            messages.success(request, 'Extra deleted.')
+            return redirect('dashboard:extra_list')
+
+        return redirect('dashboard:extra_detail', pk=pk)
+
+    context = {'extra': extra}
+    return render(request, 'dashboard/extras/detail.html', context)
 
 
 # Rental Company Views

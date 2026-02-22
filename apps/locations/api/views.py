@@ -444,6 +444,8 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                         'duration_display': f"{duration_minutes // 60}h {duration_minutes % 60}min",
                         'client_notice': zone.client_notice,
                         'client_notice_type': zone.client_notice_type,
+                        'pickup_instructions': zone.pickup_instructions,
+                        'area_description': zone.area_description,
                         'custom_info': zone.custom_info,
                         'min_booking_hours': min(min_hours_values) if min_hours_values else None,
                         'vehicle_options': sorted(vehicle_options, key=lambda x: x['price']),

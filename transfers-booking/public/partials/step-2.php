@@ -24,6 +24,12 @@
     </div>
 </div>
 
+<!-- Route/Zone Notice -->
+<div id="tb-route-notice"></div>
+
+<!-- Route Details (highlights, tips, amenities) -->
+<div id="tb-route-details"></div>
+
 <!-- Vehicle List -->
 <h4 class="tb-section-title"><?php esc_html_e('Choose your vehicle', 'transfers-booking'); ?></h4>
 <div id="tb-vehicles-container" class="tb-vehicles-container">

@@ -330,6 +330,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{% url 'dashboard:extra_list' %}" class="nav-link {% active_link request '/extras/' %}" title="{% trans 'Extras' %}">
+                    <i class="bi bi-bag-plus"></i>
+                    <span class="nav-link-text">{% trans "Extras" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{% url 'dashboard:reports' %}" class="nav-link {% active_link request '/reports/' %}" title="{% trans 'Reports' %}">
                     <i class="bi bi-bar-chart"></i>
                     <span class="nav-link-text">{% trans "Reports" %}</span>

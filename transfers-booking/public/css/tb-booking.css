@@ -1404,6 +1404,169 @@
     background: var(--tb-light-bg) !important;
 }
 
+/* === Notices (route/zone client_notice) === */
+.tb-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 12px 16px;
+    border-radius: var(--tb-radius-sm);
+    margin-bottom: 1rem;
+    font-size: 0.93rem;
+    line-height: 1.5;
+}
+
+.tb-notice__icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    margin-top: 2px;
+}
+
+.tb-notice--info {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.tb-notice--warning {
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.tb-notice--success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+/* Area description (subtle text below route summary) */
+.tb-route-area-desc {
+    font-size: 0.88rem;
+    color: var(--tb-text-muted);
+    margin: 0 0 1rem;
+    line-height: 1.5;
+}
+
+/* === Route Highlights === */
+.tb-route-highlights {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.tb-route-highlights li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--tb-text-dark);
+}
+
+.tb-route-highlights li svg {
+    flex-shrink: 0;
+    color: var(--tb-success);
+}
+
+/* === Route Travel Tips === */
+.tb-route-tips {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 10px 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--tb-radius-sm);
+    font-size: 0.88rem;
+    color: #1e40af;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.tb-route-tips svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* === Route Amenities (pill badges) === */
+.tb-route-amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.tb-route-amenity {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--tb-light-bg);
+    border: 1px solid var(--tb-border);
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--tb-text-dark);
+}
+
+/* === Route Traffic Info === */
+.tb-route-traffic {
+    font-size: 0.85rem;
+    color: var(--tb-text-muted);
+    margin: 0 0 1rem;
+}
+
+/* === Vehicle Card Notice === */
+.tb-vehicle-card__notice {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 8px 1.25rem;
+    font-size: 0.83rem;
+    line-height: 1.4;
+    border-top: 1px solid var(--tb-border);
+}
+
+.tb-vehicle-card__notice svg {
+    flex-shrink: 0;
+}
+
+.tb-vehicle-card__notice--info {
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+.tb-vehicle-card__notice--warning {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.tb-vehicle-card__notice--success {
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+/* === Pickup Instructions (Step 3) === */
+.tb-pickup-instructions {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 10px 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--tb-radius-sm);
+    font-size: 0.88rem;
+    color: #1e40af;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.tb-pickup-instructions svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
 /* === No Route Contact Card === */
 .tb-no-route {
     text-align: center;

@@ -17,6 +17,13 @@ class TB_Public {
     }
 
     public function enqueue_styles() {
+        // Always inject color CSS vars on all frontend pages (harmless when unused)
+        $primary = esc_attr(TB_Settings::get('tb_primary_color'));
+        $accent = esc_attr(TB_Settings::get('tb_accent_color'));
+        add_action('wp_head', function () use ($primary, $accent) {
+            echo '<style id="tb-custom-props">:root{--tb-primary:' . $primary . ';--tb-accent:' . $accent . ';}</style>';
+        });
+
         // Original booking widget
         if ($this->page_has_shortcode('transfers_booking')) {
             wp_enqueue_style(
@@ -35,28 +42,9 @@ class TB_Public {
                 );
             }
 
-            $primary = esc_attr(TB_Settings::get('tb_primary_color'));
-            $accent = esc_attr(TB_Settings::get('tb_accent_color'));
+            // Belt-and-suspenders: also inline on the booking stylesheet
             $dynamic_css = ":root { --tb-primary: {$primary}; --tb-accent: {$accent}; }";
             wp_add_inline_style('tb-booking', $dynamic_css);
-        }
-
-        // Inject CSS custom properties on all plugin pages
-        $any_shortcode = $this->page_has_shortcode('tours_listing')
-            || $this->page_has_shortcode('tour_detail')
-            || $this->page_has_shortcode('rental_search')
-            || $this->page_has_shortcode('rental_results')
-            || $this->page_has_shortcode('rental_checkout')
-            || $this->page_has_shortcode('rental_confirmation');
-
-        if ($any_shortcode && !$this->page_has_shortcode('transfers_booking')) {
-            $primary = esc_attr(TB_Settings::get('tb_primary_color'));
-            $accent = esc_attr(TB_Settings::get('tb_accent_color'));
-            $dynamic_css = ":root { --tb-primary: {$primary}; --tb-accent: {$accent}; }";
-            // Add to whichever style enqueues first below
-            add_action('wp_head', function () use ($dynamic_css) {
-                echo '<style id="tb-custom-props">' . $dynamic_css . '</style>';
-            });
         }
 
         // Tours listing & detail

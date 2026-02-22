@@ -118,6 +118,65 @@
             if (dropoff) dropoff.textContent = TB.Utils.shortName(TB.State.get('dropoffAddress'));
             if (distance) distance.textContent = (data.distance_km || '--') + ' km';
             if (duration) duration.textContent = TB.Utils.formatDuration(data.estimated_duration_minutes);
+
+            // Route/Zone notice
+            var noticeEl = document.getElementById('tb-route-notice');
+            if (noticeEl) {
+                var noticeHtml = '';
+                if (data.client_notice) {
+                    var nType = data.client_notice_type || 'info';
+                    noticeHtml += '<div class="tb-notice tb-notice--' + TB.Utils.escapeHtml(nType) + '">';
+                    noticeHtml += '<span class="tb-notice__icon">' + TB.Step2._noticeIcon(nType) + '</span> ';
+                    noticeHtml += TB.Utils.escapeHtml(data.client_notice);
+                    noticeHtml += '</div>';
+                }
+                if (data.area_description) {
+                    noticeHtml += '<p class="tb-route-area-desc">' + TB.Utils.escapeHtml(data.area_description) + '</p>';
+                }
+                noticeEl.innerHTML = noticeHtml;
+            }
+
+            // Route details: highlights, tips, amenities, traffic
+            var detailsEl = document.getElementById('tb-route-details');
+            if (detailsEl) {
+                var dHtml = '';
+                // Highlights
+                var highlights = data.highlights;
+                if (highlights && highlights.length > 0) {
+                    dHtml += '<ul class="tb-route-highlights">';
+                    for (var h = 0; h < highlights.length; h++) {
+                        dHtml += '<li><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + TB.Utils.escapeHtml(highlights[h]) + '</li>';
+                    }
+                    dHtml += '</ul>';
+                }
+                // Travel tips
+                if (data.travel_tips) {
+                    dHtml += '<div class="tb-route-tips">';
+                    dHtml += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v4M8 11h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> ';
+                    dHtml += TB.Utils.escapeHtml(data.travel_tips);
+                    dHtml += '</div>';
+                }
+                // Included amenities
+                var amenities = data.included_amenities;
+                if (amenities && amenities.length > 0) {
+                    dHtml += '<div class="tb-route-amenities">';
+                    for (var a = 0; a < amenities.length; a++) {
+                        dHtml += '<span class="tb-route-amenity">' + TB.Utils.escapeHtml(amenities[a]) + '</span>';
+                    }
+                    dHtml += '</div>';
+                }
+                // Traffic info
+                if (data.estimated_traffic_info) {
+                    dHtml += '<p class="tb-route-traffic">' + TB.Utils.escapeHtml(data.estimated_traffic_info) + '</p>';
+                }
+                detailsEl.innerHTML = dHtml;
+            }
+        },
+
+        _noticeIcon: function (type) {
+            if (type === 'warning') return '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 14h14L8 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v4M8 12h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+            if (type === 'success') return '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            return '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v4M8 11h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
         },
 
         renderVehicles: function (data) {
@@ -170,6 +229,13 @@
                     html += '<p class="tb-vehicle-card__models">' + TB.Utils.escapeHtml(v.vehicle_name) + '</p>';
                 }
                 html += '</div>';
+                // Important note
+                if (v.important_note) {
+                    var noteType = v.important_note_type || 'info';
+                    html += '<div class="tb-vehicle-card__notice tb-vehicle-card__notice--' + TB.Utils.escapeHtml(noteType) + '">';
+                    html += TB.Step2._noticeIcon(noteType) + ' ' + TB.Utils.escapeHtml(v.important_note);
+                    html += '</div>';
+                }
                 // Pricing
                 html += '<div class="tb-vehicle-card__pricing">';
                 html += '<div><span class="tb-vehicle-card__price-amount">' + price + '</span> <span class="tb-vehicle-card__price-currency">' + TB.Utils.escapeHtml(currency) + '</span></div>';

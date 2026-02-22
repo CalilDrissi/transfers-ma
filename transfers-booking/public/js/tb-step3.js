@@ -200,14 +200,20 @@
                 var gw = options[i].getAttribute('data-gateway');
                 options[i].classList.remove('tb-gateway-option--active');
                 if (gateways.indexOf(gw) !== -1) {
-                    options[i].style.display = '';
+                    options[i].style.setProperty('display', '', 'important');
                 } else {
-                    options[i].style.display = 'none';
+                    options[i].style.setProperty('display', 'none', 'important');
                 }
             }
 
             // Auto-select first available
-            var firstVisible = selector.querySelector('.tb-gateway-option:not([style*="display: none"])');
+            var firstVisible = null;
+            for (var j = 0; j < options.length; j++) {
+                if (gateways.indexOf(options[j].getAttribute('data-gateway')) !== -1) {
+                    firstVisible = options[j];
+                    break;
+                }
+            }
             if (firstVisible) {
                 var radio = firstVisible.querySelector('input[type="radio"]');
                 if (radio) radio.checked = true;
@@ -216,9 +222,9 @@
 
             // Only show selector if more than one gateway
             if (gateways.length > 1) {
-                selector.style.display = 'flex';
+                selector.style.setProperty('display', 'flex', 'important');
             } else {
-                selector.style.display = 'none';
+                selector.style.setProperty('display', 'none', 'important');
             }
 
             // Update button text and deposit visibility for selected gateway
@@ -474,6 +480,21 @@
                 }
             }
 
+            // Pickup instructions
+            var pickupInstrEl = document.getElementById('tb-pickup-instructions');
+            if (pickupInstrEl) {
+                var pricingData = state.pricingData || {};
+                var pickupInstr = pricingData.pickup_instructions;
+                if (pickupInstr) {
+                    pickupInstrEl.innerHTML = '<div class="tb-pickup-instructions">'
+                        + '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v4M8 11h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> '
+                        + TB.Utils.escapeHtml(pickupInstr)
+                        + '</div>';
+                } else {
+                    pickupInstrEl.innerHTML = '';
+                }
+            }
+
             // Flight field — show if airport detected
             var flightGroup = document.getElementById('tb-checkout-flight-group');
             if (flightGroup) {
@@ -647,8 +668,10 @@
                 })
                 .catch(function (err) {
                     TB.Utils.setButtonLoading(payBtn, false);
-                    TB.Utils.showAlert('tb-payment-errors',
-                        err.message || tbConfig.i18n.errorGeneric);
+                    var msg = (typeof err === 'string') ? err
+                        : (err && err.message) ? err.message
+                        : tbConfig.i18n.errorGeneric || 'An error occurred.';
+                    TB.Utils.showAlert('tb-payment-errors', msg);
                 });
         },
 

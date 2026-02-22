@@ -103,6 +103,9 @@
         showAlert: function (containerId, message) {
             var el = document.getElementById(containerId);
             if (el) {
+                if (typeof message !== 'string') {
+                    message = (message && message.message) ? message.message : String(message);
+                }
                 el.textContent = message;
                 el.style.display = 'block';
             }
