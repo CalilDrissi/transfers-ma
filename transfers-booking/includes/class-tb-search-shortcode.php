@@ -33,6 +33,27 @@ class TB_Search_Shortcode {
         $fixed_origin_lat = sanitize_text_field($atts['fixed_origin_lat']);
         $fixed_origin_lng = sanitize_text_field($atts['fixed_origin_lng']);
 
+        // Ensure CSS + JS are loaded (page builders like Elementor bypass wp_enqueue_scripts detection)
+        if (!wp_style_is('tb-search-widget', 'enqueued')) {
+            wp_enqueue_style('tb-search-widget', TB_PLUGIN_URL . 'public/css/tb-search-widget.css', [], TB_VERSION);
+        }
+
+        // Google Maps for autocomplete
+        $gmaps_key = TB_Settings::get('tb_google_maps_api_key');
+        if ($gmaps_key && !wp_script_is('google-maps', 'enqueued')) {
+            wp_enqueue_script('google-maps', 'https://maps.googleapis.com/maps/api/js?key=' . urlencode($gmaps_key) . '&libraries=places&callback=Function.prototype', [], null, true);
+        }
+
+        $search_deps = $gmaps_key ? ['google-maps'] : [];
+        if (!wp_script_is('tb-search-widget', 'enqueued')) {
+            wp_enqueue_script('tb-search-widget', TB_PLUGIN_URL . 'public/js/tb-search-widget.js', $search_deps, TB_VERSION, true);
+
+            // Pass config to JS
+            $public = new TB_Public();
+            $config = $public->get_js_config_static();
+            wp_localize_script('tb-search-widget', 'tbConfig', $config);
+        }
+
         // Unique instance ID for scoped DOM queries
         $instance_id = wp_unique_id('tb-search-');
 

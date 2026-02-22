@@ -397,6 +397,14 @@ class TB_Public {
         }
     }
 
+    /**
+     * Static accessor for shortcodes that need to localize config from render().
+     */
+    public static function get_js_config_static() {
+        $instance = new self();
+        return $instance->get_js_config();
+    }
+
     private function get_js_config() {
         return [
             'ajaxUrl'              => admin_url('admin-ajax.php'),
