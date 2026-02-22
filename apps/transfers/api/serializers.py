@@ -56,7 +56,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
         required=False,
         write_only=True
     )
-    transfer_type = serializers.CharField(required=False, default='custom')
+    transfer_type = serializers.CharField(required=False, default='custom', allow_blank=True)
     customer_phone = serializers.CharField(validators=[validate_phone])
     pickup_datetime = serializers.DateTimeField(validators=[validate_future_datetime])
     pickup_latitude = serializers.FloatField(validators=[validate_latitude], required=False)
