@@ -384,13 +384,13 @@
 }
 
 .tb-autocomplete-item {
-    padding: 10px 14px;
+    padding: 14px 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
     border-bottom: 1px solid var(--tb-border);
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
 .tb-autocomplete-item:last-child {
@@ -402,16 +402,25 @@
 }
 
 .tb-autocomplete-item__icon {
-    color: var(--tb-accent);
+    color: var(--tb-text-muted);
     flex-shrink: 0;
+    font-size: 1.25rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--tb-light-bg);
+    border-radius: 50%;
 }
 
 .tb-autocomplete-item__name {
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 1rem;
 }
 
 .tb-autocomplete-item__type {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--tb-text-muted);
 }
 
@@ -907,29 +916,31 @@
 .tb-mode-tab--active { background: #fff; color: var(--tb-text-dark); }
 
 /* === Pill bar (shared) === */
-.tb-pill-bar__row { display: flex; align-items: stretch; background: #fff; border-radius: 50px; padding: 4px 4px 4px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-.tb-pill-bar__field { flex: 1 1 0; min-width: 0; position: relative; display: flex; flex-direction: column; justify-content: center; padding: 8px 12px; }
+.tb-pill-bar__row { display: flex; align-items: stretch; gap: 8px; }
+.tb-pill-bar__field { flex: 1 1 0; min-width: 0; position: relative; display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 12px 16px; background: #fff; border-radius: 50px; border: 2px solid transparent; transition: border-color 0.2s, box-shadow 0.2s; }
+.tb-pill-bar__field:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
 .tb-pill-bar__field--from { position: relative; }
-.tb-pill-bar__divider { width: 1px; height: 24px; background: #e0e0e0; align-self: center; flex-shrink: 0; }
-.tb-pill-bar__label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tb-text-muted); margin-bottom: 2px; line-height: 1; }
-.tb-pill-bar__input { border: none; background: transparent; font-size: 0.95rem; font-family: var(--tb-font); color: var(--tb-text-dark); padding: 2px 0; width: 100%; outline: none; min-width: 0; }
-.tb-pill-bar__input::placeholder { color: #adb5bd; }
+.tb-pill-bar__icon { flex-shrink: 0; font-size: 1rem; color: var(--tb-text-dark); line-height: 1; }
+.tb-pill-bar__input { border: none; background: transparent; font-size: 1rem; font-family: var(--tb-font); color: var(--tb-text-dark); padding: 0; width: 100%; outline: none; min-width: 0; }
+.tb-pill-bar__input::placeholder { color: #9ca3af; }
 .tb-pill-bar__input:focus { outline: none; }
+.tb-pill-bar__clear { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: #e5e7eb; border: none; cursor: pointer; font-size: 1rem; line-height: 1; display: flex; align-items: center; justify-content: center; color: #6b7280; transition: all 0.15s; }
+.tb-pill-bar__clear:hover { background: #d1d5db; color: #374151; }
+.tb-pill-bar__label { display: none; }
+.tb-pill-bar__divider { display: none; }
 
 /* Autocomplete dropdown inside pill bar */
-.tb-pill-bar__field .tb-autocomplete-dropdown { position: absolute; top: 100%; left: 0; right: 0; z-index: 100; margin-top: 8px; min-width: 280px; }
+.tb-pill-bar__field .tb-autocomplete-dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 100; min-width: 300px; }
 
 /* === Swap button === */
-.tb-pill-bar__swap { position: absolute; right: -14px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 2px solid #e0e0e0; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; font-size: 0.75rem; color: var(--tb-text-muted); transition: all 0.2s; }
+.tb-pill-bar__swap { position: absolute; right: -18px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 2px solid #e0e0e0; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; font-size: 0.85rem; color: var(--tb-text-muted); transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 .tb-pill-bar__swap:hover { border-color: var(--tb-accent); color: var(--tb-accent); background: #fff; }
 
 /* === Return field === */
 #tb-return-field { position: relative; }
-.tb-pill-bar__return-remove { position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; border-radius: 50%; background: #f0f0f0; border: none; cursor: pointer; font-size: 0.7rem; line-height: 1; display: flex; align-items: center; justify-content: center; color: var(--tb-text-muted); }
-.tb-pill-bar__return-remove:hover { background: var(--tb-error); color: #fff; }
 
 /* === Add return button === */
-.tb-pill-bar__add-return { border: none; background: transparent; color: var(--tb-accent); font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 8px 12px; white-space: nowrap; font-family: var(--tb-font); }
+.tb-pill-bar__add-return { border: none; background: transparent; color: var(--tb-accent); font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 8px 12px; white-space: nowrap; font-family: var(--tb-font); flex-shrink: 0; }
 .tb-pill-bar__add-return:hover { text-decoration: underline; }
 
 /* === Pax pill === */
@@ -959,7 +970,7 @@
 .tb-leg-row { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 16px; padding: 8px 12px 8px 16px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .tb-leg-row__number { width: 28px; height: 28px; border-radius: 50%; background: var(--tb-accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
 .tb-leg-row__fields { display: flex; flex: 1; align-items: stretch; gap: 8px; min-width: 0; }
-.tb-leg-row__fields .tb-pill-bar__field { background: var(--tb-light-bg); border-radius: 10px; padding: 6px 10px; }
+.tb-leg-row__fields .tb-pill-bar__field { background: var(--tb-light-bg); border-radius: 30px; padding: 8px 14px; }
 .tb-leg-row__remove { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--tb-border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--tb-text-muted); flex-shrink: 0; transition: all 0.2s; }
 .tb-leg-row__remove:hover { border-color: var(--tb-error); color: var(--tb-error); background: #fee2e2; }
 
@@ -997,7 +1008,7 @@
 /* Prevent iOS zoom on input focus */
 .tb-pill-bar__input, .tb-pax-pill, .tb-pill-bar__search, #tb-add-leg, .tb-mode-tab { font-size: 16px; }
 @media (min-width: 769px) {
-    .tb-pill-bar__input { font-size: 0.95rem; }
+    .tb-pill-bar__input { font-size: 1rem; }
     .tb-pax-pill { font-size: 0.85rem; }
     .tb-pill-bar__search { font-size: 0.95rem; }
     #tb-add-leg { font-size: 0.9rem; }
@@ -1007,14 +1018,13 @@
 /* === Responsive === */
 @media (max-width: 768px) {
     #tb-step-1 { padding: 1.25rem 1rem; border-radius: 12px; }
-    .tb-pill-bar__row { flex-direction: column; border-radius: 16px; padding: 16px; gap: 10px; }
-    .tb-pill-bar__divider { display: none; }
-    .tb-pill-bar__field { width: 100%; border: 1px solid var(--tb-border); border-radius: 12px; padding: 12px; }
-    .tb-pill-bar__swap { position: static; transform: none; width: 100%; height: 32px; border-radius: 8px; margin: -4px 0; }
-    .tb-pill-bar__search { width: 100%; border-radius: 12px; padding: 14px; }
+    .tb-pill-bar__row { flex-direction: column; gap: 8px; }
+    .tb-pill-bar__field { width: 100%; border-radius: 16px; padding: 12px 14px; }
+    .tb-pill-bar__swap { position: static; transform: none; width: 100%; height: 36px; border-radius: 8px; margin: -2px 0; box-shadow: none; }
+    .tb-pill-bar__search { width: 100%; border-radius: 16px; padding: 14px; }
     .tb-pill-bar__pax { width: 100%; padding: 0; }
     .tb-pax-pill { width: 100%; justify-content: center; }
-    .tb-pill-bar__add-return { width: 100%; text-align: center; border: 1px dashed var(--tb-border); border-radius: 12px; padding: 12px; }
+    .tb-pill-bar__add-return { width: 100%; text-align: center; background: rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.3); border-radius: 16px; padding: 12px; color: rgba(255,255,255,0.7); }
     #tb-return-field { width: 100%; }
 
     /* Pax dropdown as bottom sheet on mobile */

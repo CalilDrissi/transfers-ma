@@ -278,17 +278,19 @@
             html += '<div class="tb-leg-row__number">' + (isReturn ? '↩' : (idx + 1)) + '</div>';
             html += '<div class="tb-leg-row__fields">';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--from">';
-            html += '<label class="tb-pill-bar__label">' + (i18n.from || 'From') + '</label>';
-            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="pickup" placeholder="' + (i18n.selectPickup || 'City, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.pickupAddress || '') + '"' + (isReturn ? ' readonly' : '') + '>';
+            html += '<span class="tb-pill-bar__icon">&#9679;</span>';
+            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="pickup" placeholder="' + (i18n.selectPickup || 'From city, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.pickupAddress || '') + '"' + (isReturn ? ' readonly' : '') + '>';
+            if (!isReturn) html += '<button type="button" class="tb-pill-bar__clear" style="' + (leg.pickupAddress ? '' : 'display:none;') + '">&times;</button>';
             if (!isReturn) html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="pickup"></div>';
             html += '</div>';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--to">';
-            html += '<label class="tb-pill-bar__label">' + (i18n.to || 'To') + '</label>';
-            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="dropoff" placeholder="' + (i18n.selectDropoff || 'City, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.dropoffAddress || '') + '"' + (isReturn ? ' readonly' : '') + '>';
+            html += '<span class="tb-pill-bar__icon">&#9906;</span>';
+            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="dropoff" placeholder="' + (i18n.selectDropoff || 'To city, hotel, or address...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.dropoffAddress || '') + '"' + (isReturn ? ' readonly' : '') + '>';
+            if (!isReturn) html += '<button type="button" class="tb-pill-bar__clear" style="' + (leg.dropoffAddress ? '' : 'display:none;') + '">&times;</button>';
             if (!isReturn) html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="dropoff"></div>';
             html += '</div>';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--date">';
-            html += '<label class="tb-pill-bar__label">' + (i18n.departure || 'Departure') + '</label>';
+            html += '<span class="tb-pill-bar__icon">&#128197;</span>';
             html += '<input type="datetime-local" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="datetime" value="' + (leg.pickupDatetime || '') + '">';
             html += '</div></div>';
             if (canRemove) html += '<button type="button" class="tb-leg-row__remove" title="Remove">&times;</button>';
@@ -349,6 +351,40 @@
             });
             var swapBtn = document.getElementById('tb-swap-btn');
             if (swapBtn) swapBtn.addEventListener('click', function () { self.swapLocations(0); });
+            // Clear buttons — delegated from step container
+            var step1 = document.getElementById('tb-step-1');
+            if (step1) {
+                step1.addEventListener('click', function (e) {
+                    var clearBtn = e.target.closest ? e.target.closest('.tb-pill-bar__clear') : null;
+                    if (!clearBtn || clearBtn.classList.contains('tb-pill-bar__return-remove')) return;
+                    var field = clearBtn.closest('.tb-pill-bar__field');
+                    if (!field) return;
+                    var input = field.querySelector('.tb-pill-bar__input');
+                    if (!input) return;
+                    input.value = '';
+                    input.focus();
+                    clearBtn.style.display = 'none';
+                    var legIdx = parseInt(input.getAttribute('data-leg')) || 0;
+                    var fieldName = input.getAttribute('data-field');
+                    var legs = TB.State.get('legs') || [];
+                    if (legs[legIdx] && fieldName === 'pickup') {
+                        legs[legIdx].pickupAddress = ''; legs[legIdx].pickupLat = null; legs[legIdx].pickupLng = null;
+                        legs[legIdx].transferType = '';
+                    } else if (legs[legIdx] && fieldName === 'dropoff') {
+                        legs[legIdx].dropoffAddress = ''; legs[legIdx].dropoffLat = null; legs[legIdx].dropoffLng = null;
+                        legs[legIdx].transferType = '';
+                    }
+                    TB.State.set('legs', legs);
+                    updateFlightBar();
+                });
+                step1.addEventListener('input', function (e) {
+                    if (!e.target.matches || !e.target.matches('.tb-pill-bar__input[data-field="pickup"], .tb-pill-bar__input[data-field="dropoff"]')) return;
+                    var field = e.target.closest('.tb-pill-bar__field');
+                    if (!field) return;
+                    var clearBtn = field.querySelector('.tb-pill-bar__clear');
+                    if (clearBtn) clearBtn.style.display = e.target.value ? 'flex' : 'none';
+                });
+            }
             var flightInput = document.getElementById('tb-flight-number');
             if (flightInput) flightInput.addEventListener('input', function () {
                 TB.State.set('flightNumber', this.value);
@@ -516,6 +552,8 @@
                     var addr = place.formatted_address || place.name;
                     var lat = place.geometry.location.lat();
                     var lng = place.geometry.location.lng();
+                    var clearBtn = input.parentNode.querySelector('.tb-pill-bar__clear');
+                    if (clearBtn) clearBtn.style.display = 'flex';
                     var legs = TB.State.get('legs') || [];
                     if (!legs[legIdx]) return;
                     if (field === 'pickup') { legs[legIdx].pickupAddress = addr; legs[legIdx].pickupLat = lat; legs[legIdx].pickupLng = lng; }
@@ -581,6 +619,8 @@
                         var lng = parseFloat(this.getAttribute('data-lng'));
                         input.value = name;
                         dropdown.classList.remove('tb-show');
+                        var clearBtn = input.parentNode.querySelector('.tb-pill-bar__clear');
+                        if (clearBtn) clearBtn.style.display = 'flex';
                         var legs = TB.State.get('legs') || [];
                         if (!legs[legIdx]) return;
                         if (field === 'pickup') { legs[legIdx].pickupAddress = name; legs[legIdx].pickupLat = lat; legs[legIdx].pickupLng = lng; }

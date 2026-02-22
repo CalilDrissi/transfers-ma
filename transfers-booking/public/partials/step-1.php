@@ -11,30 +11,28 @@
 <div id="tb-single-bar">
     <div class="tb-pill-bar__row">
         <div class="tb-pill-bar__field tb-pill-bar__field--from">
-            <label class="tb-pill-bar__label"><?php esc_html_e('From', 'transfers-booking'); ?></label>
-            <input type="text" class="tb-pill-bar__input" data-leg="0" data-field="pickup" placeholder="<?php esc_attr_e('City, airport, or hotel...', 'transfers-booking'); ?>" autocomplete="off">
+            <span class="tb-pill-bar__icon">&#9679;</span>
+            <input type="text" class="tb-pill-bar__input" data-leg="0" data-field="pickup" placeholder="<?php esc_attr_e('From city, airport, or hotel...', 'transfers-booking'); ?>" autocomplete="off">
+            <button type="button" class="tb-pill-bar__clear" aria-label="<?php esc_attr_e('Clear', 'transfers-booking'); ?>" style="display:none;">&times;</button>
             <div class="tb-autocomplete-dropdown" data-leg="0" data-dropdown="pickup"></div>
             <button type="button" class="tb-pill-bar__swap" id="tb-swap-btn" title="<?php esc_attr_e('Swap locations', 'transfers-booking'); ?>">&#8652;</button>
         </div>
-        <div class="tb-pill-bar__divider"></div>
         <div class="tb-pill-bar__field tb-pill-bar__field--to">
-            <label class="tb-pill-bar__label"><?php esc_html_e('To', 'transfers-booking'); ?></label>
-            <input type="text" class="tb-pill-bar__input" data-leg="0" data-field="dropoff" placeholder="<?php esc_attr_e('City, airport, or hotel...', 'transfers-booking'); ?>" autocomplete="off">
+            <span class="tb-pill-bar__icon">&#9906;</span>
+            <input type="text" class="tb-pill-bar__input" data-leg="0" data-field="dropoff" placeholder="<?php esc_attr_e('To city, hotel, or address...', 'transfers-booking'); ?>" autocomplete="off">
+            <button type="button" class="tb-pill-bar__clear" aria-label="<?php esc_attr_e('Clear', 'transfers-booking'); ?>" style="display:none;">&times;</button>
             <div class="tb-autocomplete-dropdown" data-leg="0" data-dropdown="dropoff"></div>
         </div>
-        <div class="tb-pill-bar__divider"></div>
         <div class="tb-pill-bar__field tb-pill-bar__field--date">
-            <label class="tb-pill-bar__label"><?php esc_html_e('Departure', 'transfers-booking'); ?></label>
+            <span class="tb-pill-bar__icon">&#128197;</span>
             <input type="datetime-local" class="tb-pill-bar__input" data-leg="0" data-field="datetime">
         </div>
-        <div class="tb-pill-bar__divider"></div>
         <div class="tb-pill-bar__field tb-pill-bar__field--return" id="tb-return-field" style="display:none;">
-            <label class="tb-pill-bar__label"><?php esc_html_e('Return', 'transfers-booking'); ?></label>
+            <span class="tb-pill-bar__icon">&#128197;</span>
             <input type="datetime-local" class="tb-pill-bar__input" id="tb-return-datetime" data-field="return-datetime">
-            <button type="button" class="tb-pill-bar__return-remove" id="tb-remove-return" title="<?php esc_attr_e('Remove return', 'transfers-booking'); ?>">&times;</button>
+            <button type="button" class="tb-pill-bar__clear tb-pill-bar__return-remove" id="tb-remove-return" title="<?php esc_attr_e('Remove return', 'transfers-booking'); ?>">&times;</button>
         </div>
         <button type="button" class="tb-pill-bar__add-return" id="tb-add-return">+ <?php esc_html_e('Return', 'transfers-booking'); ?></button>
-        <div class="tb-pill-bar__divider"></div>
         <div class="tb-pill-bar__pax">
             <div class="tb-pax-pill" id="tb-pax-pill">
                 <span class="tb-pax-pill__icon">&#128100;</span>
