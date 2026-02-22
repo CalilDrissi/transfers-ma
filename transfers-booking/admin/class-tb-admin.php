@@ -59,20 +59,8 @@ class TB_Admin {
             'tb_api_section'
         );
 
-        // Payment Settings
-        add_settings_section(
-            'tb_payment_section',
-            __('Payment Settings', 'transfers-booking'),
-            function () {
-                echo '<p>' . esc_html__('Configure payment gateway credentials.', 'transfers-booking') . '</p>';
-            },
-            'transfers-booking'
-        );
-
-        $this->add_field('tb_stripe_publishable_key', __('Stripe Publishable Key', 'transfers-booking'), 'tb_payment_section', 'text',
-            __('Starts with pk_', 'transfers-booking'));
-        $this->add_field('tb_paypal_client_id', __('PayPal Client ID', 'transfers-booking'), 'tb_payment_section', 'text',
-            __('PayPal app client ID for the JS SDK.', 'transfers-booking'));
+        $this->add_field('tb_enable_debug_log', __('Enable Debug Log', 'transfers-booking'), 'tb_api_section', 'checkbox',
+            __('Log API errors to wp-content/plugins/transfers-booking/debug.log for troubleshooting.', 'transfers-booking'));
 
         // Appearance Settings
         add_settings_section(
@@ -86,26 +74,6 @@ class TB_Admin {
 
         $this->add_field('tb_primary_color', __('Primary Color', 'transfers-booking'), 'tb_appearance_section', 'color');
         $this->add_field('tb_accent_color', __('Accent Color', 'transfers-booking'), 'tb_appearance_section', 'color');
-        $this->add_field('tb_currency_symbol', __('Currency Symbol', 'transfers-booking'), 'tb_appearance_section', 'text');
-        $this->add_field('tb_currency_position', __('Currency Position', 'transfers-booking'), 'tb_appearance_section', 'select', '', [
-            'before' => __('Before amount', 'transfers-booking'),
-            'after'  => __('After amount', 'transfers-booking'),
-        ]);
-
-        // Feature Toggles
-        add_settings_section(
-            'tb_features_section',
-            __('Features', 'transfers-booking'),
-            function () {
-                echo '<p>' . esc_html__('Enable or disable booking form features.', 'transfers-booking') . '</p>';
-            },
-            'transfers-booking'
-        );
-
-        $this->add_field('tb_enable_round_trip', __('Enable Round Trip', 'transfers-booking'), 'tb_features_section', 'checkbox');
-        $this->add_field('tb_enable_flight_number', __('Enable Flight Number', 'transfers-booking'), 'tb_features_section', 'checkbox');
-        $this->add_field('tb_enable_debug_log', __('Enable Debug Log', 'transfers-booking'), 'tb_features_section', 'checkbox',
-            __('Log API errors to wp-content/plugins/transfers-booking/debug.log for troubleshooting.', 'transfers-booking'));
 
         // Contact & Messages
         add_settings_section(
@@ -123,8 +91,6 @@ class TB_Admin {
             __('Email address for custom quote requests.', 'transfers-booking'));
         $this->add_field('tb_contact_whatsapp', __('WhatsApp Number', 'transfers-booking'), 'tb_contact_section', 'text',
             __('WhatsApp number with country code, no spaces (e.g. 212600000000).', 'transfers-booking'));
-        $this->add_field('tb_show_no_route_message', __('Show "Contact Us" for Unknown Routes', 'transfers-booking'), 'tb_contact_section', 'checkbox',
-            __('When enabled, routes without a pre-configured price will show a contact message instead of calculated prices.', 'transfers-booking'));
         $this->add_field('tb_no_route_message', __('No Route Message', 'transfers-booking'), 'tb_contact_section', 'textarea',
             __('Message shown when a route is not available. Supports basic HTML.', 'transfers-booking'));
 

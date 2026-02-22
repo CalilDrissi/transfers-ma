@@ -297,7 +297,7 @@ class TB_Public {
             'rentalResultsPageUrl'        => TB_Settings::get('tb_rental_results_page_url'),
             'rentalCheckoutPageUrl'       => TB_Settings::get('tb_rental_checkout_page_url'),
             'rentalConfirmationPageUrl'   => TB_Settings::get('tb_rental_confirmation_page_url'),
-            'showNoRouteMessage'   => (bool) TB_Settings::get('tb_show_no_route_message'),
+            'showNoRouteMessage'   => true,
             'noRouteMessage'       => TB_Settings::get_translated('tb_no_route_message'),
             'contact'              => [
                 'phone'    => TB_Settings::get_translated('tb_contact_phone'),
