@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0005_sitesettings_paypal_client_id_and_more'),
+        ('accounts', '0006_alter_user_role'),
     ]
 
     operations = [
