@@ -125,7 +125,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
-MEDIA_URL = '/media/'
+MEDIA_URL = 'https://api.transfers.ma/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
