@@ -600,6 +600,41 @@ html body #tb-booking-widget .tb-leg-row__remove {
     cursor: pointer !important;
 }
 
+/* Multi-city leg row icons */
+html body #tb-booking-widget .tb-leg-row__fields .tb-pill-bar__icon {
+    font-size: 0 !important;
+    width: 14px !important;
+    height: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+}
+html body #tb-booking-widget .tb-leg-row__fields .tb-pill-bar__field--from .tb-pill-bar__icon::before {
+    content: "" !important;
+    display: block !important;
+    width: 14px !important;
+    height: 14px !important;
+    background: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 14 14\' fill=\'none\'%3E%3Ccircle cx=\'7\' cy=\'7\' r=\'3\' stroke=\'%236b7280\' stroke-width=\'1.5\'/%3E%3Ccircle cx=\'7\' cy=\'7\' r=\'1\' fill=\'%236b7280\'/%3E%3C/svg%3E") no-repeat center !important;
+    background-size: 14px 14px !important;
+}
+html body #tb-booking-widget .tb-leg-row__fields .tb-pill-bar__field--to .tb-pill-bar__icon::before {
+    content: "" !important;
+    display: block !important;
+    width: 14px !important;
+    height: 14px !important;
+    background: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 14 14\' fill=\'none\'%3E%3Cpath d=\'M7 1C4.5 1 2.5 3 2.5 5.5C2.5 9 7 13 7 13s4.5-4 4.5-7.5C11.5 3 9.5 1 7 1z\' stroke=\'%236b7280\' stroke-width=\'1.3\'/%3E%3Ccircle cx=\'7\' cy=\'5.5\' r=\'1.5\' stroke=\'%236b7280\' stroke-width=\'1.3\'/%3E%3C/svg%3E") no-repeat center !important;
+    background-size: 14px 14px !important;
+}
+html body #tb-booking-widget .tb-leg-row__fields .tb-pill-bar__field--date .tb-pill-bar__icon::before {
+    content: "" !important;
+    display: block !important;
+    width: 14px !important;
+    height: 14px !important;
+    background: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 14 14\' fill=\'none\'%3E%3Cpath d=\'M4.5 1v1.5M9.5 1v1.5M1.5 5.5h11M2.5 2.5h9a1 1 0 011 1v8a1 1 0 01-1 1h-9a1 1 0 01-1-1v-8a1 1 0 011-1z\' stroke=\'%236b7280\' stroke-width=\'1.3\' stroke-linecap=\'round\'/%3E%3C/svg%3E") no-repeat center !important;
+    background-size: 14px 14px !important;
+}
+
 /* Vehicle cards */
 html body #tb-booking-widget .tb-vehicle-card {
     cursor: pointer !important;
