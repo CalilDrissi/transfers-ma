@@ -526,9 +526,9 @@
         },
 
         resetPaymentUI: function () {
-            document.getElementById('tb-pay-button').style.display = 'block';
-            document.getElementById('tb-stripe-element').style.display = 'none';
-            document.getElementById('tb-confirm-payment-btn').style.display = 'none';
+            document.getElementById('tb-pay-button').style.setProperty('display', 'block', 'important');
+            document.getElementById('tb-stripe-element').style.setProperty('display', 'none', 'important');
+            document.getElementById('tb-confirm-payment-btn').style.setProperty('display', 'none', 'important');
             TB.Utils.hideAlert('tb-payment-errors');
 
             var payBtn = document.getElementById('tb-pay-button');
@@ -659,9 +659,9 @@
             }
 
             // Hide pay button, show Stripe element
-            document.getElementById('tb-pay-button').style.display = 'none';
+            document.getElementById('tb-pay-button').style.setProperty('display', 'none', 'important');
             var stripeContainer = document.getElementById('tb-stripe-element');
-            stripeContainer.style.display = 'block';
+            stripeContainer.style.setProperty('display', 'block', 'important');
             stripeContainer.innerHTML = '';
 
             elements = stripe.elements({ clientSecret: clientSecret });
@@ -669,7 +669,7 @@
             paymentElement.mount('#tb-stripe-element');
 
             // Show confirm button
-            document.getElementById('tb-confirm-payment-btn').style.display = 'block';
+            document.getElementById('tb-confirm-payment-btn').style.setProperty('display', 'block', 'important');
         },
 
         confirmPayment: function () {
