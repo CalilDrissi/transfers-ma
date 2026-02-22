@@ -290,7 +290,6 @@
             if (!isReturn) html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="dropoff"></div>';
             html += '</div>';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--date">';
-            html += '<span class="tb-pill-bar__icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>';
             html += '<input type="datetime-local" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="datetime" value="' + (leg.pickupDatetime || '') + '">';
             html += '</div></div>';
             if (canRemove) html += '<button type="button" class="tb-leg-row__remove" title="Remove">&times;</button>';

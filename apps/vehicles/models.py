@@ -98,6 +98,7 @@ class Vehicle(models.Model):
     passengers = models.PositiveSmallIntegerField(_('passenger capacity'))
     luggage = models.PositiveSmallIntegerField(_('luggage capacity'))
     supplier_name = models.CharField(_('supplier name'), max_length=200, blank=True)
+    supplier_email = models.EmailField(_('supplier email'), max_length=254, blank=True)
     features = models.ManyToManyField(
         VehicleFeature,
         blank=True,

@@ -285,6 +285,7 @@ def vehicle_create(request, service_type='transfer'):
         passengers = request.POST.get('passengers')
         luggage = request.POST.get('luggage')
         supplier_name = request.POST.get('supplier_name', '')
+        supplier_email = request.POST.get('supplier_email', '')
         daily_rate = request.POST.get('daily_rate') or None
         weekly_rate = request.POST.get('weekly_rate') or None
 
@@ -312,6 +313,7 @@ def vehicle_create(request, service_type='transfer'):
                     passengers=passengers,
                     luggage=luggage,
                     supplier_name=supplier_name,
+                    supplier_email=supplier_email,
                     daily_rate=daily_rate,
                     weekly_rate=weekly_rate,
                     service_type=service_type,
@@ -434,6 +436,7 @@ def vehicle_detail(request, pk):
             vehicle.passengers = request.POST.get('passengers')
             vehicle.luggage = request.POST.get('luggage')
             vehicle.supplier_name = request.POST.get('supplier_name', '')
+            vehicle.supplier_email = request.POST.get('supplier_email', '')
             vehicle.status = request.POST.get('status')
             vehicle.daily_rate = request.POST.get('daily_rate') or None
             vehicle.weekly_rate = request.POST.get('weekly_rate') or None

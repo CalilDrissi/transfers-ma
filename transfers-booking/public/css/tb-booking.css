@@ -1776,7 +1776,7 @@
 }
 .tb-leg-row__fields .tb-pill-bar__field:last-child {
     border-right: none;
-    flex: 0 0 170px;
+    flex: 0 0 220px;
 }
 /* Hide emoji icons in leg rows, replace with SVG */
 .tb-leg-row__fields .tb-pill-bar__icon {
