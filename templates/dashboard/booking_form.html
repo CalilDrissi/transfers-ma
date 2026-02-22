@@ -266,16 +266,26 @@
     transition: none;
     box-shadow: none;
 }
-/* From/To get maximum space */
+/* From/To get their own full row */
 .tb-pill-bar__field--from,
 .tb-pill-bar__field--to {
-    flex: 1 1 200px;
+    flex: 1 1 45%;
 }
-/* Date/return are fixed width */
+.tb-pill-bar__field--to {
+    border-right: none;
+}
+/* Date/return are fixed width, second row */
 .tb-pill-bar__field--date,
 .tb-pill-bar__field--return {
     flex: 0 0 auto;
     width: 190px;
+    border-top: 1px solid #e5e7eb;
+}
+.tb-pill-bar__add-return {
+    border-top: 1px solid #e5e7eb;
+}
+.tb-pill-bar__pax {
+    border-top: 1px solid #e5e7eb;
 }
 .tb-pill-bar__field:focus-within {
     border-color: #e5e7eb;
@@ -354,10 +364,11 @@
 .tb-pill-bar__swap:hover { border-color: #3b82f6; color: #3b82f6; }
 
 /* Return field & toggle */
-#tb-return-field { position: relative; border-right: 1px solid #e5e7eb; }
+#tb-return-field { position: relative; border-right: 1px solid #e5e7eb; border-top: 1px solid #e5e7eb; }
 .tb-pill-bar__add-return {
     border: none;
     border-right: 1px solid #e5e7eb;
+    border-top: 1px solid #e5e7eb;
     background: transparent;
     color: #6b7280;
     font-size: 0.85rem;
@@ -428,10 +439,10 @@
 .tb-pax-stepper__btn:hover { border-color: #3b82f6; color: #3b82f6; }
 .tb-pax-stepper__value { font-weight: 600; min-width: 20px; text-align: center; font-size: 1rem; }
 
-/* Search button — BLUE, inside the bar */
+/* Search button — BLUE, inside the bar, second row */
 .tb-pill-bar__search {
     border-radius: 50px;
-    padding: 12px 24px;
+    padding: 12px 28px;
     background: #3b82f6;
     color: #fff;
     border: none;
@@ -444,8 +455,9 @@
     flex-shrink: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    margin: 2px;
+    margin: 4px 2px 2px auto;
 }
 .tb-pill-bar__search:hover { background: #2563eb; }
 .tb-pill-bar__search:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -495,10 +507,16 @@
     top: calc(100% + 14px);
     left: -6px;
     z-index: 100;
-    min-width: 380px;
+    min-width: 420px;
     width: max-content;
-    max-width: 500px;
+    max-width: 600px;
     border-radius: 12px;
+}
+.tb-pill-bar__field .tb-autocomplete-item__name {
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: unset;
 }
 
 /* Multi-city bar */
@@ -584,9 +602,15 @@
         width: 100% !important;
         flex: 0 0 auto;
         border-right: none;
+        border-top: none;
         border-bottom: 1px solid #f1f5f9;
         border-radius: 0;
         padding: 14px 14px;
+    }
+    .tb-pill-bar__add-return,
+    #tb-return-field,
+    .tb-pill-bar__pax {
+        border-top: none;
     }
     .tb-pill-bar__field:last-of-type { border-bottom: none; }
     .tb-pill-bar__field--from { border-radius: 12px 12px 0 0; }
