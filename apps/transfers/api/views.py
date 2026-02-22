@@ -375,8 +375,8 @@ class TransferExtraViewSet(viewsets.ModelViewSet):
     Public can list/view, only admins can create/update/delete.
 
     Accepts optional ?vehicle_category_id=X to filter extras for a specific
-    vehicle category. Returns extras linked to that category plus extras
-    with no categories assigned (universal extras).
+    vehicle category. Returns only extras explicitly assigned to that category.
+    If no extras are assigned, returns none.
     """
     queryset = TransferExtra.objects.filter(is_active=True)
     serializer_class = TransferExtraSerializer
@@ -390,8 +390,5 @@ class TransferExtraViewSet(viewsets.ModelViewSet):
         qs = super().get_queryset()
         cat_id = self.request.query_params.get('vehicle_category_id')
         if cat_id:
-            from django.db.models import Q
-            qs = qs.filter(
-                Q(vehicle_categories__id=cat_id) | Q(vehicle_categories__isnull=True)
-            ).distinct()
+            qs = qs.filter(vehicle_categories__id=cat_id)
         return qs
