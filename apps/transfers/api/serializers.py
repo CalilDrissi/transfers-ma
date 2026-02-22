@@ -58,18 +58,10 @@ class TransferCreateSerializer(serializers.ModelSerializer):
     )
     customer_phone = serializers.CharField(validators=[validate_phone])
     pickup_datetime = serializers.DateTimeField(validators=[validate_future_datetime])
-    pickup_latitude = serializers.DecimalField(
-        max_digits=12, decimal_places=7, validators=[validate_latitude], required=False
-    )
-    pickup_longitude = serializers.DecimalField(
-        max_digits=12, decimal_places=7, validators=[validate_longitude], required=False
-    )
-    dropoff_latitude = serializers.DecimalField(
-        max_digits=12, decimal_places=7, validators=[validate_latitude], required=False
-    )
-    dropoff_longitude = serializers.DecimalField(
-        max_digits=12, decimal_places=7, validators=[validate_longitude], required=False
-    )
+    pickup_latitude = serializers.FloatField(validators=[validate_latitude], required=False)
+    pickup_longitude = serializers.FloatField(validators=[validate_longitude], required=False)
+    dropoff_latitude = serializers.FloatField(validators=[validate_latitude], required=False)
+    dropoff_longitude = serializers.FloatField(validators=[validate_longitude], required=False)
 
     class Meta:
         model = Transfer
