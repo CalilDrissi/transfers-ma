@@ -129,47 +129,73 @@
                 return;
             }
 
+            var currency = tbConfig.currencySymbol || 'MAD';
             var html = '';
             for (var i = 0; i < options.length; i++) {
                 var v = options[i];
+                var price = Math.round(v.price || 0);
                 html += '<div class="tb-vehicle-card" data-category-id="' + v.category_id + '">';
-                html += '<div class="tb-vehicle-image">';
-                if (v.category_icon) {
-                    html += '<i class="' + TB.Utils.escapeHtml(v.category_icon) + '"></i>';
+                html += '<h3 class="tb-vehicle-card__header">' + TB.Utils.escapeHtml(v.category_name || v.vehicle_name) + '</h3>';
+                html += '<div class="tb-vehicle-card__body">';
+                // Image
+                html += '<div class="tb-vehicle-card__image">';
+                if (v.category_image || v.image) {
+                    html += '<img src="' + TB.Utils.escapeHtml(v.category_image || v.image) + '" alt="' + TB.Utils.escapeHtml(v.category_name || '') + '">';
                 } else {
-                    html += '&#128663;';
+                    html += '<span class="tb-vehicle-card__image-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0zm10 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0z"/><path d="M5 17H3v-6l2-5h9l4 5h3v6h-2"/><path d="M5 17h6m4 0h2"/></svg></span>';
                 }
                 html += '</div>';
-                html += '<div class="tb-vehicle-info">';
-                html += '<div class="tb-vehicle-name">' + TB.Utils.escapeHtml(v.category_name || v.vehicle_name) + '</div>';
-                if (v.vehicle_name && v.vehicle_name !== v.category_name) {
-                    html += '<div class="tb-vehicle-desc">' + TB.Utils.escapeHtml(v.vehicle_name) + '</div>';
-                }
-                html += '<div class="tb-vehicle-specs">';
-                html += '<span>' + (v.passengers || '--') + ' ' + tbConfig.i18n.passengers + '</span>';
-                html += '<span>' + (v.luggage || '--') + ' ' + tbConfig.i18n.bags + '</span>';
+                // Details
+                html += '<div class="tb-vehicle-card__details">';
+                html += '<div class="tb-vehicle-card__specs">';
+                html += '<span class="tb-vehicle-card__spec"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 1.5C5.33 9.5 2 10.83 2 12.5V14h12v-1.5c0-1.67-3.33-3-6-3z" fill="currentColor"/></svg> ' + (v.passengers || '--') + '</span>';
+                html += '<span class="tb-vehicle-card__spec"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.5 4V2.5A1 1 0 016.5 1.5h3a1 1 0 011 1V4M2 5h12a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg> ' + (v.luggage || '--') + '</span>';
                 html += '</div>';
+                // Features
                 if (v.features && v.features.length > 0) {
-                    html += '<div class="tb-vehicle-features">';
+                    html += '<div class="tb-vehicle-card__features">';
                     for (var j = 0; j < v.features.length; j++) {
-                        html += '<span class="tb-feature-tag">' + TB.Utils.escapeHtml(v.features[j]) + '</span>';
+                        var feat = v.features[j];
+                        var isTime = feat.toLowerCase().indexOf('waiting') !== -1 || feat.toLowerCase().indexOf('minute') !== -1;
+                        var cls = isTime ? 'tb-vehicle-card__feature--time' : 'tb-vehicle-card__feature--ok';
+                        var icon = isTime
+                            ? '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5V8l2.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
+                            : '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                        html += '<div class="tb-vehicle-card__feature ' + cls + '">' + icon + ' ' + TB.Utils.escapeHtml(feat) + '</div>';
                     }
                     html += '</div>';
                 }
+                // Models
+                if (v.vehicle_name && v.vehicle_name !== v.category_name) {
+                    html += '<p class="tb-vehicle-card__models">' + TB.Utils.escapeHtml(v.vehicle_name) + '</p>';
+                }
                 html += '</div>';
-                html += '<div class="tb-vehicle-price">';
-                html += '<div class="tb-price-value">' + TB.Utils.formatPrice(v.price) + '</div>';
-                html += '<div class="tb-price-label">' + tbConfig.i18n.totalPrice + '</div>';
+                // Pricing
+                html += '<div class="tb-vehicle-card__pricing">';
+                html += '<div><span class="tb-vehicle-card__price-amount">' + price + '</span> <span class="tb-vehicle-card__price-currency">' + TB.Utils.escapeHtml(currency) + '</span></div>';
+                html += '<div class="tb-vehicle-card__payment-icons">';
+                html += '<span class="tb-vehicle-card__payment-icon"><svg viewBox="0 0 24 16"><rect width="24" height="16" rx="2" fill="#1A1F71"/><text x="12" y="11" text-anchor="middle" fill="#fff" font-size="7" font-weight="bold" font-family="sans-serif">VISA</text></svg></span>';
+                html += '<span class="tb-vehicle-card__payment-icon"><svg viewBox="0 0 24 16"><rect width="24" height="16" rx="2" fill="#f5f5f5"/><circle cx="9" cy="8" r="5" fill="#EB001B" opacity="0.8"/><circle cx="15" cy="8" r="5" fill="#F79E1B" opacity="0.8"/></svg></span>';
                 html += '</div>';
-                html += '</div>';
+                html += '<button type="button" class="tb-vehicle-card__select-btn">' + (tbConfig.i18n.search || 'Select') + '</button>';
+                html += '</div></div></div>';
             }
             container.innerHTML = html;
 
-            // Bind click events
+            // Bind card clicks
             var cards = container.querySelectorAll('.tb-vehicle-card');
             for (var k = 0; k < cards.length; k++) {
                 cards[k].addEventListener('click', function () {
                     var catId = parseInt(this.getAttribute('data-category-id'));
+                    TB.Step2.selectVehicle(catId);
+                });
+            }
+            // Bind select button clicks (stop propagation)
+            var selectBtns = container.querySelectorAll('.tb-vehicle-card__select-btn');
+            for (var m = 0; m < selectBtns.length; m++) {
+                selectBtns[m].addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var catId = parseInt(this.closest('.tb-vehicle-card').getAttribute('data-category-id'));
                     TB.Step2.selectVehicle(catId);
                 });
             }
@@ -239,39 +265,40 @@
 
             for (var i = 0; i < extras.length; i++) {
                 var e = extras[i];
-                html += '<div class="tb-extra-item" data-extra-id="' + e.id + '">';
-                html += '<div class="tb-extra-info">';
-                html += '<div class="tb-extra-check">&#10003;</div>';
-                html += '<div>';
-                html += '<div class="tb-extra-name">' + TB.Utils.escapeHtml(e.name) + '</div>';
+                html += '<div class="tb-service-row" data-extra-id="' + e.id + '">';
+                html += '<div class="tb-service-row__info">';
+                html += '<div class="tb-service-row__name">' + TB.Utils.escapeHtml(e.name) + '</div>';
+                html += '<div class="tb-service-row__price">' + TB.Utils.formatPrice(e.price);
+                if (e.is_per_item) html += ' ' + (tbConfig.i18n.perItem || '/each');
+                html += '</div>';
                 if (e.description) {
-                    html += '<div class="tb-extra-desc">' + TB.Utils.escapeHtml(e.description) + '</div>';
+                    html += '<div class="tb-service-row__desc">' + TB.Utils.escapeHtml(e.description) + '</div>';
                 }
-                html += '</div></div>';
-                html += '<div class="tb-extra-right">';
+                html += '</div>';
                 if (e.is_per_item) {
-                    html += '<div class="tb-extra-qty" data-extra-id="' + e.id + '">';
+                    html += '<div class="tb-extra-qty" data-extra-id="' + e.id + '" style="display:none;margin-right:12px;">';
                     html += '<button type="button" data-action="decrease">-</button>';
                     html += '<span class="tb-extra-qty-value">1</span>';
                     html += '<button type="button" data-action="increase">+</button>';
                     html += '</div>';
                 }
-                html += '<div class="tb-extra-price">' + TB.Utils.formatPrice(e.price);
-                if (e.is_per_item) html += tbConfig.i18n.perItem;
+                html += '<label class="tb-toggle"><input type="checkbox" data-extra-id="' + e.id + '">';
+                html += '<span class="tb-toggle__slider"></span></label>';
                 html += '</div>';
-                html += '</div></div>';
             }
 
             container.innerHTML = html;
 
-            // Bind toggle
-            var items = container.querySelectorAll('.tb-extra-item');
-            for (var j = 0; j < items.length; j++) {
-                items[j].addEventListener('click', function (ev) {
-                    // Don't toggle when clicking quantity buttons
-                    if (ev.target.tagName === 'BUTTON') return;
+            // Bind toggle change
+            var toggles = container.querySelectorAll('.tb-toggle input');
+            for (var j = 0; j < toggles.length; j++) {
+                toggles[j].addEventListener('change', function () {
                     var id = parseInt(this.getAttribute('data-extra-id'));
                     TB.Step2.toggleExtra(id);
+                    // Show/hide qty counter for per-item extras
+                    var row = this.closest('.tb-service-row');
+                    var qtyDiv = row ? row.querySelector('.tb-extra-qty') : null;
+                    if (qtyDiv) qtyDiv.style.display = this.checked ? 'flex' : 'none';
                 });
             }
 

@@ -49,7 +49,7 @@
             if (payBtn) payBtn.addEventListener('click', function () { self.submitBooking(); });
             var confirmBtn = document.getElementById('tb-confirm-payment-btn');
             if (confirmBtn) confirmBtn.addEventListener('click', function () { self.confirmStripePayment(); });
-            var fields = ['tb-customer-name', 'tb-customer-email', 'tb-customer-phone', 'tb-special-requests'];
+            var fields = ['tb-customer-first-name', 'tb-customer-last-name', 'tb-customer-email', 'tb-customer-phone', 'tb-customer-whatsapp', 'tb-special-requests'];
             for (var j = 0; j < fields.length; j++) {
                 var el = document.getElementById(fields[j]);
                 if (el) el.addEventListener('input', function () { self.saveCustomerInfo(); });
@@ -57,23 +57,35 @@
         },
         restoreCustomerInfo: function () {
             var s = TB.State.getAll();
-            var name = document.getElementById('tb-customer-name');
+            var firstName = document.getElementById('tb-customer-first-name');
+            var lastName = document.getElementById('tb-customer-last-name');
             var email = document.getElementById('tb-customer-email');
             var phone = document.getElementById('tb-customer-phone');
+            var whatsapp = document.getElementById('tb-customer-whatsapp');
             var requests = document.getElementById('tb-special-requests');
-            if (name && s.customerName) name.value = s.customerName;
+            if (firstName && s.customerName) {
+                var parts = s.customerName.split(' ');
+                firstName.value = parts[0] || '';
+                if (lastName) lastName.value = parts.slice(1).join(' ') || '';
+            }
             if (email && s.customerEmail) email.value = s.customerEmail;
             if (phone && s.customerPhone) phone.value = s.customerPhone;
+            if (whatsapp && s.customerWhatsapp) whatsapp.value = s.customerWhatsapp;
             if (requests && s.specialRequests) requests.value = s.specialRequests;
         },
         saveCustomerInfo: function () {
-            var name = document.getElementById('tb-customer-name');
+            var firstName = document.getElementById('tb-customer-first-name');
+            var lastName = document.getElementById('tb-customer-last-name');
             var email = document.getElementById('tb-customer-email');
             var phone = document.getElementById('tb-customer-phone');
+            var whatsapp = document.getElementById('tb-customer-whatsapp');
             var requests = document.getElementById('tb-special-requests');
-            if (name) TB.State.set('customerName', name.value.trim());
+            var fn = firstName ? firstName.value.trim() : '';
+            var ln = lastName ? lastName.value.trim() : '';
+            TB.State.set('customerName', (fn + ' ' + ln).trim());
             if (email) TB.State.set('customerEmail', email.value.trim());
             if (phone) TB.State.set('customerPhone', phone.value.trim());
+            if (whatsapp) TB.State.set('customerWhatsapp', whatsapp.value.trim());
             if (requests) TB.State.set('specialRequests', requests.value.trim());
         },
 
@@ -117,15 +129,61 @@
 
         renderOrderSummary: function () {
             var state = TB.State.getAll();
+            // Hidden compat elements
             var route = document.getElementById('tb-order-route');
             var datetime = document.getElementById('tb-order-datetime');
-            var vehicle = document.getElementById('tb-order-vehicle');
-            var passengers = document.getElementById('tb-order-passengers');
-            var total = document.getElementById('tb-order-total');
             if (route) route.textContent = TB.Utils.shortName(state.pickupAddress) + ' \u2192 ' + TB.Utils.shortName(state.dropoffAddress);
             if (datetime) datetime.textContent = TB.Utils.formatDateTime(state.pickupDatetime);
+
+            // Gradient sidebar
+            var vehicle = document.getElementById('tb-order-vehicle');
+            var passengers = document.getElementById('tb-order-passengers');
+            var routeFrom = document.getElementById('tb-order-route-from');
+            var routeTo = document.getElementById('tb-order-route-to');
+            var basePrice = document.getElementById('tb-order-base-price');
             if (vehicle) vehicle.textContent = state.selectedVehicle ? state.selectedVehicle.category_name : '--';
-            if (passengers) passengers.textContent = state.passengers;
+            if (passengers) passengers.textContent = state.passengers + ' ' + (tbConfig.i18n.passengersLabel || 'passengers');
+            if (routeFrom) routeFrom.textContent = TB.Utils.shortName(state.pickupAddress);
+            if (routeTo) routeTo.textContent = TB.Utils.shortName(state.dropoffAddress);
+            if (basePrice && state.selectedVehicle) basePrice.textContent = TB.Utils.formatPrice(state.selectedVehicle.price);
+
+            // Transfer details card
+            var pickupDisplay = document.getElementById('tb-checkout-pickup-display');
+            var dropoffDisplay = document.getElementById('tb-checkout-dropoff-display');
+            if (pickupDisplay) pickupDisplay.textContent = state.pickupAddress || '--';
+            if (dropoffDisplay) dropoffDisplay.textContent = state.dropoffAddress || '--';
+
+            // Date/time split
+            if (state.pickupDatetime) {
+                var dt = new Date(state.pickupDatetime);
+                var dateDisplay = document.getElementById('tb-checkout-date-display');
+                var timeDisplay = document.getElementById('tb-checkout-time-display');
+                if (dateDisplay && !isNaN(dt.getTime())) {
+                    var y = dt.getFullYear();
+                    var m = ('0' + (dt.getMonth() + 1)).slice(-2);
+                    var d = ('0' + dt.getDate()).slice(-2);
+                    dateDisplay.value = y + '-' + m + '-' + d;
+                }
+                if (timeDisplay && !isNaN(dt.getTime())) {
+                    var hh = ('0' + dt.getHours()).slice(-2);
+                    var mm = ('0' + dt.getMinutes()).slice(-2);
+                    timeDisplay.value = hh + ':' + mm;
+                }
+            }
+
+            // Flight field — show if airport detected
+            var flightGroup = document.getElementById('tb-checkout-flight-group');
+            if (flightGroup) {
+                var fromLower = (state.pickupAddress || '').toLowerCase();
+                var toLower = (state.dropoffAddress || '').toLowerCase();
+                if (fromLower.indexOf('airport') !== -1 || toLower.indexOf('airport') !== -1 ||
+                    fromLower.indexOf('aeroport') !== -1 || toLower.indexOf('aeroport') !== -1 ||
+                    fromLower.indexOf('aéroport') !== -1 || toLower.indexOf('aéroport') !== -1) {
+                    flightGroup.style.display = '';
+                }
+            }
+
+            // Extras in gradient
             var extrasList = document.getElementById('tb-order-extras-list');
             if (extrasList) {
                 var selectedExtras = state.selectedExtras || [];
@@ -133,9 +191,9 @@
                 for (var i = 0; i < selectedExtras.length; i++) {
                     var e = selectedExtras[i];
                     var price = e.price * (e.is_per_item ? e.quantity : 1);
-                    html += '<div class="tb-summary-item"><span class="tb-summary-label">' + TB.Utils.escapeHtml(e.name);
+                    html += '<div class="tb-summary-gradient__extra"><span>' + TB.Utils.escapeHtml(e.name);
                     if (e.is_per_item && e.quantity > 1) html += ' x' + e.quantity;
-                    html += '</span><span class="tb-summary-value">' + TB.Utils.formatPrice(price) + '</span></div>';
+                    html += '</span><span>' + TB.Utils.formatPrice(price) + '</span></div>';
                 }
                 extrasList.innerHTML = html;
             }
@@ -368,10 +426,14 @@
         validate: function () {
             TB.Utils.clearFieldErrors();
             var errors = [];
-            var name = document.getElementById('tb-customer-name').value.trim();
+            var firstNameEl = document.getElementById('tb-customer-first-name');
+            var lastNameEl = document.getElementById('tb-customer-last-name');
+            var firstName = firstNameEl ? firstNameEl.value.trim() : '';
+            var lastName = lastNameEl ? lastNameEl.value.trim() : '';
             var email = document.getElementById('tb-customer-email').value.trim();
             var phone = document.getElementById('tb-customer-phone').value.trim();
-            if (!name) errors.push({ field: 'name', msg: tbConfig.i18n.required });
+            if (!firstName) errors.push({ field: 'first-name', msg: tbConfig.i18n.required });
+            if (!lastName) errors.push({ field: 'last-name', msg: tbConfig.i18n.required });
             if (!email || !TB.Utils.validateEmail(email)) errors.push({ field: 'email', msg: tbConfig.i18n.invalidEmail });
             if (!phone || !TB.Utils.validatePhone(phone)) errors.push({ field: 'phone', msg: tbConfig.i18n.invalidPhone });
             if (!payState.selectedGateway) {

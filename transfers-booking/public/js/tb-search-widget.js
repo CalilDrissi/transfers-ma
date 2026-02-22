@@ -29,13 +29,19 @@
         },
 
         createInstance: function (container) {
+            var fixedOrigin    = container.getAttribute('data-fixed-origin') || '';
+            var fixedOriginLat = container.getAttribute('data-fixed-origin-lat') || '';
+            var fixedOriginLng = container.getAttribute('data-fixed-origin-lng') || '';
+
             var inst = {
                 el: container,
                 instanceId: container.getAttribute('data-instance'),
+                lang: container.getAttribute('data-lang') || '',
+                fixedOrigin: fixedOrigin,
                 autocompletes: {},
                 state: {
                     // Transfers
-                    from: '', from_lat: '', from_lng: '', from_address: '',
+                    from: fixedOrigin, from_lat: fixedOriginLat, from_lng: fixedOriginLng, from_address: fixedOrigin,
                     to: '', to_lat: '', to_lng: '', to_address: '',
                     date: '', return_date: '',
                     adults: 2, children: 0, checked_bags: 2, hand_luggage: 0,
@@ -96,6 +102,10 @@
     function initAutocomplete(inst) {
         var fields = ['from', 'to', 'hourly_city', 'trips_departure'];
         for (var i = 0; i < fields.length; i++) {
+            // Skip autocomplete for locked fixed origin
+            if (fields[i] === 'from' && inst.fixedOrigin) {
+                continue;
+            }
             setupFieldAutocomplete(inst, fields[i]);
         }
     }
@@ -396,7 +406,7 @@
         // Clear previous validation
         clearValidation(inst);
 
-        if (!inst.state.from_lat || !inst.state.from_lng) {
+        if (!inst.fixedOrigin && (!inst.state.from_lat || !inst.state.from_lng)) {
             markInvalid(inst, 'from');
             errors.push('from');
         }
@@ -531,6 +541,10 @@
             params.set('return_date', inst.state.return_date);
         }
 
+        if (inst.lang) {
+            params.set('lang', inst.lang);
+        }
+
         window.location.href = baseUrl + '?' + params.toString();
     }
 
@@ -547,6 +561,10 @@
         params.set('hours', inst.state.hourly_hours);
         params.set('passengers', inst.state.hourly_adults);
 
+        if (inst.lang) {
+            params.set('lang', inst.lang);
+        }
+
         window.location.href = baseUrl + '?' + params.toString();
     }
 
@@ -561,6 +579,10 @@
         params.set('departure_lng', inst.state.trips_departure_lng);
         params.set('date', inst.state.trips_date);
         params.set('participants', participants);
+
+        if (inst.lang) {
+            params.set('lang', inst.lang);
+        }
 
         window.location.href = baseUrl + '?' + params.toString();
     }

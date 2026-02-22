@@ -739,3 +739,451 @@
 [dir="rtl"] .tb-checkout__card-title {
     flex-direction: row-reverse;
 }
+
+/* ==========================================================================
+   SinaiTaxi Checkout Components
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   PROGRESS BAR
+   -------------------------------------------------------------------------- */
+
+.tb-checkout-progress {
+    display: flex;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tb-checkout-progress__step {
+    flex: 1;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #fff;
+    background: #ccc;
+    position: relative;
+}
+
+.tb-checkout-progress__step--done {
+    background: var(--tb-accent, #e94560);
+    opacity: 0.7;
+}
+
+.tb-checkout-progress__step--active {
+    background: var(--tb-accent, #e94560);
+}
+
+.tb-checkout-progress__step--upcoming {
+    background: #ddd;
+    color: #999;
+}
+
+/* --------------------------------------------------------------------------
+   LOCATION PINS
+   -------------------------------------------------------------------------- */
+
+.tb-checkout-location {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.tb-checkout-location__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.tb-checkout-location__dot--pickup {
+    background: var(--tb-accent, #e94560);
+}
+
+.tb-checkout-location__dot--dropoff {
+    background: var(--tb-primary, #1a1a2e);
+}
+
+.tb-checkout-location__text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1E293B;
+}
+
+/* --------------------------------------------------------------------------
+   TWO-COLUMN ROWS
+   -------------------------------------------------------------------------- */
+
+.tb-checkout-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 576px) {
+    .tb-checkout-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   TOGGLE SWITCH (iOS STYLE)
+   -------------------------------------------------------------------------- */
+
+.tb-toggle {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+.tb-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.tb-toggle__slider {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border-radius: 26px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.tb-toggle__slider::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px;
+    left: 3px;
+    transition: 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.tb-toggle input:checked + .tb-toggle__slider {
+    background: var(--tb-accent, #e94560);
+}
+
+.tb-toggle input:checked + .tb-toggle__slider::before {
+    transform: translateX(22px);
+}
+
+/* --------------------------------------------------------------------------
+   TOGGLE ROW
+   -------------------------------------------------------------------------- */
+
+.tb-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-top: 1px solid #E2E8F0;
+}
+
+.tb-toggle-row__label {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* --------------------------------------------------------------------------
+   COUNTER (INLINE PILL)
+   -------------------------------------------------------------------------- */
+
+.tb-counter-inline {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #E2E8F0;
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+.tb-counter-inline__btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #F8FAFC;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1E293B;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all 0.15s;
+}
+
+.tb-counter-inline__btn:hover {
+    background: #E2E8F0;
+}
+
+.tb-counter-inline__btn--active {
+    background: var(--tb-accent, #e94560);
+    color: #fff;
+}
+
+.tb-counter-inline__btn--active:hover {
+    filter: brightness(0.9);
+}
+
+.tb-counter-inline__value {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1rem;
+    background: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   SERVICE ROW (EXTRAS AS TOGGLES)
+   -------------------------------------------------------------------------- */
+
+.tb-service-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.tb-service-row:last-child {
+    border-bottom: none;
+}
+
+.tb-service-row__info {
+    flex: 1;
+}
+
+.tb-service-row__name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.tb-service-row__price {
+    color: var(--tb-accent, #e94560);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.tb-service-row__desc {
+    font-size: 0.8rem;
+    color: #64748B;
+}
+
+/* --------------------------------------------------------------------------
+   GRADIENT SUMMARY SIDEBAR
+   -------------------------------------------------------------------------- */
+
+.tb-summary-gradient {
+    background: linear-gradient(135deg, var(--tb-accent, #e94560), color-mix(in srgb, var(--tb-accent, #e94560) 70%, #000));
+    border-radius: 12px;
+    padding: 24px;
+    color: #fff;
+    position: sticky;
+    top: 24px;
+}
+
+@supports not (color: color-mix(in srgb, red, blue)) {
+    .tb-summary-gradient {
+        background: linear-gradient(135deg, var(--tb-accent, #e94560), #b8304f);
+    }
+}
+
+.tb-summary-gradient__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tb-summary-gradient__icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.tb-summary-gradient__vehicle-name {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.tb-summary-gradient__vehicle-cap {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.tb-summary-gradient__stop {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 0.85rem;
+}
+
+.tb-summary-gradient__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
+}
+
+.tb-summary-gradient__stop-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tb-summary-gradient__stop-price {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tb-summary-gradient__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.tb-summary-gradient__extras {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+}
+
+.tb-summary-gradient__extra {
+    display: flex;
+    justify-content: space-between;
+    opacity: 0.9;
+}
+
+.tb-summary-gradient__deposit {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+/* --------------------------------------------------------------------------
+   PHONE INPUT WITH FLAG
+   -------------------------------------------------------------------------- */
+
+.tb-phone-input {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.tb-phone-input:focus-within {
+    border-color: #2E8BFF;
+    box-shadow: 0 0 0 3px rgba(46, 139, 255, 0.1);
+}
+
+.tb-phone-input__prefix {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    background: #F8FAFC;
+    border-right: 1px solid #CBD5E1;
+    font-size: 0.9rem;
+    color: #64748B;
+    white-space: nowrap;
+    height: 48px;
+}
+
+.tb-phone-input__field {
+    flex: 1;
+    border: none;
+    padding: 12px;
+    font-size: 15px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1E293B;
+    background: #fff;
+    outline: none;
+}
+
+/* --------------------------------------------------------------------------
+   RTL OVERRIDES FOR NEW COMPONENTS
+   -------------------------------------------------------------------------- */
+
+[dir="rtl"] .tb-checkout-location {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tb-toggle__slider::before {
+    left: auto;
+    right: 3px;
+}
+
+[dir="rtl"] .tb-toggle input:checked + .tb-toggle__slider::before {
+    transform: translateX(-22px);
+}
+
+[dir="rtl"] .tb-toggle-row {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tb-service-row {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tb-service-row__info {
+    text-align: right;
+}
+
+[dir="rtl"] .tb-phone-input__prefix {
+    border-right: none;
+    border-left: 1px solid #CBD5E1;
+}
+
+[dir="rtl"] .tb-summary-gradient__stop {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tb-summary-gradient__total {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tb-summary-gradient__extra {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tb-summary-gradient__deposit {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tb-checkout-progress {
+    flex-direction: row-reverse;
+}

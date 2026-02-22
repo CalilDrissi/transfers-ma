@@ -98,11 +98,11 @@
             state.basePrice = params.price;
             state.depositPct = params.deposit_percentage;
 
-            // Route
+            // Route in gradient sidebar
             setText('tb-checkout-summary-from', shortName(params.from || params.trip_name));
             setText('tb-checkout-summary-to', shortName(params.to));
 
-            // Date
+            // Hidden date compat
             setText('tb-checkout-summary-date', formatDateTime(params.date));
 
             // Return
@@ -111,7 +111,7 @@
                 setText('tb-checkout-summary-return', formatDateTime(params.return_date));
             }
 
-            // Vehicle / participants
+            // Vehicle / participants in gradient header
             var vLabel = params.type === 'trip'
                 ? (params.trip_name || (i18n.dayTrips || 'Day Trip'))
                 : (params.category_id ? (i18n.vehicle || 'Vehicle') + ' #' + params.category_id : '--');
@@ -120,6 +120,28 @@
             var paxLabel = params.passengers + ' ' + (i18n.passengersLabel || 'passengers');
             if (params.luggage > 0) paxLabel += ', ' + params.luggage + ' ' + (i18n.bagsLabel || 'bags');
             setText('tb-checkout-summary-pax', paxLabel);
+
+            // Transfer details card — location pins
+            setText('tb-checkout-pickup-display', params.from || params.trip_name || '--');
+            setText('tb-checkout-dropoff-display', params.to || '--');
+
+            // Date/time split in transfer details card
+            if (params.date) {
+                var dt = new Date(params.date);
+                var dateDisplay = document.getElementById('tb-checkout-date-display');
+                var timeDisplay = document.getElementById('tb-checkout-time-display');
+                if (dateDisplay && !isNaN(dt.getTime())) {
+                    var y = dt.getFullYear();
+                    var m = ('0' + (dt.getMonth() + 1)).slice(-2);
+                    var d = ('0' + dt.getDate()).slice(-2);
+                    dateDisplay.value = y + '-' + m + '-' + d;
+                }
+                if (timeDisplay && !isNaN(dt.getTime())) {
+                    var hh = ('0' + dt.getHours()).slice(-2);
+                    var mm = ('0' + dt.getMinutes()).slice(-2);
+                    timeDisplay.value = hh + ':' + mm;
+                }
+            }
 
             // Parse extras
             if (params.extras) {
@@ -161,11 +183,13 @@
                 state.remaining = total - state.depositAmount;
                 show('tb-checkout-summary-deposit-row');
                 setText('tb-checkout-summary-deposit', formatPrice(state.depositAmount, currency));
+                show('tb-checkout-summary-remaining-row');
                 setText('tb-checkout-summary-remaining', formatPrice(state.remaining, currency));
             } else {
                 state.depositAmount = total;
                 state.remaining = 0;
                 hide('tb-checkout-summary-deposit-row');
+                hide('tb-checkout-summary-remaining-row');
             }
 
             // Remaining note
@@ -448,12 +472,17 @@
             var valid = true;
             clearFieldErrors();
 
-            var name = val('tb-checkout-name');
+            var firstName = val('tb-checkout-first-name');
+            var lastName = val('tb-checkout-last-name');
             var email = val('tb-checkout-email');
             var phone = val('tb-checkout-phone');
 
-            if (!name) {
-                showFieldError('name', i18n.required || 'Required');
+            if (!firstName) {
+                showFieldError('first-name', i18n.required || 'Required');
+                valid = false;
+            }
+            if (!lastName) {
+                showFieldError('last-name', i18n.required || 'Required');
                 valid = false;
             }
             if (!email || !TB.Utils.validateEmail(email)) {
@@ -535,11 +564,13 @@
         },
 
         createBooking: function () {
+            var fullName = (val('tb-checkout-first-name') + ' ' + val('tb-checkout-last-name')).trim();
+
             if (state.bookingType === 'trip') {
                 return TB.API._call('create_trip_booking', {
                     trip_id: parseInt(params.trip_id, 10),
                     trip_date: params.date ? params.date.split('T')[0] : '',
-                    customer_name: val('tb-checkout-name'),
+                    customer_name: fullName,
                     customer_email: val('tb-checkout-email'),
                     customer_phone: '+212' + val('tb-checkout-phone'),
                     adults: params.adults,
@@ -551,7 +582,7 @@
             }
 
             var bookingData = {
-                customer_name: val('tb-checkout-name'),
+                customer_name: fullName,
                 customer_email: val('tb-checkout-email'),
                 customer_phone: '+212' + val('tb-checkout-phone'),
                 transfer_type: 'city_to_city',
@@ -659,7 +690,15 @@
         redirectToConfirmation: function (ref) {
             var confirmUrl = cfg.confirmationPageUrl || '/booking-confirmed/';
             var bookingRef = ref || state.bookingRef;
-            window.location.href = confirmUrl + '?ref=' + encodeURIComponent(bookingRef);
+            var url = confirmUrl + '?ref=' + encodeURIComponent(bookingRef);
+
+            // Propagate lang param through the flow
+            var lang = (new URLSearchParams(window.location.search)).get('lang') || '';
+            if (lang) {
+                url += '&lang=' + encodeURIComponent(lang);
+            }
+
+            window.location.href = url;
         }
     };
 

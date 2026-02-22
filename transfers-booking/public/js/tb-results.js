@@ -319,8 +319,7 @@
 
         renderVehicles: function (vehicles) {
             var container = document.getElementById('tb-results-vehicles');
-            var template = document.getElementById('tb-results-vehicle-template');
-            if (!container || !template) return;
+            if (!container) return;
 
             container.innerHTML = '';
 
@@ -334,123 +333,100 @@
 
             var currency = cfg.currencySymbol || 'MAD';
             var depositPct = routeData ? (routeData.deposit_percentage || 0) : 0;
+            var html = '';
 
             for (var i = 0; i < vehicles.length; i++) {
                 var v = vehicles[i];
-                var clone = template.content.cloneNode(true);
-                var card = clone.querySelector('.tb-results__vehicle-card');
-
-                card.setAttribute('data-vehicle-id', v.vehicle_id || v.category_id);
-
-                // Image
-                var img = clone.querySelector('.tb-results__vehicle-img');
-                if (v.image) {
-                    img.src = v.image;
-                    img.alt = v.category_name || '';
-                } else if (v.category_image) {
-                    img.src = v.category_image;
-                    img.alt = v.category_name || '';
-                } else {
-                    img.style.display = 'none';
-                }
-
-                // Popular badge (show for cheapest or specific flag)
-                if (i === 0) {
-                    var popular = clone.querySelector('.tb-results__vehicle-popular');
-                    if (popular) popular.style.display = 'inline-block';
-                }
-
-                // Category name
-                setText(clone, '.tb-results__vehicle-category', v.category_name || '');
-
-                // Tagline — explicit field first, fallback to custom_info, then category_description
                 var vci = v.custom_info || {};
+                var price = Math.round(v.price || 0);
+
+                html += '<div class="tb-results__vehicle-card" data-vehicle-id="' + (v.vehicle_id || v.category_id) + '" data-category-id="' + (v.category_id || '') + '">';
+                html += '<h3 class="tb-results__vehicle-card__header">' + escapeHtml(v.category_name || '') + '</h3>';
+
+                // Tagline
                 var tagline = v.category_tagline || vci.tagline || v.category_description || '';
                 if (tagline) {
-                    setText(clone, '.tb-results__vehicle-tagline', tagline);
-                } else {
-                    var taglineEl = clone.querySelector('.tb-results__vehicle-tagline');
-                    if (taglineEl) taglineEl.style.display = 'none';
+                    html += '<div class="tb-results__vehicle-card__tagline">' + escapeHtml(tagline) + '</div>';
                 }
 
-                // Vehicle name
-                var vName = v.vehicle_name || '';
-                if (vName && vName !== v.category_name) {
-                    setText(clone, '.tb-results__vehicle-name', vName + ' ' + (i18n.orSimilar || 'or similar'));
+                html += '<div class="tb-results__vehicle-card__body">';
+                // Image
+                html += '<div class="tb-results__vehicle-card__image">';
+                if (v.image || v.category_image) {
+                    html += '<img src="' + escapeHtml(v.image || v.category_image) + '" alt="' + escapeHtml(v.category_name || '') + '">';
                 } else {
-                    var nameEl = clone.querySelector('.tb-results__vehicle-name');
-                    if (nameEl) nameEl.style.display = 'none';
+                    html += '<span class="tb-results__vehicle-card__image-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0zm10 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0z"/><path d="M5 17H3v-6l2-5h9l4 5h3v6h-2"/><path d="M5 17h6m4 0h2"/></svg></span>';
                 }
-
-                // Specs
-                setText(clone, '.tb-results__spec-pax', (v.passengers || '--') + ' ' + (i18n.passengersLabel || 'passengers'));
-                setText(clone, '.tb-results__spec-luggage', (v.luggage || '--') + ' ' + (i18n.bagsLabel || 'bags'));
-
-                // Features pills
-                var featuresEl = clone.querySelector('.tb-results__vehicle-features');
+                html += '</div>';
+                // Details
+                html += '<div class="tb-results__vehicle-card__details">';
+                html += '<div class="tb-results__vehicle-card__specs">';
+                html += '<span class="tb-results__vehicle-card__spec"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 1.5C5.33 9.5 2 10.83 2 12.5V14h12v-1.5c0-1.67-3.33-3-6-3z" fill="currentColor"/></svg> ' + (v.passengers || '--') + '</span>';
+                html += '<span class="tb-results__vehicle-card__spec"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.5 4V2.5A1 1 0 016.5 1.5h3a1 1 0 011 1V4M2 5h12a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg> ' + (v.luggage || '--') + '</span>';
+                html += '</div>';
+                // Features
                 var features = v.features || [];
-                if (features.length > 0 && featuresEl) {
+                if (features.length > 0) {
+                    html += '<div class="tb-results__vehicle-card__features">';
                     for (var f = 0; f < features.length; f++) {
-                        var pill = document.createElement('span');
-                        pill.className = 'tb-results__feature-pill';
-                        pill.textContent = features[f];
-                        featuresEl.appendChild(pill);
+                        var feat = features[f];
+                        var isTime = feat.toLowerCase().indexOf('waiting') !== -1 || feat.toLowerCase().indexOf('minute') !== -1;
+                        var cls = isTime ? 'tb-results__vehicle-card__feature--time' : 'tb-results__vehicle-card__feature--ok';
+                        var icon = isTime
+                            ? '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5V8l2.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
+                            : '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                        html += '<div class="tb-results__vehicle-card__feature ' + cls + '">' + icon + ' ' + escapeHtml(feat) + '</div>';
                     }
+                    html += '</div>';
                 }
-
-                // Key features — explicit field first, fallback to custom_info
+                // Key features
                 var keyFeatures = (v.key_features && v.key_features.length) ? v.key_features : vci.key_features;
                 if (keyFeatures && keyFeatures.length) {
-                    setText(clone, '.tb-results__vehicle-key-features', keyFeatures.join(' \u2022 '));
-                } else {
-                    var kfEl = clone.querySelector('.tb-results__vehicle-key-features');
-                    if (kfEl) kfEl.style.display = 'none';
+                    html += '<div class="tb-results__vehicle-card__key-features">' + escapeHtml(keyFeatures.join(' \u2022 ')) + '</div>';
                 }
-
-                // Client description — explicit field first, fallback to custom_info
+                // Client description
                 var clientDesc = v.client_description || vci.client_description || '';
                 if (clientDesc) {
-                    setText(clone, '.tb-results__vehicle-description', clientDesc);
-                } else {
-                    var descEl = clone.querySelector('.tb-results__vehicle-description');
-                    if (descEl) descEl.style.display = 'none';
+                    html += '<div class="tb-results__vehicle-card__description">' + escapeHtml(clientDesc) + '</div>';
                 }
-
-                // Important note — explicit field first, fallback to custom_info
+                // Models
+                var vName = v.vehicle_name || '';
+                if (vName && vName !== v.category_name) {
+                    html += '<p class="tb-results__vehicle-card__models">' + escapeHtml(vName) + ' ' + (i18n.orSimilar || 'or similar') + '</p>';
+                }
+                // Important note
                 var impNote = v.important_note || vci.important_note || '';
                 if (impNote) {
-                    var noteEl = clone.querySelector('.tb-results__vehicle-note');
                     var noteType = v.important_note_type || vci.important_note_type || 'info';
-                    noteEl.className = 'tb-results__vehicle-note tb-results__vehicle-note--' + noteType;
-                    noteEl.textContent = impNote;
-                    noteEl.style.display = 'block';
+                    html += '<div class="tb-results__vehicle-card__note tb-results__vehicle-card__note--' + noteType + '" style="display:block">' + escapeHtml(impNote) + '</div>';
                 }
-
-                // Price
-                var price = Math.round(v.price || 0);
-                setText(clone, '.tb-results__price-value', price);
-                setText(clone, '.tb-results__price-currency', currency);
-
-                // Deposit
+                html += '</div>';
+                // Pricing
+                html += '<div class="tb-results__vehicle-card__pricing">';
+                html += '<div><span class="tb-results__vehicle-card__price-amount">' + price + '</span> <span class="tb-results__vehicle-card__price-currency">' + escapeHtml(currency) + '</span></div>';
                 if (depositPct > 0) {
                     var depositAmount = Math.round(price * depositPct / 100);
-                    setText(clone, '.tb-results__price-deposit', (i18n.deposit || 'Deposit') + ': ' + depositAmount + ' ' + currency);
-                } else {
-                    var depEl = clone.querySelector('.tb-results__price-deposit');
-                    if (depEl) depEl.style.display = 'none';
+                    html += '<div class="tb-results__vehicle-card__deposit">' + (i18n.deposit || 'Deposit') + ': ' + depositAmount + ' ' + currency + '</div>';
                 }
+                html += '<div class="tb-results__vehicle-card__payment-icons">';
+                html += '<span class="tb-results__vehicle-card__payment-icon"><svg viewBox="0 0 24 16"><rect width="24" height="16" rx="2" fill="#1A1F71"/><text x="12" y="11" text-anchor="middle" fill="#fff" font-size="7" font-weight="bold" font-family="sans-serif">VISA</text></svg></span>';
+                html += '<span class="tb-results__vehicle-card__payment-icon"><svg viewBox="0 0 24 16"><rect width="24" height="16" rx="2" fill="#f5f5f5"/><circle cx="9" cy="8" r="5" fill="#EB001B" opacity="0.8"/><circle cx="15" cy="8" r="5" fill="#F79E1B" opacity="0.8"/></svg></span>';
+                html += '</div>';
+                html += '<button type="button" class="tb-results__vehicle-card__book-btn" data-idx="' + i + '">' + (i18n.bookNow || 'Book Now') + '</button>';
+                html += '</div></div></div>';
+            }
 
-                // Book button
-                var bookBtn = clone.querySelector('.tb-results__book-btn');
-                if (bookBtn) {
-                    bookBtn.addEventListener('click', (function (vehicle) {
-                        return function () {
-                            TB.Results.handleBookClick(vehicle);
-                        };
-                    })(v));
-                }
+            container.innerHTML = html;
 
-                container.appendChild(clone);
+            // Bind book button clicks
+            var bookBtns = container.querySelectorAll('.tb-results__vehicle-card__book-btn');
+            for (var b = 0; b < bookBtns.length; b++) {
+                bookBtns[b].addEventListener('click', (function (vehicle) {
+                    return function (e) {
+                        e.stopPropagation();
+                        TB.Results.handleBookClick(vehicle);
+                    };
+                })(vehicles[parseInt(bookBtns[b].getAttribute('data-idx'))]);
             }
         },
 
@@ -464,42 +440,43 @@
             if (!section || !grid) return;
 
             section.style.display = 'block';
-            grid.innerHTML = '';
+            var html = '';
+            var currency = cfg.currencySymbol || 'MAD';
 
             for (var i = 0; i < extras.length; i++) {
                 var extra = extras[i];
-                var card = document.createElement('div');
-                card.className = 'tb-results__extra-card';
-                card.setAttribute('data-extra-id', extra.id);
-
-                var currency = cfg.currencySymbol || 'MAD';
                 var priceLabel = extra.price + ' ' + currency;
                 if (extra.is_per_item) {
                     priceLabel += ' ' + (i18n.perItem || '/each');
                 }
 
-                card.innerHTML =
-                    '<div class="tb-results__extra-checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
-                    '<div class="tb-results__extra-info">' +
-                        '<div class="tb-results__extra-name">' + escapeHtml(extra.name) + '</div>' +
-                        '<div class="tb-results__extra-description">' + escapeHtml(extra.description || '') + '</div>' +
-                        '<div class="tb-results__extra-price">' + escapeHtml(priceLabel) + '</div>' +
-                    '</div>';
+                html += '<div class="tb-service-row" data-extra-id="' + extra.id + '">';
+                html += '<div class="tb-service-row__info">';
+                html += '<div class="tb-service-row__name">' + escapeHtml(extra.name) + '</div>';
+                html += '<div class="tb-service-row__price">' + escapeHtml(priceLabel) + '</div>';
+                if (extra.description) {
+                    html += '<div class="tb-service-row__desc">' + escapeHtml(extra.description) + '</div>';
+                }
+                html += '</div>';
+                html += '<label class="tb-toggle"><input type="checkbox" data-extra-id="' + extra.id + '">';
+                html += '<span class="tb-toggle__slider"></span></label>';
+                html += '</div>';
+            }
 
-                card.addEventListener('click', (function (e, el) {
-                    return function () {
-                        el.classList.toggle('tb-results__extra-card--selected');
-                        var id = el.getAttribute('data-extra-id');
-                        var idx = selectedExtras.indexOf(id);
-                        if (idx > -1) {
-                            selectedExtras.splice(idx, 1);
-                        } else {
-                            selectedExtras.push(id);
-                        }
-                    };
-                })(extra, card));
+            grid.innerHTML = html;
 
-                grid.appendChild(card);
+            // Bind toggle change
+            var toggles = grid.querySelectorAll('.tb-toggle input');
+            for (var j = 0; j < toggles.length; j++) {
+                toggles[j].addEventListener('change', function () {
+                    var id = this.getAttribute('data-extra-id');
+                    var idx = selectedExtras.indexOf(id);
+                    if (idx > -1) {
+                        selectedExtras.splice(idx, 1);
+                    } else {
+                        selectedExtras.push(id);
+                    }
+                });
             }
         },
 
@@ -538,6 +515,12 @@
 
             if (routeData && routeData.id) {
                 sp.set('route_id', routeData.id);
+            }
+
+            // Propagate lang param through the flow
+            var lang = (new URLSearchParams(window.location.search)).get('lang') || '';
+            if (lang) {
+                sp.set('lang', lang);
             }
 
             window.location.href = checkoutUrl + '?' + sp.toString();

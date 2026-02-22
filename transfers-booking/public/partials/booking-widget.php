@@ -1,6 +1,23 @@
-<?php defined('ABSPATH') || exit; ?>
+<?php
+defined('ABSPATH') || exit;
+$lang = isset($lang) ? $lang : '';
+$fixed_origin = isset($fixed_origin) ? $fixed_origin : '';
+$fixed_origin_lat = isset($fixed_origin_lat) ? $fixed_origin_lat : '';
+$fixed_origin_lng = isset($fixed_origin_lng) ? $fixed_origin_lng : '';
 
-<div id="tb-booking-widget" class="tb-booking-widget" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
+$dir = is_rtl() ? 'rtl' : 'ltr';
+$rtl_langs = ['ar', 'he', 'fa', 'ur', 'ps', 'ku'];
+if ($lang && in_array(substr($lang, 0, 2), $rtl_langs, true)) {
+    $dir = 'rtl';
+}
+?>
+
+<div id="tb-booking-widget" class="tb-booking-widget"
+     data-lang="<?php echo esc_attr($lang); ?>"
+     data-fixed-origin="<?php echo esc_attr($fixed_origin); ?>"
+     data-fixed-origin-lat="<?php echo esc_attr($fixed_origin_lat); ?>"
+     data-fixed-origin-lng="<?php echo esc_attr($fixed_origin_lng); ?>"
+     dir="<?php echo esc_attr($dir); ?>">
 
     <!-- Multi-city progress indicator -->
     <div id="tb-multi-progress"></div>

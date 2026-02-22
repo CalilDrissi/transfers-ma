@@ -4,7 +4,12 @@
  * Rendered by [transfers_results] shortcode.
  */
 defined('ABSPATH') || exit;
+$lang_param = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : '';
+$rtl_langs = ['ar', 'he', 'fa', 'ur', 'ps', 'ku'];
 $dir = is_rtl() ? 'rtl' : 'ltr';
+if ($lang_param && in_array(substr($lang_param, 0, 2), $rtl_langs, true)) {
+    $dir = 'rtl';
+}
 ?>
 <div class="tb-results" id="tb-results" dir="<?php echo esc_attr($dir); ?>">
 
@@ -137,43 +142,6 @@ $dir = is_rtl() ? 'rtl' : 'ltr';
 
     <!-- Vehicle Cards Container -->
     <div class="tb-results__vehicles" id="tb-results-vehicles"></div>
-
-    <!-- Vehicle Card Template -->
-    <template id="tb-results-vehicle-template">
-        <div class="tb-results__vehicle-card" data-vehicle-id="">
-            <div class="tb-results__vehicle-image">
-                <img src="" alt="" class="tb-results__vehicle-img">
-                <span class="tb-results__vehicle-popular" style="display:none"><?php esc_html_e('Popular', 'transfers-booking'); ?></span>
-            </div>
-            <div class="tb-results__vehicle-content">
-                <h3 class="tb-results__vehicle-category"></h3>
-                <p class="tb-results__vehicle-tagline"></p>
-                <p class="tb-results__vehicle-name"></p>
-                <div class="tb-results__vehicle-specs">
-                    <span class="tb-results__spec">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 7a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM2 12.5c0-1.93 2.24-3.5 5-3.5s5 1.57 5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-                        <span class="tb-results__spec-pax"></span>
-                    </span>
-                    <span class="tb-results__spec">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4.5 3.5V2A1 1 0 015.5 1h3A1 1 0 019.5 2v1.5M1.5 4.5h11a.5.5 0 01.5.5v6.5a1 1 0 01-1 1h-10a1 1 0 01-1-1V5a.5.5 0 01.5-.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-                        <span class="tb-results__spec-luggage"></span>
-                    </span>
-                </div>
-                <div class="tb-results__vehicle-features"></div>
-                <p class="tb-results__vehicle-key-features"></p>
-                <p class="tb-results__vehicle-description"></p>
-                <div class="tb-results__vehicle-note" style="display:none"></div>
-            </div>
-            <div class="tb-results__vehicle-price">
-                <div class="tb-results__price-amount">
-                    <span class="tb-results__price-value"></span>
-                    <span class="tb-results__price-currency"></span>
-                </div>
-                <span class="tb-results__price-deposit"></span>
-                <button type="button" class="tb-results__book-btn"><?php esc_html_e('Book Now', 'transfers-booking'); ?></button>
-            </div>
-        </div>
-    </template>
 
     <!-- Extras Section -->
     <div class="tb-results__extras" id="tb-results-extras" style="display:none">

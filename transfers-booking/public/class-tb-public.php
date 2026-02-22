@@ -130,6 +130,12 @@ class TB_Public {
     }
 
     public function enqueue_scripts() {
+        // Check for lang override in URL (propagated from search widget)
+        $lang_override = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : '';
+        if ($lang_override && $lang_override !== determine_locale()) {
+            switch_to_locale($lang_override);
+        }
+
         $has_booking      = $this->page_has_shortcode('transfers_booking');
         $has_search       = $this->page_has_shortcode('transfers_search');
         $has_results      = $this->page_has_shortcode('transfers_results');
@@ -403,7 +409,7 @@ class TB_Public {
             'enableRoundTrip'      => (bool) TB_Settings::get('tb_enable_round_trip'),
             'enableFlightNumber'   => (bool) TB_Settings::get('tb_enable_flight_number'),
             'isRtl'                => is_rtl(),
-            'lang'                 => determine_locale(),
+            'lang'                 => isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : determine_locale(),
             'resultsPageUrl'       => TB_Settings::get('tb_results_page_url'),
             'toursPageUrl'         => TB_Settings::get('tb_tours_page_url'),
             'checkoutPageUrl'      => TB_Settings::get('tb_checkout_page_url'),

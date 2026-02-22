@@ -4,10 +4,24 @@
  * Variables available: $instance_id, $theme, $layout, $show_tabs, $show_badges, $headline
  */
 defined('ABSPATH') || exit;
+$lang = isset($lang) ? $lang : '';
+$fixed_origin = isset($fixed_origin) ? $fixed_origin : '';
+$fixed_origin_lat = isset($fixed_origin_lat) ? $fixed_origin_lat : '';
+$fixed_origin_lng = isset($fixed_origin_lng) ? $fixed_origin_lng : '';
+
 $dir = is_rtl() ? 'rtl' : 'ltr';
+// Override direction if lang is an RTL language
+$rtl_langs = ['ar', 'he', 'fa', 'ur', 'ps', 'ku'];
+if ($lang && in_array(substr($lang, 0, 2), $rtl_langs, true)) {
+    $dir = 'rtl';
+}
 ?>
 <div class="tb-search-widget tb-search-widget--<?php echo esc_attr($theme); ?> tb-search-widget--<?php echo esc_attr($layout); ?>"
      data-instance="<?php echo esc_attr($instance_id); ?>"
+     data-lang="<?php echo esc_attr($lang); ?>"
+     data-fixed-origin="<?php echo esc_attr($fixed_origin); ?>"
+     data-fixed-origin-lat="<?php echo esc_attr($fixed_origin_lat); ?>"
+     data-fixed-origin-lng="<?php echo esc_attr($fixed_origin_lng); ?>"
      dir="<?php echo esc_attr($dir); ?>">
 
     <?php if ($show_tabs) : ?>
@@ -35,18 +49,20 @@ $dir = is_rtl() ? 'rtl' : 'ltr';
     <div class="tb-search-widget__form tb-search-widget__form--active" data-service="transfers">
         <div class="tb-search-widget__bar">
             <!-- From -->
-            <div class="tb-search-widget__field tb-search-widget__field--from">
+            <div class="tb-search-widget__field tb-search-widget__field--from <?php echo $fixed_origin ? 'tb-search-widget__field--locked' : ''; ?>">
                 <div class="tb-search-widget__field-icon tb-search-widget__field-icon--from">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>
                 </div>
                 <div class="tb-search-widget__field-content">
                     <label class="tb-search-widget__field-label"><?php esc_html_e('From', 'transfers-booking'); ?></label>
-                    <input type="text" class="tb-search-widget__input" data-field="from" placeholder="<?php esc_attr_e('Airport, hotel, address...', 'transfers-booking'); ?>" autocomplete="off">
-                    <input type="hidden" data-field="from_lat">
-                    <input type="hidden" data-field="from_lng">
-                    <input type="hidden" data-field="from_address">
+                    <input type="text" class="tb-search-widget__input" data-field="from" placeholder="<?php esc_attr_e('Airport, hotel, address...', 'transfers-booking'); ?>" autocomplete="off"<?php if ($fixed_origin) : ?> value="<?php echo esc_attr($fixed_origin); ?>" readonly<?php endif; ?>>
+                    <input type="hidden" data-field="from_lat"<?php if ($fixed_origin_lat) echo ' value="' . esc_attr($fixed_origin_lat) . '"'; ?>>
+                    <input type="hidden" data-field="from_lng"<?php if ($fixed_origin_lng) echo ' value="' . esc_attr($fixed_origin_lng) . '"'; ?>>
+                    <input type="hidden" data-field="from_address"<?php if ($fixed_origin) echo ' value="' . esc_attr($fixed_origin) . '"'; ?>>
                 </div>
+                <?php if (!$fixed_origin) : ?>
                 <div class="tb-search-widget__autocomplete" data-for="from"></div>
+                <?php endif; ?>
             </div>
 
             <div class="tb-search-widget__divider"></div>
