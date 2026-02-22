@@ -173,16 +173,18 @@
     font-size: 0.9rem !important;
 }
 .pac-item:hover { background: #f3f4f6 !important; }
+/* Hide all Google Places icons and replace with a single pin */
 .pac-item .pac-icon {
-    flex-shrink: 0;
-    margin-top: 1px;
-    width: 16px !important;
-    height: 16px !important;
-    background-size: 16px !important;
-}
-/* Hide the duplicate icon (Google renders two) */
-.pac-item .pac-icon ~ .pac-icon {
     display: none !important;
+}
+.pac-item::before {
+    content: '';
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
 }
 .pac-item .pac-item-query {
     font-size: 0.9rem !important;
