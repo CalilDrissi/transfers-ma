@@ -373,6 +373,10 @@ class TransferExtraViewSet(viewsets.ModelViewSet):
 
     Extras are additional services that can be added to a transfer booking.
     Public can list/view, only admins can create/update/delete.
+
+    Accepts optional ?vehicle_category_id=X to filter extras for a specific
+    vehicle category. Returns extras linked to that category plus extras
+    with no categories assigned (universal extras).
     """
     queryset = TransferExtra.objects.filter(is_active=True)
     serializer_class = TransferExtraSerializer
@@ -381,3 +385,13 @@ class TransferExtraViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        cat_id = self.request.query_params.get('vehicle_category_id')
+        if cat_id:
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(vehicle_categories__id=cat_id) | Q(vehicle_categories__isnull=True)
+            ).distinct()
+        return qs

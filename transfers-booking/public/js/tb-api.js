@@ -28,11 +28,29 @@
                     if (result.success) {
                         resolve(result.data);
                     } else {
-                        var msg = (result.data && result.data.message)
-                            || (result.data && result.data.error)
-                            || (result.data && result.data.detail)
-                            || tbConfig.i18n.errorGeneric;
-                        reject({ message: msg, data: result.data });
+                        var d = result.data || {};
+                        var msg;
+                        if (typeof d === 'string') {
+                            msg = d;
+                        } else if (typeof d.message === 'string') {
+                            msg = d.message;
+                        } else if (typeof d.error === 'string') {
+                            msg = d.error;
+                        } else if (typeof d.detail === 'string') {
+                            msg = d.detail;
+                        } else {
+                            // DRF field errors: {"field": ["msg", ...], ...} — grab first
+                            msg = null;
+                            for (var key in d) {
+                                if (d.hasOwnProperty(key)) {
+                                    var val = d[key];
+                                    if (typeof val === 'string') { msg = val; break; }
+                                    if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') { msg = val[0]; break; }
+                                }
+                            }
+                            msg = msg || tbConfig.i18n.errorGeneric;
+                        }
+                        reject({ message: msg, data: d });
                     }
                 })
                 .catch(function (err) {
@@ -55,8 +73,10 @@
             });
         },
 
-        getExtras: function () {
-            return this._call('get_extras');
+        getExtras: function (categoryId) {
+            var p = {};
+            if (categoryId) p.vehicle_category_id = categoryId;
+            return this._call('get_extras', p);
         },
 
         getCategories: function () {

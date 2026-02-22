@@ -104,7 +104,10 @@
             var el = document.getElementById(containerId);
             if (el) {
                 if (typeof message !== 'string') {
-                    message = (message && message.message) ? message.message : String(message);
+                    message = (message && typeof message.message === 'string') ? message.message
+                        : (message && typeof message.error === 'string') ? message.error
+                        : (message && typeof message.detail === 'string') ? message.detail
+                        : tbConfig.i18n.errorGeneric || 'An error occurred.';
                 }
                 el.textContent = message;
                 el.style.display = 'block';

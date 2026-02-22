@@ -744,6 +744,9 @@ def vehicle_category_detail(request, pk):
                 pass
             category.is_active = request.POST.get('is_active') == 'on'
             category.save()
+            # Update extras M2M
+            selected_extras = request.POST.getlist('selected_extras')
+            category.extras.set(selected_extras)
             messages.success(request, 'Category updated successfully.')
 
         elif action == 'delete_category':
@@ -757,9 +760,16 @@ def vehicle_category_detail(request, pk):
     # Get vehicles in this category
     vehicles = category.vehicles.all()
 
+    # Get all active extras for the checkboxes
+    from apps.transfers.models import TransferExtra
+    extras = TransferExtra.objects.filter(is_active=True)
+    selected_extra_ids = set(category.extras.values_list('id', flat=True))
+
     context = {
         'category': category,
         'vehicles': vehicles,
+        'extras': extras,
+        'selected_extra_ids': selected_extra_ids,
     }
     return render(request, 'dashboard/vehicles/category_detail.html', context)
 

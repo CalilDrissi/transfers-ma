@@ -225,6 +225,12 @@ class TransferExtra(models.Model):
         default=False,
         help_text=_('If checked, price is multiplied by quantity')
     )
+    vehicle_categories = models.ManyToManyField(
+        'vehicles.VehicleCategory',
+        blank=True,
+        related_name='extras',
+        help_text=_('Categories this extra is available for. Empty = available for all.')
+    )
     is_active = models.BooleanField(_('active'), default=True)
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
 

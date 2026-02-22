@@ -69,7 +69,7 @@
                 <h5 class="mb-0">{% trans "Category Details" %}</h5>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" id="category-form">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="update_category">
 
@@ -266,6 +266,29 @@
     </div>
 
     <div class="col-lg-6">
+        <!-- Available Extras -->
+        {% if extras %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{% trans "Available Extras" %}</h5>
+                <span class="badge bg-secondary">{{ selected_extra_ids|length }} / {{ extras|length }}</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">{% trans "Select which extras are available when a customer books this vehicle category. Unchecking all means the extra will still show for all categories." %}</p>
+                {% for extra in extras %}
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="selected_extras" value="{{ extra.id }}" id="extra-{{ extra.id }}" form="category-form"
+                        {% if extra.id in selected_extra_ids %}checked{% endif %}>
+                    <label class="form-check-label" for="extra-{{ extra.id }}">
+                        {{ extra.name }}
+                        <span class="text-muted ms-1">({{ extra.price }} MAD{% if extra.is_per_item %} /each{% endif %})</span>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Vehicles in this Category -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">

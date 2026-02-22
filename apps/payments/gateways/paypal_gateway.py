@@ -72,7 +72,7 @@ class PayPalGateway(PaymentGatewayBase):
             else:
                 return PaymentResult(
                     success=False,
-                    error_message=payment.error.get('message', 'Unknown error'),
+                    error_message=str(payment.error.get('message', 'Unknown error')),
                     raw_response=payment.error
                 )
 
@@ -98,7 +98,7 @@ class PayPalGateway(PaymentGatewayBase):
             else:
                 return PaymentResult(
                     success=False,
-                    error_message=payment.error.get('message', 'Execution failed'),
+                    error_message=str(payment.error.get('message', 'Execution failed')),
                     raw_response=payment.error
                 )
 
@@ -174,7 +174,7 @@ class PayPalGateway(PaymentGatewayBase):
             else:
                 return RefundResult(
                     success=False,
-                    error_message=refund.error.get('message', 'Refund failed'),
+                    error_message=str(refund.error.get('message', 'Refund failed')),
                     raw_response=refund.error
                 )
 

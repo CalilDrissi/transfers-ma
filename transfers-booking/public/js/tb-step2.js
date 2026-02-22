@@ -10,7 +10,6 @@
 
         init: function () {
             this.loadVehicles();
-            this.loadExtras();
             this.updateSidebar();
             this.bindEvents();
         },
@@ -295,18 +294,22 @@
                 }
             }
             TB.State.set('selectedVehicle', vehicle);
+            TB.State.set('selectedExtras', []);
             TB.State.save();
 
             // Enable continue
             document.getElementById('tb-btn-continue').disabled = false;
+
+            // Load extras filtered by selected vehicle category
+            this.loadExtras(categoryId);
 
             // Update sidebar
             this.updateSidebar();
             this.updateQuote();
         },
 
-        loadExtras: function () {
-            TB.API.getExtras().then(function (data) {
+        loadExtras: function (categoryId) {
+            TB.API.getExtras(categoryId).then(function (data) {
                 var extras = data.results || data;
                 if (!Array.isArray(extras)) extras = [];
                 TB.State.set('extras', extras);
