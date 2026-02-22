@@ -41,9 +41,7 @@ if ($lang && in_array(substr($lang, 0, 2), $rtl_langs, true)) {
     </div>
     <?php endif; ?>
 
-    <?php if ($headline) : ?>
-    <h2 class="tb-search-widget__headline"><?php echo esc_html($headline); ?></h2>
-    <?php endif; ?>
+    <h2 class="tb-search-widget__headline"><?php echo $headline ? esc_html($headline) : esc_html__('Comfortable car transfers with professional drivers.', 'transfers-booking'); ?></h2>
 
     <!-- TRANSFERS FORM -->
     <div class="tb-search-widget__form tb-search-widget__form--active" data-service="transfers">
