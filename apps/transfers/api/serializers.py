@@ -66,14 +66,17 @@ class TransferCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transfer
         fields = [
+            'id', 'booking_ref',
             'customer_name', 'customer_email', 'customer_phone',
             'transfer_type', 'pickup_address', 'pickup_latitude', 'pickup_longitude',
             'dropoff_address', 'dropoff_latitude', 'dropoff_longitude',
             'pickup_datetime', 'flight_number', 'flight_arrival_time',
             'passengers', 'luggage', 'child_seats',
             'vehicle_category_id', 'special_requests',
-            'is_round_trip', 'return_datetime', 'extras'
+            'is_round_trip', 'return_datetime', 'extras',
+            'total_price', 'deposit_amount', 'currency', 'status',
         ]
+        read_only_fields = ['id', 'booking_ref', 'total_price', 'deposit_amount', 'currency', 'status']
 
     def create(self, validated_data):
         from apps.vehicles.models import VehicleCategory
