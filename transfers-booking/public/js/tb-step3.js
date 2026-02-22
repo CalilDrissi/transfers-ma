@@ -424,12 +424,12 @@
             if (email) TB.State.set('customerEmail', email.value.trim());
             if (phone) {
                 var phoneCode = phoneDropdown ? phoneDropdown.getCode() : '+212';
-                var phoneNum = phone.value.trim();
+                var phoneNum = phone.value.trim().replace(/^\+/, '');
                 TB.State.set('customerPhone', phoneNum ? phoneCode + phoneNum : '');
             }
             if (whatsapp) {
                 var waCode = waDropdown ? waDropdown.getCode() : '+212';
-                var waNum = whatsapp.value.trim();
+                var waNum = whatsapp.value.trim().replace(/^\+/, '');
                 TB.State.set('customerWhatsapp', waNum ? waCode + waNum : '');
             }
             if (requests) TB.State.set('specialRequests', requests.value.trim());

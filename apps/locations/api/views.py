@@ -542,7 +542,7 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
             pass
 
         if duration_minutes is None:
-            duration_minutes = int(distance_km * 1.5)  # Estimate 40 km/h average
+            duration_minutes = int(float(distance_km) * 1.5)  # Estimate 40 km/h average
 
         # Build vehicle options from categories
         vehicle_options = []
