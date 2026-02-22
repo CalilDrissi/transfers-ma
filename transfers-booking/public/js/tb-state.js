@@ -54,7 +54,7 @@
         bookingRef: '',
         paymentRef: '',
         totalPrice: 0,
-        currency: 'MAD'
+        currency: ''
     };
 
     var _data = {};

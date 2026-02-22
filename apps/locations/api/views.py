@@ -9,6 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 from apps.accounts.permissions import HasAPIKeyOrIsAuthenticated
+from apps.accounts.models import SiteSettings
 
 from apps.locations.models import Zone, ZonePricing, Route, RoutePickupZone, RouteDropoffZone
 from apps.locations.services import calculate_distance, DistanceCalculationError
@@ -449,6 +450,7 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                         'custom_info': zone.custom_info,
                         'min_booking_hours': min(min_hours_values) if min_hours_values else None,
                         'vehicle_options': sorted(vehicle_options, key=lambda x: x['price']),
+                        'currency': SiteSettings.get_settings().default_currency,
                     })
         # If no zone match or no pricing → fall through to Route check
 
@@ -506,6 +508,7 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                 }
             ).data
             data['pricing_type'] = 'route'
+            data['currency'] = SiteSettings.get_settings().default_currency
             # Compute route-level min_booking_hours (smallest non-null across vehicle options)
             min_hours_values = [
                 v['min_booking_hours'] for v in data.get('vehicle_options', [])
@@ -579,7 +582,8 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
             'distance_km': round(distance_km, 1),
             'estimated_duration_minutes': duration_minutes,
             'duration_display': f"{duration_minutes // 60}h {duration_minutes % 60}min",
-            'vehicle_options': sorted(vehicle_options, key=lambda x: x['price'])
+            'vehicle_options': sorted(vehicle_options, key=lambda x: x['price']),
+            'currency': SiteSettings.get_settings().default_currency,
         })
 
 

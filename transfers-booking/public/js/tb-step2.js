@@ -54,6 +54,7 @@
                 }
                 TB.State.set('pricingData', data);
                 TB.State.set('vehicleOptions', data.vehicle_options || []);
+                if (data.currency) TB.State.set('currency', data.currency);
                 TB.Step2.renderVehicles(data);
                 TB.Step2.renderRouteInfo(data);
             }).catch(function (err) {
@@ -187,7 +188,7 @@
                 return;
             }
 
-            var currency = tbConfig.currencySymbol || 'MAD';
+            var currency = data.currency || TB.State.get('currency') || tbConfig.currencySymbol || 'MAD';
             var html = '';
             for (var i = 0; i < options.length; i++) {
                 var v = options[i];
