@@ -572,7 +572,8 @@
 
             if (!firstName) errors.push({ field: 'first-name', msg: tbConfig.i18n.required });
             if (!lastName) errors.push({ field: 'last-name', msg: tbConfig.i18n.required });
-            if (!email || !TB.Utils.validateEmail(email)) errors.push({ field: 'email', msg: tbConfig.i18n.invalidEmail });
+            if (!email) errors.push({ field: 'email', msg: tbConfig.i18n.required });
+            else if (!TB.Utils.validateEmail(email)) errors.push({ field: 'email', msg: tbConfig.i18n.invalidEmail });
             if (!phone || !TB.Utils.validatePhone(phone)) errors.push({ field: 'phone', msg: tbConfig.i18n.invalidPhone });
 
             for (var i = 0; i < errors.length; i++) {
@@ -725,13 +726,85 @@
         },
 
         showConfirmation: function () {
+            var state = TB.State.getAll();
+
             // Set confirmation data
             var refEl = document.getElementById('tb-confirmation-ref');
             var emailEl = document.getElementById('tb-confirmation-email');
-            if (refEl) refEl.textContent = TB.State.get('bookingRef');
-            if (emailEl) emailEl.textContent = TB.State.get('customerEmail');
+            if (refEl) refEl.textContent = state.bookingRef;
+            if (emailEl) emailEl.textContent = state.customerEmail;
+
+            // Populate receipt
+            var vehicle = state.selectedVehicle;
+            var gateway = this.getSelectedGateway();
+            var gatewayLabel = gateway === 'cash' ? 'Cash' : gateway === 'paypal' ? 'PayPal' : 'Card';
+
+            var setEl = function (id, val) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = val || '--';
+            };
+
+            setEl('tb-receipt-ref', state.bookingRef);
+            setEl('tb-receipt-datetime', TB.Utils.formatDateTime(state.pickupDatetime));
+            setEl('tb-receipt-pickup', state.pickupAddress);
+            setEl('tb-receipt-dropoff', state.dropoffAddress);
+            setEl('tb-receipt-vehicle', vehicle ? vehicle.category_name : '--');
+            setEl('tb-receipt-passengers', state.passengers);
+            setEl('tb-receipt-payment', gatewayLabel);
+            setEl('tb-receipt-total', TB.Utils.formatPrice(state.totalPrice, state.currency));
+
+            // Download receipt handler
+            var dlBtn = document.getElementById('tb-download-receipt');
+            if (dlBtn) {
+                dlBtn.onclick = function () {
+                    TB.Step3.downloadReceipt(state, gatewayLabel);
+                };
+            }
 
             TB.Wizard.showConfirmation();
+        },
+
+        downloadReceipt: function (state, gatewayLabel) {
+            var vehicle = state.selectedVehicle;
+            var html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+                + '<title>Receipt ' + TB.Utils.escapeHtml(state.bookingRef || '') + '</title>'
+                + '<style>'
+                + 'body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:600px;margin:40px auto;padding:0 20px;color:#1a1a2e;}'
+                + '.logo{text-align:center;font-size:1.5rem;font-weight:700;margin-bottom:8px;}'
+                + '.subtitle{text-align:center;color:#6c757d;margin-bottom:32px;font-size:0.9rem;}'
+                + '.ref{text-align:center;font-size:1.3rem;font-weight:700;color:#e94560;margin-bottom:24px;}'
+                + 'table{width:100%;border-collapse:collapse;}'
+                + 'td{padding:10px 0;border-bottom:1px solid #eee;}'
+                + 'td:first-child{color:#6c757d;width:40%;}'
+                + 'td:last-child{text-align:right;font-weight:500;}'
+                + '.total td{border-bottom:none;border-top:2px solid #1a1a2e;font-size:1.1rem;font-weight:700;}'
+                + '.footer{text-align:center;color:#6c757d;font-size:0.8rem;margin-top:32px;}'
+                + '@media print{body{margin:0;} .no-print{display:none;}}'
+                + '</style></head><body>'
+                + '<div class="logo">Transfers.ma</div>'
+                + '<div class="subtitle">Booking Receipt</div>'
+                + '<div class="ref">' + TB.Utils.escapeHtml(state.bookingRef || '') + '</div>'
+                + '<table>'
+                + '<tr><td>Date & Time</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatDateTime(state.pickupDatetime)) + '</td></tr>'
+                + '<tr><td>Pickup</td><td>' + TB.Utils.escapeHtml(state.pickupAddress || '') + '</td></tr>'
+                + '<tr><td>Drop-off</td><td>' + TB.Utils.escapeHtml(state.dropoffAddress || '') + '</td></tr>'
+                + '<tr><td>Vehicle</td><td>' + TB.Utils.escapeHtml(vehicle ? vehicle.category_name : '--') + '</td></tr>'
+                + '<tr><td>Passengers</td><td>' + (state.passengers || 1) + '</td></tr>'
+                + '<tr><td>Payment</td><td>' + TB.Utils.escapeHtml(gatewayLabel) + '</td></tr>'
+                + '<tr class="total"><td>Total</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(state.totalPrice, state.currency)) + '</td></tr>'
+                + '</table>'
+                + '<div class="footer">Thank you for booking with Transfers.ma<br>support@transfers.ma</div>'
+                + '</body></html>';
+
+            var blob = new Blob([html], { type: 'text/html' });
+            var url = URL.createObjectURL(blob);
+            var win = window.open(url, '_blank');
+            if (win) {
+                win.onload = function () {
+                    win.print();
+                    URL.revokeObjectURL(url);
+                };
+            }
         }
     };
 })();
