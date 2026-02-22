@@ -44,6 +44,8 @@ urlpatterns = [
 
     # Users
     path('users/', views.user_list, name='user_list'),
+    path('users/create/', views.user_create, name='user_create'),
+    path('users/<int:pk>/', views.user_detail, name='user_detail'),
 
     # Payments
     path('payments/', views.payment_list, name='payment_list'),

@@ -4,6 +4,12 @@
 {% block title %}{% trans "Users" %}{% endblock %}
 {% block page_title %}{% trans "User Management" %}{% endblock %}
 
+{% block page_actions %}
+<a href="{% url 'dashboard:user_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>{% trans "Add User" %}
+</a>
+{% endblock %}
+
 {% block content %}
 <!-- Filters -->
 <div class="card mb-4">
@@ -48,7 +54,7 @@
                 </thead>
                 <tbody>
                     {% for user in users %}
-                    <tr>
+                    <tr style="cursor: pointer;" onclick="window.location='{% url 'dashboard:user_detail' pk=user.pk %}'">
                         <td>
                             <strong>{{ user.full_name }}</strong>
                         </td>
@@ -78,4 +84,31 @@
         </div>
     </div>
 </div>
+
+<!-- Pagination -->
+{% if users.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if users.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ users.previous_page_number }}&{{ request.GET.urlencode }}">&laquo;</a>
+        </li>
+        {% endif %}
+
+        {% for num in users.paginator.page_range %}
+            {% if users.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if users.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ users.next_page_number }}&{{ request.GET.urlencode }}">&raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}

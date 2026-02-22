@@ -1277,6 +1277,92 @@ def user_list(request):
     return render(request, 'dashboard/users/list.html', context)
 
 
+@login_required
+@user_passes_test(is_admin)
+def user_create(request):
+    """Create a new user."""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
+        password_confirm = request.POST.get('password_confirm', '')
+
+        if not email:
+            messages.error(request, 'Email is required.')
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, 'A user with this email already exists.')
+        elif not password:
+            messages.error(request, 'Password is required.')
+        elif password != password_confirm:
+            messages.error(request, 'Passwords do not match.')
+        else:
+            user = User.objects.create_user(
+                email=email,
+                password=password,
+                first_name=request.POST.get('first_name', '').strip(),
+                last_name=request.POST.get('last_name', '').strip(),
+                phone=request.POST.get('phone', '').strip(),
+                role=request.POST.get('role', User.Role.CLIENT),
+                is_active=request.POST.get('is_active') == 'on',
+            )
+            messages.success(request, f'User "{user.email}" created successfully.')
+            return redirect('dashboard:user_detail', pk=user.pk)
+
+    context = {
+        'roles': User.Role.choices,
+    }
+    return render(request, 'dashboard/users/create.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def user_detail(request, pk):
+    """Edit, change password, or delete a user."""
+    user = get_object_or_404(User, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_user':
+            new_email = request.POST.get('email', '').strip().lower()
+            if new_email and new_email != user.email and User.objects.filter(email=new_email).exists():
+                messages.error(request, 'A user with this email already exists.')
+            else:
+                user.first_name = request.POST.get('first_name', '').strip()
+                user.last_name = request.POST.get('last_name', '').strip()
+                if new_email:
+                    user.email = new_email
+                user.phone = request.POST.get('phone', '').strip()
+                user.role = request.POST.get('role', user.role)
+                user.is_active = request.POST.get('is_active') == 'on'
+                user.save()
+                messages.success(request, 'User updated successfully.')
+
+        elif action == 'change_password':
+            password = request.POST.get('password', '')
+            password_confirm = request.POST.get('password_confirm', '')
+            if not password:
+                messages.error(request, 'Password is required.')
+            elif password != password_confirm:
+                messages.error(request, 'Passwords do not match.')
+            else:
+                user.set_password(password)
+                user.save()
+                messages.success(request, 'Password changed successfully.')
+
+        elif action == 'delete_user':
+            user.delete()
+            messages.success(request, 'User deleted.')
+            return redirect('dashboard:user_list')
+
+        return redirect('dashboard:user_detail', pk=pk)
+
+    context = {
+        'user_obj': user,
+        'roles': User.Role.choices,
+    }
+    return render(request, 'dashboard/users/detail.html', context)
+
+
 # Payment Views
 @login_required
 @user_passes_test(is_admin)
