@@ -112,8 +112,31 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             except Exception:
                 pass
 
-        # Calculate base price from distance
-        base_price = self._calculate_base_price(distance_km, vehicle_category)
+        # Calculate base price: use route pricing if matched, else distance-based
+        base_price = None
+        if all([pickup_lat, pickup_lng, dropoff_lat, dropoff_lng]):
+            from apps.locations.models import Route, VehicleRoutePricing
+            from apps.locations.services import calculate_distance_haversine
+            for route in Route.objects.filter(is_active=True):
+                if route.origin_latitude and route.origin_longitude and route.destination_latitude and route.destination_longitude:
+                    o_dist = float(calculate_distance_haversine(float(pickup_lat), float(pickup_lng), float(route.origin_latitude), float(route.origin_longitude)))
+                    d_dist = float(calculate_distance_haversine(float(dropoff_lat), float(dropoff_lng), float(route.destination_latitude), float(route.destination_longitude)))
+                    matched = (o_dist <= float(route.origin_radius_km) and d_dist <= float(route.destination_radius_km))
+                    if not matched and route.is_bidirectional:
+                        o_rev = float(calculate_distance_haversine(float(pickup_lat), float(pickup_lng), float(route.destination_latitude), float(route.destination_longitude)))
+                        d_rev = float(calculate_distance_haversine(float(dropoff_lat), float(dropoff_lng), float(route.origin_latitude), float(route.origin_longitude)))
+                        matched = (o_rev <= float(route.destination_radius_km) and d_rev <= float(route.origin_radius_km))
+                    if matched:
+                        rp = VehicleRoutePricing.objects.filter(
+                            route=route, vehicle__category=vehicle_category, is_active=True,
+                            pickup_zone__isnull=True, dropoff_zone__isnull=True,
+                        ).first()
+                        if rp:
+                            base_price = rp.price
+                        break
+
+        if base_price is None:
+            base_price = self._calculate_base_price(distance_km, vehicle_category)
 
         # Create transfer
         from apps.accounts.models import SiteSettings

@@ -199,8 +199,46 @@ class TransferViewSet(viewsets.ModelViewSet):
         except Exception:
             pass
 
-        # Calculate base price
-        base_price = self._calculate_price(distance_km, vehicle_category)
+        # Look up matching route or zone for pricing
+        from apps.locations.models import Route, Zone
+        from apps.locations.services import calculate_distance_haversine
+
+        pickup_lat = float(data['pickup_latitude'])
+        pickup_lng = float(data['pickup_longitude'])
+        dropoff_lat = float(data['dropoff_latitude'])
+        dropoff_lng = float(data['dropoff_longitude'])
+
+        matched_route = None
+        for route in Route.objects.filter(is_active=True):
+            if route.origin_latitude and route.origin_longitude and route.destination_latitude and route.destination_longitude:
+                origin_dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.origin_latitude), float(route.origin_longitude)))
+                dest_dist = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.destination_latitude), float(route.destination_longitude)))
+                if origin_dist <= float(route.origin_radius_km) and dest_dist <= float(route.destination_radius_km):
+                    matched_route = route
+                    break
+                if route.is_bidirectional:
+                    origin_dist_rev = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.destination_latitude), float(route.destination_longitude)))
+                    dest_dist_rev = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.origin_latitude), float(route.origin_longitude)))
+                    if origin_dist_rev <= float(route.destination_radius_km) and dest_dist_rev <= float(route.origin_radius_km):
+                        matched_route = route
+                        break
+
+        # Calculate base price: use route pricing if matched, else distance-based
+        base_price = None
+        if matched_route:
+            from apps.locations.models import VehicleRoutePricing
+            route_pricing = VehicleRoutePricing.objects.filter(
+                route=matched_route,
+                vehicle__category=vehicle_category,
+                is_active=True,
+                pickup_zone__isnull=True,
+                dropoff_zone__isnull=True,
+            ).first()
+            if route_pricing:
+                base_price = route_pricing.price
+
+        if base_price is None:
+            base_price = self._calculate_price(distance_km, vehicle_category)
 
         # Calculate extras
         extras_total = Decimal('0')
@@ -221,41 +259,14 @@ class TransferViewSet(viewsets.ModelViewSet):
 
         total = (base_price + extras_total) * multiplier
 
-        # Look up deposit percentage from matching Route or Zone
+        # Look up deposit percentage
         deposit_percentage = Decimal('0')
         deposit_amount = Decimal('0')
-
-        from apps.locations.models import Route, Zone
-
-        pickup_lat = float(data['pickup_latitude'])
-        pickup_lng = float(data['pickup_longitude'])
-        dropoff_lat = float(data['dropoff_latitude'])
-        dropoff_lng = float(data['dropoff_longitude'])
-
-        # Try to match a route first
-        matched_route = None
-        for route in Route.objects.filter(is_active=True):
-            if route.origin_latitude and route.origin_longitude and route.destination_latitude and route.destination_longitude:
-                from apps.locations.services import calculate_distance_haversine
-                origin_dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.origin_latitude), float(route.origin_longitude)))
-                dest_dist = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.destination_latitude), float(route.destination_longitude)))
-                if origin_dist <= float(route.origin_radius_km) and dest_dist <= float(route.destination_radius_km):
-                    matched_route = route
-                    break
-                # Check reverse direction if bidirectional
-                if route.is_bidirectional:
-                    origin_dist_rev = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.destination_latitude), float(route.destination_longitude)))
-                    dest_dist_rev = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.origin_latitude), float(route.origin_longitude)))
-                    if origin_dist_rev <= float(route.destination_radius_km) and dest_dist_rev <= float(route.origin_radius_km):
-                        matched_route = route
-                        break
 
         if matched_route and matched_route.deposit_percentage > 0:
             deposit_percentage = matched_route.deposit_percentage
         else:
-            # Try to match a zone by pickup coordinates
             for zone in Zone.objects.filter(is_active=True, center_latitude__isnull=False):
-                from apps.locations.services import calculate_distance_haversine
                 dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(zone.center_latitude), float(zone.center_longitude)))
                 if dist <= float(zone.radius_km) and zone.deposit_percentage > 0:
                     deposit_percentage = zone.deposit_percentage
