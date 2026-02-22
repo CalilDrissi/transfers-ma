@@ -69,6 +69,12 @@ class TB_Admin {
             'transfers-booking'
         );
 
+        $this->add_field('tb_enable_cash', __('Enable Cash on Pickup', 'transfers-booking'), 'tb_payment_section', 'checkbox',
+            __('Allow customers to pay cash to the driver.', 'transfers-booking'));
+        $this->add_field('tb_enable_stripe', __('Enable Stripe', 'transfers-booking'), 'tb_payment_section', 'checkbox',
+            __('Accept credit/debit card payments via Stripe.', 'transfers-booking'));
+        $this->add_field('tb_enable_paypal', __('Enable PayPal', 'transfers-booking'), 'tb_payment_section', 'checkbox',
+            __('Accept payments via PayPal.', 'transfers-booking'));
         $this->add_field('tb_stripe_publishable_key', __('Stripe Publishable Key', 'transfers-booking'), 'tb_payment_section', 'text',
             __('Starts with pk_', 'transfers-booking'));
         $this->add_field('tb_paypal_client_id', __('PayPal Client ID', 'transfers-booking'), 'tb_payment_section', 'text',

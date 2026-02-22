@@ -1380,6 +1380,20 @@ def settings_view(request):
             site_settings.save()
             messages.success(request, 'PayPal settings updated successfully.')
 
+        elif action == 'update_payment_methods':
+            gateway_map = {
+                'cash': ('Cash', 'Cash on Pickup'),
+                'stripe': ('Stripe', 'Stripe'),
+                'paypal': ('PayPal', 'PayPal'),
+            }
+            for gw_type, (name, display_name) in gateway_map.items():
+                is_active = bool(request.POST.get(f'gateway_{gw_type}'))
+                PaymentGateway.objects.update_or_create(
+                    gateway_type=gw_type,
+                    defaults={'is_active': is_active, 'name': name, 'display_name': display_name}
+                )
+            messages.success(request, 'Payment methods updated successfully.')
+
         elif action == 'update_general':
             site_settings.site_name = request.POST.get('site_name', site_settings.site_name)
             site_settings.contact_email = request.POST.get('contact_email', '')

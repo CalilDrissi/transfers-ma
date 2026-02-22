@@ -95,6 +95,47 @@
 
     <!-- Right Column - Payment Settings -->
     <div class="col-lg-6">
+        <!-- Payment Methods -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-toggles me-2"></i>{% trans "Payment Methods" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_payment_methods">
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="gateway_cash" name="gateway_cash"
+                               {% for g in gateways %}{% if g.gateway_type == 'cash' and g.is_active %}checked{% endif %}{% endfor %}>
+                        <label class="form-check-label" for="gateway_cash">
+                            <i class="bi bi-cash-stack me-1"></i>{% trans "Cash on Pickup" %}
+                        </label>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="gateway_stripe" name="gateway_stripe"
+                               {% for g in gateways %}{% if g.gateway_type == 'stripe' and g.is_active %}checked{% endif %}{% endfor %}>
+                        <label class="form-check-label" for="gateway_stripe">
+                            <i class="bi bi-credit-card me-1"></i>{% trans "Stripe" %}
+                        </label>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="gateway_paypal" name="gateway_paypal"
+                               {% for g in gateways %}{% if g.gateway_type == 'paypal' and g.is_active %}checked{% endif %}{% endfor %}>
+                        <label class="form-check-label" for="gateway_paypal">
+                            <i class="bi bi-paypal me-1"></i>{% trans "PayPal" %}
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Save Payment Methods" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <!-- Stripe -->
         <div class="card mb-4">
             <div class="card-header">

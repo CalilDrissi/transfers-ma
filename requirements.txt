@@ -47,3 +47,6 @@ celery==5.3.4
 
 # Email
 django-anymail==10.2
+
+# PDF generation
+xhtml2pdf==0.2.16

@@ -1,0 +1,54 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>New Transfer Booking</h2>
+<p>Dear {{ supplier_name|default:"Supplier" }},</p>
+<p>A new transfer has been booked that requires your vehicle.</p>
+
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <div class="detail-row">
+        <span class="detail-label">Booking Reference:</span>
+        <strong>{{ booking_ref }}</strong>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Customer:</span> {{ customer_name }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Phone:</span> {{ customer_phone }}
+    </div>
+</div>
+
+<div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <div class="detail-row">
+        <span class="detail-label">Pickup:</span> {{ details.pickup_address }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Drop-off:</span> {{ details.dropoff_address }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Date & Time:</span> {{ details.pickup_datetime }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Vehicle:</span> {{ details.vehicle_category }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Passengers:</span> {{ details.passengers }}
+    </div>
+    {% if details.is_round_trip %}
+    <div class="detail-row">
+        <span class="detail-label">Trip Type:</span> Round Trip
+    </div>
+    {% endif %}
+    {% if details.flight_number %}
+    <div class="detail-row">
+        <span class="detail-label">Flight Number:</span> {{ details.flight_number }}
+    </div>
+    {% endif %}
+    {% if details.special_requests %}
+    <div class="detail-row">
+        <span class="detail-label">Special Requests:</span> {{ details.special_requests }}
+    </div>
+    {% endif %}
+</div>
+
+<p>Please ensure the vehicle is ready for this transfer.</p>
+{% endblock %}

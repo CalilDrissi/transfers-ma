@@ -7,10 +7,47 @@ from .emails import send_templated_email
 logger = logging.getLogger(__name__)
 
 
+def _build_receipt_pdf(booking_ref, customer_name, customer_email, customer_phone, booking_details):
+    """Build a PDF receipt and return (filename, bytes, mime) or None."""
+    try:
+        from .receipts import generate_receipt_pdf
+        pdf_bytes = generate_receipt_pdf({
+            'booking_ref': booking_ref,
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'customer_phone': customer_phone,
+            'pickup_address': booking_details.get('pickup_address', ''),
+            'dropoff_address': booking_details.get('dropoff_address', ''),
+            'pickup_datetime': booking_details.get('pickup_datetime', ''),
+            'passengers': booking_details.get('passengers', ''),
+            'vehicle_category': booking_details.get('vehicle_category', ''),
+            'is_round_trip': booking_details.get('is_round_trip', False),
+            'return_datetime': booking_details.get('return_datetime', ''),
+            'flight_number': booking_details.get('flight_number', ''),
+            'special_requests': booking_details.get('special_requests', ''),
+            'base_price': booking_details.get('base_price', ''),
+            'extras_price': booking_details.get('extras_price', ''),
+            'deposit_amount': booking_details.get('deposit_amount', ''),
+            'total_price': booking_details.get('total_price', ''),
+            'currency': booking_details.get('currency', 'MAD'),
+        })
+        if pdf_bytes:
+            return (f'Receipt-{booking_ref}.pdf', pdf_bytes, 'application/pdf')
+    except Exception:
+        logger.exception('Failed to generate PDF receipt for %s', booking_ref)
+    return None
+
+
 @shared_task
 def send_booking_confirmation(booking_ref, customer_email, customer_name, booking_details):
-    """Send booking confirmation email to the customer."""
+    """Send booking confirmation email to the customer with PDF receipt attached."""
     try:
+        attachments = []
+        receipt = _build_receipt_pdf(booking_ref, customer_name, customer_email,
+                                     booking_details.get('customer_phone', ''), booking_details)
+        if receipt:
+            attachments.append(receipt)
+
         send_templated_email(
             subject=f"Booking Confirmation - {booking_ref}",
             template_name='emails/booking_confirmation.html',
@@ -20,6 +57,7 @@ def send_booking_confirmation(booking_ref, customer_email, customer_name, bookin
                 'details': booking_details,
             },
             to_emails=[customer_email],
+            attachments=attachments,
         )
     except Exception:
         logger.exception('Failed to send booking confirmation for %s', booking_ref)
@@ -62,29 +100,58 @@ def send_status_update(booking_ref, customer_email, customer_name, new_status):
 
 
 @shared_task
-def send_admin_new_booking_alert(booking_ref, booking_type, customer_name, total_price):
-    """Send new booking alert to admin."""
-    admin_email = getattr(settings, 'DEFAULT_FROM_EMAIL', '')
-    if not admin_email:
+def send_admin_new_booking_alert(booking_ref, customer_name, customer_email, customer_phone, booking_details):
+    """Send new booking alert to admin with PDF receipt attached."""
+    try:
+        from apps.accounts.models import SiteSettings
+        site_settings = SiteSettings.get_settings()
+        admin_email = site_settings.contact_email or getattr(settings, 'DEFAULT_FROM_EMAIL', '')
+        if not admin_email:
+            return
+
+        attachments = []
+        receipt = _build_receipt_pdf(booking_ref, customer_name, customer_email, customer_phone, booking_details)
+        if receipt:
+            attachments.append(receipt)
+
+        send_templated_email(
+            subject=f"New Booking - {booking_ref}",
+            template_name='emails/admin_new_booking.html',
+            context={
+                'booking_ref': booking_ref,
+                'customer_name': customer_name,
+                'customer_email': customer_email,
+                'customer_phone': customer_phone,
+                'details': booking_details,
+            },
+            to_emails=[admin_email],
+            attachments=attachments,
+        )
+    except Exception:
+        logger.exception('Failed to send admin alert for %s', booking_ref)
+
+
+@shared_task
+def send_supplier_new_booking_alert(booking_ref, supplier_email, supplier_name, customer_name, customer_phone, booking_details):
+    """Send new booking notification to the vehicle supplier."""
+    if not supplier_email:
         return
 
     try:
         send_templated_email(
-            subject=f"New Booking - {booking_ref}",
-            template_name='emails/booking_confirmation.html',
+            subject=f"New Transfer Booking - {booking_ref}",
+            template_name='emails/supplier_new_booking.html',
             context={
                 'booking_ref': booking_ref,
+                'supplier_name': supplier_name,
                 'customer_name': customer_name,
-                'details': {
-                    'booking_type': booking_type,
-                    'total_price': total_price,
-                },
-                'is_admin_alert': True,
+                'customer_phone': customer_phone,
+                'details': booking_details,
             },
-            to_emails=[admin_email],
+            to_emails=[supplier_email],
         )
     except Exception:
-        logger.exception('Failed to send admin alert for %s', booking_ref)
+        logger.exception('Failed to send supplier alert for %s to %s', booking_ref, supplier_email)
 
 
 # ---------------------------------------------------------------------------

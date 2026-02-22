@@ -102,6 +102,32 @@
         <div class="tb-card" id="tb-payment-card">
             <h4 class="tb-card__title"><?php esc_html_e('Payment', 'transfers-booking'); ?></h4>
             <div id="tb-payment-errors" class="tb-alert tb-alert--error" style="display: none;"></div>
+
+            <!-- Gateway Selector -->
+            <div class="tb-gateway-selector" id="tb-gateway-selector" style="display: none;">
+                <label class="tb-gateway-option tb-gateway-option--active" data-gateway="stripe" style="display: none;">
+                    <input type="radio" name="tb-gateway" value="stripe" checked>
+                    <span class="tb-gateway-option__icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </span>
+                    <span class="tb-gateway-option__label"><?php esc_html_e('Credit / Debit Card', 'transfers-booking'); ?></span>
+                </label>
+                <label class="tb-gateway-option" data-gateway="cash" style="display: none;">
+                    <input type="radio" name="tb-gateway" value="cash">
+                    <span class="tb-gateway-option__icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M2 9h2M20 9h2M2 15h2M20 15h2"/></svg>
+                    </span>
+                    <span class="tb-gateway-option__label"><?php esc_html_e('Cash on Pickup', 'transfers-booking'); ?></span>
+                </label>
+                <label class="tb-gateway-option" data-gateway="paypal" style="display: none;">
+                    <input type="radio" name="tb-gateway" value="paypal">
+                    <span class="tb-gateway-option__icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7.5 21L9 13h5.5c3.5 0 6-2.5 6-5.5S18 2 14.5 2H8L5 21h2.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 17l1-5h4.5c2.5 0 4.5-1.8 4.5-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg>
+                    </span>
+                    <span class="tb-gateway-option__label"><?php esc_html_e('PayPal', 'transfers-booking'); ?></span>
+                </label>
+            </div>
+
             <!-- Payment options (shown when deposit available) -->
             <div id="tb-payment-options" class="tb-payment-options" style="display: none;">
                 <label class="tb-payment-option tb-payment-option--active">

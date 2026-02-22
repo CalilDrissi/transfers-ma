@@ -808,6 +808,28 @@ html body #tb-booking-widget .tb-phone-dropdown__item:hover {
     background: var(--tb-bg, #f0f4f8) !important;
 }
 
+/* Gateway selector */
+html body #tb-booking-widget .tb-gateway-selector {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    margin-bottom: 1.25rem !important;
+}
+html body #tb-booking-widget .tb-gateway-option {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    padding: 0.875rem 1rem !important;
+    border: 2px solid var(--tb-border, #e0e0e0) !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    background: #fff !important;
+}
+html body #tb-booking-widget .tb-gateway-option--active {
+    border-color: var(--tb-accent, #e94560) !important;
+    background: rgba(233, 69, 96, 0.03) !important;
+}
+
 /* Confirm payment button — hidden until Stripe element is shown */
 html body #tb-booking-widget #tb-confirm-payment-btn {
     margin-top: 0.75rem !important;

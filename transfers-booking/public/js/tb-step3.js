@@ -154,6 +154,7 @@
             waDropdown = initPhoneDropdown('tb-wa-prefix', 'tb-wa-flag', 'tb-wa-code', 'tb-wa-dropdown', 'tb-wa-search', 'tb-wa-list');
             this.renderOrderSummary();
             this.renderPaymentOptions();
+            this.renderGatewaySelector();
             this.restoreCustomerInfo();
             this.initStripe();
             this.bindEvents();
@@ -164,6 +165,71 @@
             if (!tbConfig.stripePublishableKey) return;
             if (!stripe) {
                 stripe = Stripe(tbConfig.stripePublishableKey);
+            }
+        },
+
+        renderGatewaySelector: function () {
+            var selector = document.getElementById('tb-gateway-selector');
+            if (!selector) return;
+
+            var gateways = [];
+            if (tbConfig.enableStripe) gateways.push('stripe');
+            if (tbConfig.enableCash) gateways.push('cash');
+            if (tbConfig.enablePaypal) gateways.push('paypal');
+
+            // If no gateways configured, default to stripe
+            if (gateways.length === 0) gateways.push('stripe');
+
+            // Show/hide each option
+            var options = selector.querySelectorAll('.tb-gateway-option');
+            for (var i = 0; i < options.length; i++) {
+                var gw = options[i].getAttribute('data-gateway');
+                if (gateways.indexOf(gw) !== -1) {
+                    options[i].style.display = '';
+                } else {
+                    options[i].style.display = 'none';
+                }
+            }
+
+            // Auto-select first available
+            var firstRadio = selector.querySelector('.tb-gateway-option[style=""] input[type="radio"], .tb-gateway-option:not([style*="display: none"]) input[type="radio"]');
+            if (firstRadio) {
+                firstRadio.checked = true;
+                firstRadio.closest('.tb-gateway-option').classList.add('tb-gateway-option--active');
+            }
+
+            // Only show selector if more than one gateway
+            if (gateways.length > 1) {
+                selector.style.display = 'flex';
+            } else {
+                selector.style.display = 'none';
+                // Ensure the single gateway radio is checked
+                for (var j = 0; j < options.length; j++) {
+                    var gwType = options[j].getAttribute('data-gateway');
+                    var radio = options[j].querySelector('input[type="radio"]');
+                    if (gateways.indexOf(gwType) !== -1 && radio) {
+                        radio.checked = true;
+                    }
+                }
+            }
+
+            // Hide deposit options for cash
+            this.updateDepositVisibility();
+        },
+
+        getSelectedGateway: function () {
+            var checked = document.querySelector('input[name="tb-gateway"]:checked');
+            return checked ? checked.value : 'stripe';
+        },
+
+        updateDepositVisibility: function () {
+            var gateway = this.getSelectedGateway();
+            var optionsEl = document.getElementById('tb-payment-options');
+            if (!optionsEl) return;
+
+            if (gateway === 'cash') {
+                optionsEl.style.display = 'none';
+                TB.State.set('paymentChoice', 'full');
             }
         },
 
@@ -255,6 +321,20 @@
                 });
             }
 
+            // Gateway radio selection
+            var gwRadios = document.querySelectorAll('input[name="tb-gateway"]');
+            for (var g = 0; g < gwRadios.length; g++) {
+                gwRadios[g].addEventListener('change', function () {
+                    var gwOptions = document.querySelectorAll('.tb-gateway-option');
+                    for (var gi = 0; gi < gwOptions.length; gi++) {
+                        gwOptions[gi].classList.remove('tb-gateway-option--active');
+                    }
+                    this.closest('.tb-gateway-option').classList.add('tb-gateway-option--active');
+                    self.updateDepositVisibility();
+                    self.updatePayButtonText();
+                });
+            }
+
             // Save customer info on input
             var fields = ['tb-customer-first-name', 'tb-customer-last-name', 'tb-customer-email', 'tb-customer-phone', 'tb-customer-whatsapp', 'tb-special-requests'];
             for (var j = 0; j < fields.length; j++) {
@@ -270,6 +350,7 @@
         updatePayButtonText: function () {
             var payBtn = document.getElementById('tb-pay-button');
             if (!payBtn) return;
+            var gateway = this.getSelectedGateway();
             var choice = TB.State.get('paymentChoice') || 'full';
             var state = TB.State.getAll();
             var vehicle = state.selectedVehicle;
@@ -282,7 +363,11 @@
             var totalPrice = basePrice + extrasTotal;
             if (state.isRoundTrip) totalPrice *= 2;
 
-            if (choice === 'deposit') {
+            if (gateway === 'cash') {
+                payBtn.textContent = (tbConfig.i18n.payCash || 'Pay Cash to Driver') + ' ' + TB.Utils.formatPrice(totalPrice);
+            } else if (gateway === 'paypal') {
+                payBtn.textContent = (tbConfig.i18n.payWithPaypal || 'Pay with PayPal') + ' ' + TB.Utils.formatPrice(totalPrice);
+            } else if (choice === 'deposit') {
                 var dep = state.depositAmount || 0;
                 payBtn.textContent = (tbConfig.i18n.payNow || 'Pay') + ' ' + TB.Utils.formatPrice(dep) + ' (' + (tbConfig.i18n.depositOnly || 'deposit') + ')';
             } else {
@@ -476,6 +561,7 @@
             var payBtn = document.getElementById('tb-pay-button');
             TB.Utils.setButtonLoading(payBtn, true);
 
+            var gateway = this.getSelectedGateway();
             var state = TB.State.getAll();
             var extrasPayload = [];
             var se = state.selectedExtras || [];
@@ -517,10 +603,10 @@
                     TB.State.set('currency', booking.currency);
                     TB.State.save();
 
-                    // Step B: Create payment intent
+                    // Step B: Create payment with selected gateway
                     var choice = TB.State.get('paymentChoice') || 'full';
                     var payAmount = (choice === 'deposit') ? TB.State.get('depositAmount') : null;
-                    return TB.API.createPayment(booking.id, 'stripe', payAmount);
+                    return TB.API.createPayment(booking.id, gateway, payAmount);
                 })
                 .then(function (paymentData) {
                     TB.State.set('paymentRef', paymentData.payment_ref);
@@ -528,8 +614,27 @@
 
                     TB.Utils.setButtonLoading(payBtn, false);
 
-                    // Step C: Mount Stripe Elements
-                    TB.Step3.mountStripeElements(paymentData.client_secret);
+                    if (gateway === 'cash') {
+                        // Cash: confirm immediately and show confirmation
+                        TB.API.confirmPayment(paymentData.payment_ref)
+                            .then(function () {
+                                TB.Step3.showConfirmation();
+                            })
+                            .catch(function () {
+                                // Still show confirmation — backend will reconcile
+                                TB.Step3.showConfirmation();
+                            });
+                    } else if (gateway === 'paypal') {
+                        // PayPal: redirect to approval URL if returned
+                        if (paymentData.redirect_url) {
+                            window.location.href = paymentData.redirect_url;
+                        } else {
+                            TB.Step3.showConfirmation();
+                        }
+                    } else {
+                        // Stripe: Mount Stripe Elements
+                        TB.Step3.mountStripeElements(paymentData.client_secret);
+                    }
                 })
                 .catch(function (err) {
                     TB.Utils.setButtonLoading(payBtn, false);
