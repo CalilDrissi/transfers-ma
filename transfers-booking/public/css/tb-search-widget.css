@@ -131,6 +131,7 @@
     white-space: nowrap;
 }
 
+.tb-search-widget__tab:focus { outline: none; }
 .tb-search-widget__tab svg {
     width: 16px;
     height: 16px;
@@ -725,8 +726,82 @@
         padding: 14px;
     }
 
+    .tb-search-widget__tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+    }
+    .tb-search-widget__tabs::-webkit-scrollbar { display: none; }
+    .tb-search-widget__tab { padding: 8px 14px; font-size: 13px; }
+
     .tb-search-widget__badges { gap: 12px; }
     .tb-search-widget__badge { font-size: 11px; }
+
+    .pac-container {
+        min-width: 280px !important;
+        max-width: 90vw !important;
+    }
+}
+
+/* ==========================================================================
+   Google Places Autocomplete Dropdown
+   ========================================================================== */
+
+.pac-container::after { display: none !important; }
+.pac-container {
+    z-index: 100000 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    border-radius: 16px !important;
+    border: none !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18) !important;
+    margin-top: 8px !important;
+    padding: 8px 0 !important;
+    min-width: 420px !important;
+    width: auto !important;
+    max-width: 600px !important;
+}
+.pac-item {
+    padding: 10px 16px !important;
+    cursor: pointer !important;
+    border-bottom: none !important;
+    border-top: none !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    line-height: 1.4 !important;
+    font-size: 0.9rem !important;
+}
+.pac-item:hover { background: #f3f4f6 !important; }
+/* Hide all Google Places icons and replace with a single pin */
+.pac-item .pac-icon {
+    display: none !important;
+}
+.pac-item::before {
+    content: '';
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
+}
+.pac-item .pac-item-query {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #1f2937 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.35 !important;
+}
+.pac-item .pac-item-query + span {
+    font-size: 0.82rem !important;
+    color: #6b7280 !important;
+    white-space: normal !important;
+}
+.pac-matched {
+    font-weight: 700 !important;
+    color: #111827 !important;
 }
 
 /* ── Locked origin field ── */
