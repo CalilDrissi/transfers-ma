@@ -86,7 +86,19 @@
                     this.addLeg();
                 }
                 this.renderAllLegs();
+                this.updateReturnToggleVisibility();
             } else {
+                // Leaving multi-city: remove return leg if present and uncheck toggle
+                var legs2 = TB.State.get('legs') || [];
+                if (legs2.length > 0 && legs2[legs2.length - 1].isReturnLeg) {
+                    legs2.pop();
+                    TB.State.set('legs', legs2);
+                }
+                var returnCheck = document.getElementById('tb-return-to-start-check');
+                if (returnCheck) returnCheck.checked = false;
+                var returnToggle = document.getElementById('tb-return-to-start');
+                if (returnToggle) returnToggle.style.display = 'none';
+
                 if (singleBar) singleBar.style.display = 'block';
                 if (multiBar) multiBar.style.display = 'none';
                 if (returnField) {
@@ -101,10 +113,88 @@
             updateFlightBar();
         },
 
+        /* ── Return-to-start toggle ── */
+        toggleReturnToStart: function (checked) {
+            var legs = TB.State.get('legs') || [];
+            if (checked) {
+                // Remove existing return leg if somehow present
+                if (legs.length > 0 && legs[legs.length - 1].isReturnLeg) {
+                    legs.pop();
+                }
+                if (legs.length >= 5) return; // max legs reached
+                var firstLeg = legs[0];
+                var lastRegular = legs[legs.length - 1];
+                var returnLeg = {
+                    pickupAddress: lastRegular ? lastRegular.dropoffAddress : '',
+                    pickupLat: lastRegular ? lastRegular.dropoffLat : null,
+                    pickupLng: lastRegular ? lastRegular.dropoffLng : null,
+                    dropoffAddress: firstLeg ? firstLeg.pickupAddress : '',
+                    dropoffLat: firstLeg ? firstLeg.pickupLat : null,
+                    dropoffLng: firstLeg ? firstLeg.pickupLng : null,
+                    pickupDatetime: '', transferType: '', flightNumber: '',
+                    pricingData: null, vehicleOptions: [], selectedVehicle: null,
+                    selectedExtras: [], quoteData: null, bookingId: null,
+                    bookingRef: '', paymentRef: '', totalPrice: 0,
+                    isReturnLeg: true
+                };
+                returnLeg.transferType = inferTransferType(returnLeg.pickupAddress || '', returnLeg.dropoffAddress || '');
+                legs.push(returnLeg);
+                TB.State.set('legs', legs);
+            } else {
+                // Remove the return leg
+                if (legs.length > 0 && legs[legs.length - 1].isReturnLeg) {
+                    legs.pop();
+                    TB.State.set('legs', legs);
+                }
+            }
+            this.renderAllLegs();
+            this.updateReturnToggleVisibility();
+            updateFlightBar();
+        },
+
+        syncReturnLeg: function () {
+            var legs = TB.State.get('legs') || [];
+            if (legs.length < 2) return;
+            var last = legs[legs.length - 1];
+            if (!last.isReturnLeg) return;
+            // Find last regular leg (second-to-last)
+            var lastRegular = legs[legs.length - 2];
+            var firstLeg = legs[0];
+            last.pickupAddress = lastRegular ? lastRegular.dropoffAddress : '';
+            last.pickupLat = lastRegular ? lastRegular.dropoffLat : null;
+            last.pickupLng = lastRegular ? lastRegular.dropoffLng : null;
+            last.dropoffAddress = firstLeg ? firstLeg.pickupAddress : '';
+            last.dropoffLat = firstLeg ? firstLeg.pickupLat : null;
+            last.dropoffLng = firstLeg ? firstLeg.pickupLng : null;
+            last.transferType = inferTransferType(last.pickupAddress || '', last.dropoffAddress || '');
+            legs[legs.length - 1] = last;
+            TB.State.set('legs', legs);
+        },
+
+        updateReturnToggleVisibility: function () {
+            var legs = TB.State.get('legs') || [];
+            var regularCount = legs.filter(function (l) { return !l.isReturnLeg; }).length;
+            var toggle = document.getElementById('tb-return-to-start');
+            if (toggle) {
+                toggle.style.display = regularCount >= 2 ? 'flex' : 'none';
+            }
+            // Update add-leg button: hide if at max (5) counting return leg
+            var addBtn = document.getElementById('tb-add-leg');
+            if (addBtn) addBtn.style.display = legs.length >= 5 ? 'none' : 'flex';
+        },
+
         /* ── Leg management (multi-city) ── */
         addLeg: function () {
             var legs = TB.State.get('legs') || [];
             if (legs.length >= 5) return;
+
+            // If return leg exists, temporarily remove it
+            var hadReturn = false;
+            if (legs.length > 0 && legs[legs.length - 1].isReturnLeg) {
+                hadReturn = true;
+                legs.pop();
+            }
+
             var prevLeg = legs.length > 0 ? legs[legs.length - 1] : null;
             var newLeg = {
                 pickupAddress: prevLeg ? prevLeg.dropoffAddress : '',
@@ -118,12 +208,46 @@
             };
             legs.push(newLeg);
             TB.State.set('legs', legs);
+
+            // Re-add return leg if it was present (and max not exceeded)
+            if (hadReturn && legs.length < 5) {
+                this.syncReturnLeg(); // update pickup from new last regular
+                // Re-create since syncReturnLeg needs it in the array
+                var firstLeg = legs[0];
+                var lastRegular = legs[legs.length - 1];
+                var returnLeg = {
+                    pickupAddress: lastRegular ? lastRegular.dropoffAddress : '',
+                    pickupLat: lastRegular ? lastRegular.dropoffLat : null,
+                    pickupLng: lastRegular ? lastRegular.dropoffLng : null,
+                    dropoffAddress: firstLeg ? firstLeg.pickupAddress : '',
+                    dropoffLat: firstLeg ? firstLeg.pickupLat : null,
+                    dropoffLng: firstLeg ? firstLeg.pickupLng : null,
+                    pickupDatetime: '', transferType: '', flightNumber: '',
+                    pricingData: null, vehicleOptions: [], selectedVehicle: null,
+                    selectedExtras: [], quoteData: null, bookingId: null,
+                    bookingRef: '', paymentRef: '', totalPrice: 0,
+                    isReturnLeg: true
+                };
+                returnLeg.transferType = inferTransferType(returnLeg.pickupAddress || '', returnLeg.dropoffAddress || '');
+                legs.push(returnLeg);
+                TB.State.set('legs', legs);
+            } else if (hadReturn && legs.length >= 5) {
+                // Can't re-add return leg, uncheck toggle
+                var returnCheck = document.getElementById('tb-return-to-start-check');
+                if (returnCheck) returnCheck.checked = false;
+            }
+
+            this.updateReturnToggleVisibility();
             return legs.length - 1;
         },
 
         removeLeg: function (idx) {
             var legs = TB.State.get('legs') || [];
-            if (legs.length <= 2) return;
+            // Don't allow removing the return leg via X button
+            if (legs[idx] && legs[idx].isReturnLeg) return;
+            // Count regular legs (non-return)
+            var regularCount = legs.filter(function (l) { return !l.isReturnLeg; }).length;
+            if (regularCount <= 2) return;
             this.destroyAutocompleteForLeg(idx);
             legs.splice(idx, 1);
             TB.State.set('legs', legs);
@@ -131,7 +255,10 @@
             for (var i = idx; i < legs.length; i++) {
                 this.destroyAutocompleteForLeg(i + 1); // old index
             }
+            // Sync return leg if present
+            this.syncReturnLeg();
             this.renderAllLegs();
+            this.updateReturnToggleVisibility();
         },
 
         renderAllLegs: function () {
@@ -143,9 +270,11 @@
                 html += this.renderLegRow(i, legs[i]);
             }
             container.innerHTML = html;
-            // Init autocomplete for each leg
+            // Init autocomplete for each leg (skip return leg — its fields are readonly)
             for (var j = 0; j < legs.length; j++) {
-                this.initAutocompleteForLeg(j);
+                if (!legs[j].isReturnLeg) {
+                    this.initAutocompleteForLeg(j);
+                }
                 this.setMinDatetimeForInput(container.querySelector('[data-leg="' + j + '"][data-field="datetime"]'));
             }
             // Update add button visibility
@@ -176,19 +305,22 @@
         renderLegRow: function (idx, leg) {
             var i18n = tbConfig.i18n || {};
             var legs = TB.State.get('legs') || [];
-            var canRemove = legs.length > 2;
-            var html = '<div class="tb-leg-row" data-leg-index="' + idx + '">';
-            html += '<div class="tb-leg-row__number">' + (idx + 1) + '</div>';
+            var isReturn = !!leg.isReturnLeg;
+            var regularCount = legs.filter(function (l) { return !l.isReturnLeg; }).length;
+            var canRemove = !isReturn && regularCount > 2;
+            var rowClass = 'tb-leg-row' + (isReturn ? ' tb-leg-row--return' : '');
+            var html = '<div class="' + rowClass + '" data-leg-index="' + idx + '">';
+            html += '<div class="tb-leg-row__number">' + (isReturn ? '↩' : (idx + 1)) + '</div>';
             html += '<div class="tb-leg-row__fields">';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--from">';
             html += '<label class="tb-pill-bar__label">' + (i18n.from || 'From') + '</label>';
-            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="pickup" placeholder="' + (i18n.selectPickup || 'City, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.pickupAddress || '') + '">';
-            html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="pickup"></div>';
+            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="pickup" placeholder="' + (i18n.selectPickup || 'City, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.pickupAddress || '') + '"' + (isReturn ? ' readonly' : '') + '>';
+            if (!isReturn) html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="pickup"></div>';
             html += '</div>';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--to">';
             html += '<label class="tb-pill-bar__label">' + (i18n.to || 'To') + '</label>';
-            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="dropoff" placeholder="' + (i18n.selectDropoff || 'City, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.dropoffAddress || '') + '">';
-            html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="dropoff"></div>';
+            html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="dropoff" placeholder="' + (i18n.selectDropoff || 'City, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.dropoffAddress || '') + '"' + (isReturn ? ' readonly' : '') + '>';
+            if (!isReturn) html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="dropoff"></div>';
             html += '</div>';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--date">';
             html += '<label class="tb-pill-bar__label">' + (i18n.departure || 'Departure') + '</label>';
@@ -317,6 +449,12 @@
             if (addLegBtn) addLegBtn.addEventListener('click', function () {
                 self.addLeg();
                 self.renderAllLegs();
+            });
+
+            // Return-to-start toggle
+            var returnCheck = document.getElementById('tb-return-to-start-check');
+            if (returnCheck) returnCheck.addEventListener('change', function () {
+                self.toggleReturnToStart(this.checked);
             });
         },
 
@@ -494,6 +632,10 @@
                     legs[legIdx].transferType = inferTransferType(legs[legIdx].pickupAddress || '', legs[legIdx].dropoffAddress || '');
                     TB.State.set('legs', legs);
                     if (legIdx === 0) TB.State.syncLegToFlat(0);
+                    // Sync return leg if locations changed
+                    TB.Step1.syncReturnLeg();
+                    var returnLegExists = legs.length > 0 && legs[legs.length - 1].isReturnLeg;
+                    if (returnLegExists) TB.Step1.renderAllLegs();
                     updateFlightBar();
                 }
             });
@@ -564,6 +706,10 @@
                         legs[legIdx].transferType = inferTransferType(legs[legIdx].pickupAddress || '', legs[legIdx].dropoffAddress || '');
                         TB.State.set('legs', legs);
                         if (legIdx === 0) TB.State.syncLegToFlat(0);
+                        // Sync return leg if locations changed
+                        TB.Step1.syncReturnLeg();
+                        var returnLegExists = legs.length > 0 && legs[legs.length - 1].isReturnLeg;
+                        if (returnLegExists) TB.Step1.renderAllLegs();
                         updateFlightBar();
                     });
                 }

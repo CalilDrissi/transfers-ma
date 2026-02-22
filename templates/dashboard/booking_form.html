@@ -271,6 +271,12 @@
     .tb-multi-bar__footer .tb-pill-bar__search { width: 100%; }
 }
 
+/* ── Return-to-start toggle ── */
+.tb-return-toggle { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.8); font-size: 0.9rem; font-weight: 500; cursor: pointer; padding: 4px 0; margin-bottom: 8px; }
+.tb-return-toggle input { accent-color: var(--tb-accent); width: 18px; height: 18px; }
+.tb-leg-row--return .tb-leg-row__number { background: var(--tb-text-muted); font-size: 0.7rem; }
+.tb-leg-row--return .tb-pill-bar__input[readonly] { opacity: 0.6; cursor: default; }
+
 /* Prevent iOS zoom on input focus */
 .tb-pill-bar__input, .tb-pax-pill, .tb-pill-bar__search, #tb-add-leg, .tb-mode-tab { font-size: 16px; }
 @media (min-width: 769px) {
@@ -385,6 +391,10 @@
         <!-- Multi-city bar -->
         <div id="tb-multi-bar" class="tb-multi-bar">
             <div id="tb-legs-container"></div>
+            <label id="tb-return-to-start" class="tb-return-toggle" style="display:none;">
+                <input type="checkbox" id="tb-return-to-start-check">
+                ↩ {% trans "Return to start" %}
+            </label>
             <button type="button" id="tb-add-leg">+ {% trans "Add another transfer" %}</button>
             <div class="tb-multi-bar__footer">
                 <div class="tb-pill-bar__pax" style="position:relative;">
@@ -630,7 +640,8 @@ var tbConfig = {
         luggage:            "{% trans 'Luggage' %}",
         from:               "{% trans 'From' %}",
         to:                 "{% trans 'To' %}",
-        departure:          "{% trans 'Departure' %}"
+        departure:          "{% trans 'Departure' %}",
+        returnToStart:      "{% trans 'Return to start' %}"
     }
 };
 </script>
