@@ -27,10 +27,10 @@ from .serializers import (
 
 
 class PaymentGatewayViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for listing available payment gateways."""
+    """ViewSet for listing available payment gateways (public)."""
     queryset = PaymentGateway.objects.filter(is_active=True)
     serializer_class = PaymentGatewaySerializer
-    permission_classes = [HasAPIKeyOrIsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
