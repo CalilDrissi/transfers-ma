@@ -38,6 +38,7 @@ class CreatePaymentSerializer(serializers.Serializer):
         choices=['stripe', 'paypal', 'cash']
     )
     coupon_code = serializers.CharField(required=False, allow_blank=True)
+    payment_amount = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
     return_url = serializers.URLField(required=False)
     cancel_url = serializers.URLField(required=False)
 

@@ -101,8 +101,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         # Determine payment amount
         payment_amount = booking.total_price
-        # For cash payments, use deposit_amount if available
-        if gateway_type == 'cash' and hasattr(booking, 'deposit_amount') and booking.deposit_amount:
+        client_amount = data.get('payment_amount')
+        if client_amount is not None and hasattr(booking, 'deposit_amount') and booking.deposit_amount:
+            # Allow client to pay deposit or full — validate it matches one of the two
+            if client_amount == booking.deposit_amount:
+                payment_amount = booking.deposit_amount
+            # Otherwise fall through to total_price
+        elif gateway_type == 'cash' and hasattr(booking, 'deposit_amount') and booking.deposit_amount:
             payment_amount = booking.deposit_amount
 
         # Handle coupon

@@ -71,12 +71,16 @@
             return this._call('create_booking', bookingData);
         },
 
-        createPayment: function (bookingId, gatewayType) {
-            return this._call('create_payment', {
+        createPayment: function (bookingId, gatewayType, paymentAmount) {
+            var params = {
                 booking_type: 'transfer',
                 booking_id: bookingId,
                 gateway_type: gatewayType || 'stripe'
-            });
+            };
+            if (paymentAmount !== undefined && paymentAmount !== null) {
+                params.payment_amount = paymentAmount;
+            }
+            return this._call('create_payment', params);
         },
 
         confirmPayment: function (paymentRef) {

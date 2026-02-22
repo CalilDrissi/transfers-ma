@@ -138,14 +138,8 @@ class TB_Admin {
             'transfers-booking'
         );
 
-        $this->add_field('tb_results_page_url', __('Results Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
-            __('Page with [transfers_results] shortcode. Default: /book-transfer/', 'transfers-booking'));
         $this->add_field('tb_tours_page_url', __('Tours Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
             __('Tours listing page. Default: /tours/', 'transfers-booking'));
-        $this->add_field('tb_checkout_page_url', __('Checkout Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
-            __('Checkout page. Default: /checkout/', 'transfers-booking'));
-        $this->add_field('tb_confirmation_page_url', __('Confirmation Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
-            __('Booking confirmed page. Default: /booking-confirmed/', 'transfers-booking'));
         $this->add_field('tb_rental_results_page_url', __('Rental Results Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
             __('Page with [rental_results] shortcode. Default: /rental-results/', 'transfers-booking'));
         $this->add_field('tb_rental_checkout_page_url', __('Rental Checkout Page URL', 'transfers-booking'), 'tb_pages_section', 'text',

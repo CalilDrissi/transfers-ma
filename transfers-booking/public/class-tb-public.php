@@ -11,9 +11,9 @@ class TB_Public {
     private $plugin_name;
     private $version;
 
-    public function __construct($plugin_name, $version) {
+    public function __construct($plugin_name = 'transfers-booking', $version = '') {
         $this->plugin_name = $plugin_name;
-        $this->version = $version;
+        $this->version = $version ?: (defined('TB_VERSION') ? TB_VERSION : '1.0.0');
     }
 
     public function enqueue_styles() {
@@ -42,11 +42,7 @@ class TB_Public {
         }
 
         // Inject CSS custom properties on all plugin pages
-        $any_shortcode = $this->page_has_shortcode('transfers_search')
-            || $this->page_has_shortcode('transfers_results')
-            || $this->page_has_shortcode('transfers_checkout')
-            || $this->page_has_shortcode('transfers_confirmation')
-            || $this->page_has_shortcode('tours_listing')
+        $any_shortcode = $this->page_has_shortcode('tours_listing')
             || $this->page_has_shortcode('tour_detail')
             || $this->page_has_shortcode('rental_search')
             || $this->page_has_shortcode('rental_results')
@@ -61,46 +57,6 @@ class TB_Public {
             add_action('wp_head', function () use ($dynamic_css) {
                 echo '<style id="tb-custom-props">' . $dynamic_css . '</style>';
             });
-        }
-
-        // Search widget
-        if ($this->page_has_shortcode('transfers_search')) {
-            wp_enqueue_style(
-                'tb-search-widget',
-                TB_PLUGIN_URL . 'public/css/tb-search-widget.css',
-                [],
-                $this->version
-            );
-        }
-
-        // Results page
-        if ($this->page_has_shortcode('transfers_results')) {
-            wp_enqueue_style(
-                'tb-results',
-                TB_PLUGIN_URL . 'public/css/tb-results.css',
-                [],
-                $this->version
-            );
-        }
-
-        // Checkout page
-        if ($this->page_has_shortcode('transfers_checkout')) {
-            wp_enqueue_style(
-                'tb-checkout',
-                TB_PLUGIN_URL . 'public/css/tb-checkout.css',
-                [],
-                $this->version
-            );
-        }
-
-        // Confirmation page
-        if ($this->page_has_shortcode('transfers_confirmation')) {
-            wp_enqueue_style(
-                'tb-confirmation',
-                TB_PLUGIN_URL . 'public/css/tb-confirmation.css',
-                [],
-                $this->version
-            );
         }
 
         // Tours listing & detail
@@ -137,10 +93,6 @@ class TB_Public {
         }
 
         $has_booking      = $this->page_has_shortcode('transfers_booking');
-        $has_search       = $this->page_has_shortcode('transfers_search');
-        $has_results      = $this->page_has_shortcode('transfers_results');
-        $has_checkout     = $this->page_has_shortcode('transfers_checkout');
-        $has_confirmation = $this->page_has_shortcode('transfers_confirmation');
         $has_tours        = $this->page_has_shortcode('tours_listing');
         $has_tour_detail  = $this->page_has_shortcode('tour_detail');
         $has_rental_search       = $this->page_has_shortcode('rental_search');
@@ -148,16 +100,16 @@ class TB_Public {
         $has_rental_checkout     = $this->page_has_shortcode('rental_checkout');
         $has_rental_confirmation = $this->page_has_shortcode('rental_confirmation');
 
-        $needs_scripts = $has_booking || $has_search || $has_results || $has_checkout || $has_confirmation || $has_tours || $has_tour_detail
+        $needs_scripts = $has_booking || $has_tours || $has_tour_detail
             || $has_rental_search || $has_rental_results || $has_rental_checkout || $has_rental_confirmation;
 
         if (!$needs_scripts) {
             return;
         }
 
-        // Google Maps (shared — search, results, checkout)
+        // Google Maps
         $gmaps_key = TB_Settings::get('tb_google_maps_api_key');
-        if ($gmaps_key && ($has_search || $has_results || $has_checkout || $has_booking)) {
+        if ($gmaps_key && $has_booking) {
             wp_enqueue_script(
                 'google-maps',
                 'https://maps.googleapis.com/maps/api/js?key=' . urlencode($gmaps_key) . '&libraries=places&callback=Function.prototype',
@@ -168,7 +120,7 @@ class TB_Public {
         }
 
         // Ensure tb-utils and tb-api are loaded for pages that need the API
-        $needs_api = $has_results || $has_checkout || $has_confirmation || $has_tours || $has_tour_detail
+        $needs_api = $has_tours || $has_tour_detail
             || $has_rental_results || $has_rental_checkout || $has_rental_confirmation;
         if ($needs_api && !$has_booking) {
             wp_enqueue_script(
@@ -207,86 +159,6 @@ class TB_Public {
                 $prev_handle = $handle;
             }
             $config_handle = 'tb-api';
-        }
-
-        // Search widget scripts
-        if ($has_search) {
-            $deps = $gmaps_key ? ['google-maps'] : [];
-            wp_enqueue_script(
-                'tb-search-widget',
-                TB_PLUGIN_URL . 'public/js/tb-search-widget.js',
-                $deps,
-                $this->version,
-                true
-            );
-            if (!$config_handle) {
-                $config_handle = 'tb-search-widget';
-            }
-        }
-
-        // Results page scripts
-        if ($has_results) {
-            $results_deps = ['tb-api'];
-            if ($gmaps_key) {
-                $results_deps[] = 'google-maps';
-            }
-            wp_enqueue_script(
-                'tb-results',
-                TB_PLUGIN_URL . 'public/js/tb-results.js',
-                $results_deps,
-                $this->version,
-                true
-            );
-            if (!$config_handle) {
-                $config_handle = 'tb-api';
-            }
-        }
-
-        // Checkout page scripts
-        if ($has_checkout) {
-            wp_enqueue_script('stripe-js', 'https://js.stripe.com/v3/', [], null, true);
-
-            // PayPal SDK (if configured)
-            $paypal_client_id = TB_Settings::get('tb_paypal_client_id');
-            if ($paypal_client_id) {
-                wp_enqueue_script(
-                    'paypal-sdk',
-                    'https://www.paypal.com/sdk/js?client-id=' . urlencode($paypal_client_id) . '&currency=MAD',
-                    [],
-                    null,
-                    true
-                );
-            }
-
-            $checkout_deps = ['tb-api', 'stripe-js'];
-            if ($paypal_client_id) {
-                $checkout_deps[] = 'paypal-sdk';
-            }
-
-            wp_enqueue_script(
-                'tb-checkout',
-                TB_PLUGIN_URL . 'public/js/tb-checkout.js',
-                $checkout_deps,
-                $this->version,
-                true
-            );
-            if (!$config_handle) {
-                $config_handle = 'tb-api';
-            }
-        }
-
-        // Confirmation page scripts
-        if ($has_confirmation) {
-            wp_enqueue_script(
-                'tb-confirmation',
-                TB_PLUGIN_URL . 'public/js/tb-confirmation.js',
-                ['tb-api'],
-                $this->version,
-                true
-            );
-            if (!$config_handle) {
-                $config_handle = 'tb-api';
-            }
         }
 
         // Tours listing scripts
@@ -418,10 +290,7 @@ class TB_Public {
             'enableFlightNumber'   => (bool) TB_Settings::get('tb_enable_flight_number'),
             'isRtl'                => is_rtl(),
             'lang'                 => isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : determine_locale(),
-            'resultsPageUrl'       => TB_Settings::get('tb_results_page_url'),
             'toursPageUrl'         => TB_Settings::get('tb_tours_page_url'),
-            'checkoutPageUrl'      => TB_Settings::get('tb_checkout_page_url'),
-            'confirmationPageUrl'         => TB_Settings::get('tb_confirmation_page_url'),
             'rentalResultsPageUrl'        => TB_Settings::get('tb_rental_results_page_url'),
             'rentalCheckoutPageUrl'       => TB_Settings::get('tb_rental_checkout_page_url'),
             'rentalConfirmationPageUrl'   => TB_Settings::get('tb_rental_confirmation_page_url'),

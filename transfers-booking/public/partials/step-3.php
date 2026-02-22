@@ -68,16 +68,32 @@
             <div class="tb-form-group">
                 <label class="tb-label" for="tb-customer-phone"><?php esc_html_e('Phone Number', 'transfers-booking'); ?> *</label>
                 <div class="tb-phone-input">
-                    <div class="tb-phone-input__prefix">+212</div>
+                    <div class="tb-phone-input__prefix" id="tb-phone-prefix" tabindex="0">
+                        <span class="tb-phone-input__flag" id="tb-phone-flag">🇲🇦</span>
+                        <span class="tb-phone-input__code" id="tb-phone-code">+212</span>
+                        <svg class="tb-phone-input__arrow" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                    </div>
                     <input type="tel" id="tb-customer-phone" class="tb-phone-input__field" placeholder="">
+                </div>
+                <div class="tb-phone-dropdown" id="tb-phone-dropdown" style="display:none;">
+                    <input type="text" class="tb-phone-dropdown__search" id="tb-phone-search" placeholder="<?php esc_attr_e('Search country...', 'transfers-booking'); ?>">
+                    <div class="tb-phone-dropdown__list" id="tb-phone-list"></div>
                 </div>
                 <div class="tb-field-error" data-field="phone"></div>
             </div>
             <div class="tb-form-group">
                 <label class="tb-label"><?php esc_html_e('WhatsApp Number', 'transfers-booking'); ?></label>
                 <div class="tb-phone-input">
-                    <div class="tb-phone-input__prefix">+212</div>
+                    <div class="tb-phone-input__prefix" id="tb-wa-prefix" tabindex="0">
+                        <span class="tb-phone-input__flag" id="tb-wa-flag">🇲🇦</span>
+                        <span class="tb-phone-input__code" id="tb-wa-code">+212</span>
+                        <svg class="tb-phone-input__arrow" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                    </div>
                     <input type="tel" id="tb-customer-whatsapp" class="tb-phone-input__field" placeholder="">
+                </div>
+                <div class="tb-phone-dropdown" id="tb-wa-dropdown" style="display:none;">
+                    <input type="text" class="tb-phone-dropdown__search" id="tb-wa-search" placeholder="<?php esc_attr_e('Search country...', 'transfers-booking'); ?>">
+                    <div class="tb-phone-dropdown__list" id="tb-wa-list"></div>
                 </div>
             </div>
         </div>
@@ -86,11 +102,35 @@
         <div class="tb-card" id="tb-payment-card">
             <h4 class="tb-card__title"><?php esc_html_e('Payment', 'transfers-booking'); ?></h4>
             <div id="tb-payment-errors" class="tb-alert tb-alert--error" style="display: none;"></div>
+            <!-- Payment options (shown when deposit available) -->
+            <div id="tb-payment-options" class="tb-payment-options" style="display: none;">
+                <label class="tb-payment-option tb-payment-option--active">
+                    <input type="radio" name="tb-payment-type" value="full" checked>
+                    <div class="tb-payment-option__content">
+                        <span class="tb-payment-option__label"><?php esc_html_e('Pay full amount', 'transfers-booking'); ?></span>
+                        <span class="tb-payment-option__amount" id="tb-option-full-amount"></span>
+                    </div>
+                    <span class="tb-payment-option__check">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </label>
+                <label class="tb-payment-option">
+                    <input type="radio" name="tb-payment-type" value="deposit">
+                    <div class="tb-payment-option__content">
+                        <span class="tb-payment-option__label"><?php esc_html_e('Pay deposit only', 'transfers-booking'); ?></span>
+                        <span class="tb-payment-option__amount" id="tb-option-deposit-amount"></span>
+                        <span class="tb-payment-option__note" id="tb-option-remaining"></span>
+                    </div>
+                    <span class="tb-payment-option__check">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </label>
+            </div>
             <button type="button" id="tb-pay-button" class="tb-btn tb-btn--primary tb-btn--full">
                 <?php esc_html_e('Pay Now', 'transfers-booking'); ?>
             </button>
-            <div id="tb-stripe-element" style="display: none;"></div>
-            <button type="button" id="tb-confirm-payment-btn" class="tb-btn tb-btn--primary tb-btn--full" style="display: none;">
+            <div id="tb-stripe-element" style="display: none !important;"></div>
+            <button type="button" id="tb-confirm-payment-btn" class="tb-btn tb-btn--primary tb-btn--full" style="display: none !important; margin-top: 0.75rem;">
                 <?php esc_html_e('Confirm Payment', 'transfers-booking'); ?>
             </button>
         </div>

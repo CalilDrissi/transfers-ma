@@ -20,10 +20,6 @@ class Transfers_Booking {
         require_once TB_PLUGIN_DIR . 'includes/class-tb-settings.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-api-proxy.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-shortcode.php';
-        require_once TB_PLUGIN_DIR . 'includes/class-tb-search-shortcode.php';
-        require_once TB_PLUGIN_DIR . 'includes/class-tb-results-shortcode.php';
-        require_once TB_PLUGIN_DIR . 'includes/class-tb-checkout-shortcode.php';
-        require_once TB_PLUGIN_DIR . 'includes/class-tb-confirmation-shortcode.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-tours-shortcode.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-search-shortcode.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-results-shortcode.php';
@@ -55,18 +51,6 @@ class Transfers_Booking {
         // Shortcodes
         $shortcode = new TB_Shortcode();
         add_shortcode('transfers_booking', [$shortcode, 'render']);
-
-        $search_shortcode = new TB_Search_Shortcode();
-        add_shortcode('transfers_search', [$search_shortcode, 'render']);
-
-        $results_shortcode = new TB_Results_Shortcode();
-        add_shortcode('transfers_results', [$results_shortcode, 'render']);
-
-        $checkout_shortcode = new TB_Checkout_Shortcode();
-        add_shortcode('transfers_checkout', [$checkout_shortcode, 'render']);
-
-        $confirmation_shortcode = new TB_Confirmation_Shortcode();
-        add_shortcode('transfers_confirmation', [$confirmation_shortcode, 'render']);
 
         $tours_shortcode = new TB_Tours_Shortcode();
         add_shortcode('tours_listing', [$tours_shortcode, 'render_listing']);

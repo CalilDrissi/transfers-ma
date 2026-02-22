@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfers.ma Booking Plugin - Setup Guide</title>
+    <title>Transfers Booking - WordPress Plugin Guide</title>
     <style>
         :root {
-            --primary: #1a1a2e;
-            --accent: #e94560;
-            --accent-light: rgba(233, 69, 96, 0.1);
-            --text: #1a1a2e;
-            --text-muted: #6c757d;
-            --border: #e0e0e0;
-            --bg: #f8f9fa;
-            --code-bg: #1e1e2e;
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-light: rgba(59, 130, 246, 0.08);
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+            --code-bg: #0f172a;
             --success: #10b981;
             --warning: #f59e0b;
+            --danger: #ef4444;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -31,263 +29,188 @@
             background: #fff;
         }
 
-        /* Header */
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: var(--primary);
             color: white;
-            padding: 4rem 2rem;
+            padding: 3.5rem 2rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 40%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 500'%3E%3Cpath d='M100 0 Q200 100 150 200 Q100 300 200 400 Q300 500 350 500' fill='none' stroke='%233b82f6' stroke-width='40' opacity='0.12'/%3E%3Cpath d='M120 0 Q220 100 170 200 Q120 300 220 400 Q320 500 370 500' fill='none' stroke='%233b82f6' stroke-width='6' opacity='0.25' stroke-dasharray='12 8'/%3E%3C/svg%3E") no-repeat right center;
+            background-size: contain;
+            pointer-events: none;
         }
-
-        .header h1 span {
+        .header > * { position: relative; z-index: 1; }
+        .header h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .header h1 span { color: var(--accent); }
+        .header p { font-size: 1.05rem; opacity: 0.7; max-width: 550px; margin: 0 auto; }
+        .header-version {
+            display: inline-block;
+            background: rgba(59,130,246,0.2);
             color: var(--accent);
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.75rem;
         }
 
-        .header p {
-            font-size: 1.15rem;
-            opacity: 0.8;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Nav */
         .nav {
             background: white;
             border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
+            padding: 0.85rem 2rem;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
-
         .nav-inner {
-            max-width: 900px;
+            max-width: 880px;
             margin: 0 auto;
             display: flex;
-            gap: 1.5rem;
+            gap: 1.25rem;
             flex-wrap: wrap;
         }
-
         .nav a {
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
             transition: color 0.2s;
         }
+        .nav a:hover { color: var(--accent); }
 
-        .nav a:hover {
-            color: var(--accent);
-        }
+        .content { max-width: 880px; margin: 0 auto; padding: 2rem; }
 
-        /* Content */
-        .content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Sections */
-        .section {
-            margin-bottom: 3rem;
-            padding-top: 1rem;
-        }
-
+        .section { margin-bottom: 3.5rem; padding-top: 1rem; }
         .section h2 {
-            font-size: 1.75rem;
+            font-size: 1.6rem;
             font-weight: 700;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--accent);
+            border-bottom: 3px solid var(--accent);
             display: inline-block;
         }
-
         .section h3 {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 600;
-            margin: 1.5rem 0 0.75rem;
+            margin: 1.75rem 0 0.75rem;
             color: var(--primary);
         }
+        .section p { margin-bottom: 0.85rem; color: #334155; }
 
-        .section p {
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
-        /* Steps */
         .step {
             background: var(--bg);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 0.75rem;
             border-left: 4px solid var(--accent);
         }
-
         .step-number {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
+            width: 28px; height: 28px;
             border-radius: 50%;
             background: var(--accent);
             color: white;
             font-weight: 700;
-            font-size: 0.9rem;
-            margin-right: 0.75rem;
+            font-size: 0.8rem;
+            margin-right: 0.6rem;
             flex-shrink: 0;
         }
-
         .step-title {
             font-weight: 600;
-            font-size: 1.05rem;
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
         }
+        .step p { margin-left: 2.25rem; margin-bottom: 0.4rem; }
 
-        .step p {
-            margin-left: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Code blocks */
         pre {
             background: var(--code-bg);
-            color: #cdd6f4;
-            padding: 1.25rem;
+            color: #e2e8f0;
+            padding: 1.15rem 1.25rem;
             border-radius: 10px;
             overflow-x: auto;
-            margin: 1rem 0;
-            font-size: 0.9rem;
-            line-height: 1.6;
+            margin: 0.75rem 0;
+            font-size: 0.88rem;
+            line-height: 1.65;
         }
-
-        code {
-            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-        }
-
-        p code, li code {
+        code { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; }
+        p code, li code, td code {
             background: var(--accent-light);
             color: var(--accent);
-            padding: 2px 6px;
+            padding: 2px 7px;
             border-radius: 4px;
-            font-size: 0.9em;
+            font-size: 0.88em;
         }
 
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .shortcode-block {
+            background: var(--primary);
+            color: #e2e8f0;
+            padding: 1.25rem 1.5rem;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 1.1rem;
             margin: 1rem 0;
-            font-size: 0.95rem;
+            border-left: 4px solid var(--accent);
+            letter-spacing: 0.3px;
+            text-align: center;
         }
 
+        table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92rem; }
         th {
             background: var(--primary);
             color: white;
-            padding: 10px 14px;
+            padding: 9px 14px;
             text-align: left;
             font-weight: 600;
+            font-size: 0.85rem;
         }
+        td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+        tr:nth-child(even) td { background: var(--bg); }
 
-        td {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        tr:nth-child(even) td {
-            background: var(--bg);
-        }
-
-        /* Callouts */
         .callout {
             padding: 1rem 1.25rem;
             border-radius: 10px;
             margin: 1rem 0;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
+            line-height: 1.6;
         }
+        .callout strong { display: block; margin-bottom: 0.2rem; }
+        .callout-info { background: #eff6ff; border-left: 4px solid var(--accent); color: #1e3a5f; }
+        .callout-warning { background: #fef3c7; border-left: 4px solid var(--warning); color: #78350f; }
+        .callout-success { background: #ecfdf5; border-left: 4px solid var(--success); color: #065f46; }
 
-        .callout-info {
-            background: #e0f2fe;
-            border-left: 4px solid #0ea5e9;
-            color: #0c4a6e;
-        }
+        ul, ol { margin: 0.6rem 0; padding-left: 1.5rem; }
+        li { margin-bottom: 0.35rem; }
 
-        .callout-warning {
-            background: #fef3c7;
-            border-left: 4px solid var(--warning);
-            color: #78350f;
-        }
-
-        .callout-success {
-            background: #d1fae5;
-            border-left: 4px solid var(--success);
-            color: #065f46;
-        }
-
-        .callout strong {
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
-        /* Lists */
-        ul, ol {
-            margin: 0.75rem 0;
-            padding-left: 1.5rem;
-        }
-
-        li {
-            margin-bottom: 0.4rem;
-        }
-
-        /* Screenshots placeholder */
-        .screenshot {
-            background: var(--bg);
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-            color: var(--text-muted);
-            margin: 1rem 0;
-            font-style: italic;
-        }
-
-        /* File tree */
-        .file-tree {
-            background: var(--bg);
-            border-radius: 10px;
-            padding: 1.25rem;
-            font-family: 'JetBrains Mono', 'Consolas', monospace;
-            font-size: 0.85rem;
-            line-height: 1.8;
-            margin: 1rem 0;
-        }
-
-        .file-tree .folder {
-            color: var(--accent);
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
             font-weight: 600;
         }
+        .badge-required { background: #fee2e2; color: #991b1b; }
+        .badge-optional { background: #eff6ff; color: #1e40af; }
+        .badge-recommended { background: #ecfdf5; color: #065f46; }
 
-        .file-tree .file {
-            color: var(--text-muted);
-        }
-
-        /* Diagram */
         .diagram {
             background: var(--bg);
             border-radius: 12px;
-            padding: 2rem;
-            margin: 1.5rem 0;
+            padding: 1.75rem;
+            margin: 1.25rem 0;
             text-align: center;
         }
-
         .diagram-flow {
             display: flex;
             align-items: center;
@@ -295,254 +218,242 @@
             gap: 0.5rem;
             flex-wrap: wrap;
         }
-
         .diagram-box {
             background: white;
             border: 2px solid var(--border);
             border-radius: 10px;
-            padding: 0.75rem 1.25rem;
+            padding: 0.65rem 1.15rem;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
-
-        .diagram-box.active {
-            border-color: var(--accent);
-            background: var(--accent-light);
-            color: var(--accent);
-        }
-
-        .diagram-arrow {
+        .diagram-box.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+        .diagram-box.success { border-color: var(--success); color: var(--success); }
+        .diagram-arrow { color: var(--text-muted); font-size: 1.2rem; }
+        .diagram-label {
+            margin-top: 0.75rem;
             color: var(--text-muted);
-            font-size: 1.25rem;
+            font-size: 0.85rem;
         }
 
-        /* Badge */
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .badge-required {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-optional {
-            background: #e0f2fe;
-            color: #0c4a6e;
-        }
-
-        /* Footer */
         .footer {
             background: var(--primary);
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255,255,255,0.6);
             padding: 2rem;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             margin-top: 3rem;
         }
+        .footer strong { color: white; }
+        .footer span { color: var(--accent); }
 
-        .footer strong {
-            color: white;
-        }
-
-        .footer span {
-            color: var(--accent);
-        }
-
-        @media (max-width: 600px) {
-            .header h1 {
-                font-size: 1.75rem;
-            }
-            .content {
-                padding: 1rem;
-            }
-            .diagram-flow {
-                flex-direction: column;
-            }
-            .diagram-arrow {
-                transform: rotate(90deg);
-            }
+        @media (max-width: 700px) {
+            .header { padding: 2.5rem 1.5rem; }
+            .header h1 { font-size: 1.6rem; }
+            .content { padding: 1.25rem; }
+            .diagram-flow { flex-direction: column; }
+            .diagram-arrow { transform: rotate(90deg); }
+            .nav-inner { gap: 0.75rem; }
         }
     </style>
 </head>
 <body>
 
-<!-- Header -->
 <div class="header">
     <h1>Transfers<span>.ma</span> Booking Plugin</h1>
-    <p>Setup guide for the WordPress booking widget. Follow these steps to install, configure, and launch your transfer booking form.</p>
+    <p>WordPress plugin guide &mdash; installation, shortcode, settings, and setup.</p>
+    <div class="header-version">v1.0</div>
 </div>
 
-<!-- Navigation -->
 <nav class="nav">
     <div class="nav-inner">
-        <a href="#requirements">Requirements</a>
         <a href="#installation">Installation</a>
-        <a href="#configuration">Configuration</a>
         <a href="#shortcode">Shortcode</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="#api-setup">API Setup</a>
+        <a href="#parameters">Parameters</a>
+        <a href="#settings">Settings</a>
         <a href="#stripe">Stripe</a>
-        <a href="#customization">Customization</a>
+        <a href="#i18n">Languages</a>
+        <a href="#page-builders">Page Builders</a>
         <a href="#troubleshooting">Troubleshooting</a>
     </div>
 </nav>
 
 <div class="content">
 
-    <!-- Requirements -->
-    <div class="section" id="requirements">
-        <h2>Requirements</h2>
-        <p>Before installing the plugin, make sure your environment meets these requirements:</p>
-
-        <table>
-            <tr>
-                <th>Requirement</th>
-                <th>Minimum Version</th>
-                <th>Status</th>
-            </tr>
-            <tr>
-                <td>WordPress</td>
-                <td>5.8+</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
-            <tr>
-                <td>PHP</td>
-                <td>7.4+</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
-            <tr>
-                <td>Transfers.ma Django API</td>
-                <td>Running &amp; accessible</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
-            <tr>
-                <td>Stripe Account</td>
-                <td>Publishable Key (pk_...)</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
-            <tr>
-                <td>Google Maps API Key</td>
-                <td>Places API enabled</td>
-                <td><span class="badge badge-optional">Optional</span></td>
-            </tr>
-            <tr>
-                <td>SSL Certificate (HTTPS)</td>
-                <td>Required for Stripe</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
-        </table>
-
-        <div class="callout callout-info">
-            <strong>Google Maps is optional</strong>
-            If you don't provide a Google Maps API key in the plugin settings, the plugin will try to fetch one from the Django API. If neither is available, customers will see a fallback dropdown with common Morocco locations (airports, cities) instead of the autocomplete search.
-        </div>
-    </div>
-
-    <!-- Installation -->
+    <!-- INSTALLATION -->
     <div class="section" id="installation">
         <h2>Installation</h2>
 
-        <h3>Option A: Upload via WordPress Admin</h3>
-
         <div class="step">
-            <div class="step-title"><span class="step-number">1</span> Create a ZIP file</div>
-            <p>Compress the <code>transfers-booking</code> folder into a ZIP file:</p>
-            <pre><code>zip -r transfers-booking.zip transfers-booking/</code></pre>
+            <div class="step-title"><span class="step-number">1</span> Upload the plugin</div>
+            <p><strong>Plugins &rarr; Add New &rarr; Upload Plugin</strong> &rarr; select <code>transfers-booking.zip</code> &rarr; <strong>Install Now</strong></p>
         </div>
-
-        <div class="step">
-            <div class="step-title"><span class="step-number">2</span> Upload in WordPress</div>
-            <p>Go to <strong>Plugins &rarr; Add New &rarr; Upload Plugin</strong></p>
-            <p>Choose the <code>transfers-booking.zip</code> file and click <strong>Install Now</strong>.</p>
-        </div>
-
-        <div class="step">
-            <div class="step-title"><span class="step-number">3</span> Activate</div>
-            <p>After installation, click <strong>Activate Plugin</strong>.</p>
-        </div>
-
-        <h3>Option B: Upload via FTP / File Manager</h3>
-
-        <div class="step">
-            <div class="step-title"><span class="step-number">1</span> Upload the folder</div>
-            <p>Upload the entire <code>transfers-booking/</code> folder to:</p>
-            <pre><code>/wp-content/plugins/transfers-booking/</code></pre>
-        </div>
-
         <div class="step">
             <div class="step-title"><span class="step-number">2</span> Activate</div>
-            <p>Go to <strong>Plugins</strong> in WordPress Admin and activate <strong>Transfers.ma Booking</strong>.</p>
+            <p>Click <strong>Activate Plugin</strong>.</p>
         </div>
-
-        <h3>Plugin File Structure</h3>
-        <div class="file-tree">
-            <span class="folder">transfers-booking/</span><br>
-            &nbsp;&nbsp;├── <span class="file">transfers-booking.php</span> &mdash; Main plugin file<br>
-            &nbsp;&nbsp;├── <span class="file">uninstall.php</span> &mdash; Cleanup on uninstall<br>
-            &nbsp;&nbsp;├── <span class="folder">includes/</span> &mdash; Core PHP classes<br>
-            &nbsp;&nbsp;├── <span class="folder">admin/</span> &mdash; Admin settings page<br>
-            &nbsp;&nbsp;├── <span class="folder">public/</span> &mdash; Frontend CSS, JS, templates<br>
-            &nbsp;&nbsp;└── <span class="folder">languages/</span> &mdash; Translation files
+        <div class="step">
+            <div class="step-title"><span class="step-number">3</span> Configure</div>
+            <p>Go to <strong>Settings &rarr; Transfers Booking</strong> and enter your API Base URL and Stripe publishable key.</p>
+        </div>
+        <div class="step">
+            <div class="step-title"><span class="step-number">4</span> Add the shortcode</div>
+            <p>Create a page and add <code>[transfers_booking]</code>. That's it &mdash; the entire booking flow runs on that one page.</p>
         </div>
     </div>
 
-    <!-- Configuration -->
-    <div class="section" id="configuration">
-        <h2>Configuration</h2>
-        <p>After activating the plugin, go to <strong>Settings &rarr; Transfers Booking</strong> in WordPress Admin.</p>
+    <!-- SHORTCODE -->
+    <div class="section" id="shortcode">
+        <h2>The Shortcode</h2>
 
-        <div class="screenshot">Settings page screenshot &mdash; WP Admin &rarr; Settings &rarr; Transfers Booking</div>
+        <div class="shortcode-block">[transfers_booking]</div>
+
+        <p>This single shortcode embeds the complete booking experience. The customer goes through a 3-step wizard &mdash; all on one page, no redirects, no extra pages needed.</p>
+
+        <div class="diagram">
+            <div class="diagram-flow">
+                <div class="diagram-box active">Step 1<br><small>Route &amp; Date</small></div>
+                <span class="diagram-arrow">&rarr;</span>
+                <div class="diagram-box">Step 2<br><small>Vehicle &amp; Extras</small></div>
+                <span class="diagram-arrow">&rarr;</span>
+                <div class="diagram-box">Step 3<br><small>Details &amp; Payment</small></div>
+                <span class="diagram-arrow">&rarr;</span>
+                <div class="diagram-box success">Confirmed</div>
+            </div>
+            <div class="diagram-label">Everything happens reactively on one page &mdash; no redirects, no extra pages to create.</div>
+        </div>
+
+        <h3>Step 1: Route &amp; Date</h3>
+        <ul>
+            <li>Booking mode: One-Way, Round Trip, or Multi-City</li>
+            <li>Pickup and drop-off locations (Google Places autocomplete)</li>
+            <li>Date and time</li>
+            <li>Passengers and luggage count</li>
+            <li>Flight number (for airport transfers)</li>
+        </ul>
+
+        <h3>Step 2: Vehicle &amp; Extras</h3>
+        <ul>
+            <li>Route summary with distance and duration</li>
+            <li>Vehicle cards with capacity, features, and pricing</li>
+            <li>Optional extras (child seat, etc.) with quantity controls</li>
+        </ul>
+
+        <h3>Step 3: Payment &amp; Confirmation</h3>
+        <ul>
+            <li>Customer details (name, email, phone)</li>
+            <li>Stripe card payment (with 3D Secure support)</li>
+            <li>Booking confirmation with reference number</li>
+        </ul>
+
+        <div class="callout callout-info">
+            <strong>One per page, full-width recommended</strong>
+            Place the shortcode once per page. Use a full-width page template (no sidebar) for the best experience. The widget is fully responsive.
+        </div>
+    </div>
+
+    <!-- PARAMETERS -->
+    <div class="section" id="parameters">
+        <h2>Shortcode Parameters</h2>
+
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Values</th>
+                <th>Default</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>lang</code></td>
+                <td>Locale code</td>
+                <td><em>site locale</em></td>
+                <td>Force a language (e.g. <code>fr_FR</code>, <code>ar</code>, <code>es_ES</code>)</td>
+            </tr>
+            <tr>
+                <td><code>fixed_origin</code></td>
+                <td>Place name</td>
+                <td><em>empty</em></td>
+                <td>Lock the "From" field to a specific location name</td>
+            </tr>
+            <tr>
+                <td><code>fixed_origin_lat</code></td>
+                <td>Latitude</td>
+                <td><em>empty</em></td>
+                <td>Latitude for the fixed origin</td>
+            </tr>
+            <tr>
+                <td><code>fixed_origin_lng</code></td>
+                <td>Longitude</td>
+                <td><em>empty</em></td>
+                <td>Longitude for the fixed origin</td>
+            </tr>
+        </table>
+
+        <h3>Examples</h3>
+
+        <p><strong>Basic:</strong></p>
+        <pre><code>[transfers_booking]</code></pre>
+
+        <p><strong>Hotel/airport page with locked origin:</strong></p>
+        <pre><code>[transfers_booking
+    fixed_origin="Marrakech Menara Airport"
+    fixed_origin_lat="31.6069"
+    fixed_origin_lng="-8.0363"]</code></pre>
+
+        <p><strong>French version:</strong></p>
+        <pre><code>[transfers_booking lang="fr_FR"]</code></pre>
+
+        <p><strong>Arabic (auto-enables RTL):</strong></p>
+        <pre><code>[transfers_booking lang="ar"]</code></pre>
+
+        <div class="callout callout-warning">
+            <strong>fixed_origin requires all three attributes</strong>
+            When using a fixed origin, provide <code>fixed_origin</code> (display name), <code>fixed_origin_lat</code>, and <code>fixed_origin_lng</code> together. The "From" field will be locked with a padlock icon.
+        </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="section" id="settings">
+        <h2>Settings</h2>
+        <p>All settings are at <strong>WordPress Admin &rarr; Transfers Booking</strong> (in the left menu).</p>
 
         <h3>API Connection</h3>
         <table>
+            <tr><th>Setting</th><th>Description</th><th>Example</th></tr>
             <tr>
-                <th>Setting</th>
-                <th>Description</th>
-                <th>Example</th>
-            </tr>
-            <tr>
-                <td><strong>API Base URL</strong></td>
-                <td>Your Django API server URL (without trailing slash)</td>
+                <td><strong>API Base URL</strong> <span class="badge badge-required">Required</span></td>
+                <td>Your Transfers.ma API server (no trailing slash)</td>
                 <td><code>https://api.transfers.ma</code></td>
             </tr>
             <tr>
-                <td><strong>Google Maps API Key</strong></td>
-                <td>Google Maps key with Places API enabled. Leave empty to auto-fetch from Django.</td>
+                <td><strong>API Key</strong></td>
+                <td>API key generated in the Django dashboard</td>
+                <td><code>abc123...</code></td>
+            </tr>
+            <tr>
+                <td><strong>Google Maps API Key</strong> <span class="badge badge-optional">Optional</span></td>
+                <td>Places API enabled. Leave empty to auto-fetch from the API.</td>
                 <td><code>AIzaSy...</code></td>
             </tr>
         </table>
 
         <h3>Payment</h3>
         <table>
+            <tr><th>Setting</th><th>Description</th><th>Example</th></tr>
             <tr>
-                <th>Setting</th>
-                <th>Description</th>
-                <th>Example</th>
+                <td><strong>Stripe Publishable Key</strong> <span class="badge badge-required">Required</span></td>
+                <td>Client-safe Stripe key (starts with <code>pk_</code>)</td>
+                <td><code>pk_live_...</code></td>
             </tr>
             <tr>
-                <td><strong>Stripe Publishable Key</strong></td>
-                <td>Your Stripe publishable key (client-safe). Get it from the Stripe Dashboard.</td>
-                <td><code>pk_live_...</code> or <code>pk_test_...</code></td>
+                <td><strong>PayPal Client ID</strong> <span class="badge badge-optional">Optional</span></td>
+                <td>PayPal app client ID for the JS SDK</td>
+                <td><code>AY3...</code></td>
             </tr>
         </table>
 
-        <div class="callout callout-warning">
-            <strong>Use test keys during development</strong>
-            Use your Stripe <strong>test</strong> publishable key (<code>pk_test_...</code>) while testing. Switch to the <strong>live</strong> key (<code>pk_live_...</code>) when going to production. The secret key stays on the Django server, not in WordPress.
-        </div>
-
         <h3>Appearance</h3>
         <table>
-            <tr>
-                <th>Setting</th>
-                <th>Description</th>
-                <th>Default</th>
-            </tr>
+            <tr><th>Setting</th><th>Description</th><th>Default</th></tr>
             <tr>
                 <td><strong>Primary Color</strong></td>
                 <td>Dark brand color (headers, backgrounds)</td>
@@ -550,7 +461,7 @@
             </tr>
             <tr>
                 <td><strong>Accent Color</strong></td>
-                <td>Highlight color (buttons, prices, selected states)</td>
+                <td>Highlight color (buttons, prices, selections)</td>
                 <td><code style="background:#e94560;color:#fff;padding:2px 8px;border-radius:3px">#e94560</code></td>
             </tr>
             <tr>
@@ -560,416 +471,235 @@
             </tr>
             <tr>
                 <td><strong>Currency Position</strong></td>
-                <td>Show currency before or after the amount</td>
-                <td><code>after</code> (450 MAD)</td>
+                <td><code>before</code> ($450) or <code>after</code> (450 MAD)</td>
+                <td><code>after</code></td>
             </tr>
         </table>
 
         <h3>Features</h3>
         <table>
-            <tr>
-                <th>Setting</th>
-                <th>Description</th>
-                <th>Default</th>
-            </tr>
-            <tr>
-                <td><strong>Enable Round Trip</strong></td>
-                <td>Show the round trip toggle on the booking form</td>
-                <td>Enabled</td>
-            </tr>
-            <tr>
-                <td><strong>Enable Flight Number</strong></td>
-                <td>Show flight number field for airport transfers</td>
-                <td>Enabled</td>
-            </tr>
+            <tr><th>Setting</th><th>Description</th><th>Default</th></tr>
+            <tr><td><strong>Enable Round Trip</strong></td><td>Show round trip toggle on the form</td><td>Enabled</td></tr>
+            <tr><td><strong>Enable Flight Number</strong></td><td>Show flight number field for airport transfers</td><td>Enabled</td></tr>
+            <tr><td><strong>Enable Debug Log</strong></td><td>Log API errors to <code>debug.log</code> for troubleshooting</td><td>Disabled</td></tr>
         </table>
-    </div>
 
-    <!-- Shortcode -->
-    <div class="section" id="shortcode">
-        <h2>Adding the Booking Form</h2>
-        <p>Use the shortcode to embed the booking widget on any page or post:</p>
-
-        <pre><code>[transfers_booking]</code></pre>
-
-        <h3>Where to Place It</h3>
-
-        <div class="step">
-            <div class="step-title"><span class="step-number">1</span> Create a new page</div>
-            <p>Go to <strong>Pages &rarr; Add New</strong>.</p>
-            <p>Give it a title like "Book a Transfer" or "Reservations".</p>
-        </div>
-
-        <div class="step">
-            <div class="step-title"><span class="step-number">2</span> Add the shortcode</div>
-            <p><strong>Block Editor (Gutenberg):</strong> Add a "Shortcode" block and paste <code>[transfers_booking]</code></p>
-            <p><strong>Classic Editor:</strong> Simply paste <code>[transfers_booking]</code> in the content area.</p>
-        </div>
-
-        <div class="step">
-            <div class="step-title"><span class="step-number">3</span> Publish</div>
-            <p>Click <strong>Publish</strong> and visit the page. You should see the 3-step booking form.</p>
-        </div>
-
-        <div class="callout callout-info">
-            <strong>Full-width recommended</strong>
-            For the best experience, use a page template without a sidebar. The booking widget is responsive and uses the full width available (up to 1100px). Many themes offer a "Full Width" or "No Sidebar" template.
-        </div>
-
-        <div class="callout callout-info">
-            <strong>One shortcode per page</strong>
-            Only place the shortcode once per page. Scripts and styles only load on pages that contain the shortcode, so other pages are not affected.
-        </div>
-    </div>
-
-    <!-- How It Works -->
-    <div class="section" id="how-it-works">
-        <h2>How It Works</h2>
-        <p>The booking widget guides your customers through 3 simple steps:</p>
-
-        <div class="diagram">
-            <div class="diagram-flow">
-                <div class="diagram-box active">Step 1<br><small>Route &amp; Time</small></div>
-                <span class="diagram-arrow">&rarr;</span>
-                <div class="diagram-box">Step 2<br><small>Vehicle &amp; Extras</small></div>
-                <span class="diagram-arrow">&rarr;</span>
-                <div class="diagram-box">Step 3<br><small>Pay &amp; Confirm</small></div>
-                <span class="diagram-arrow">&rarr;</span>
-                <div class="diagram-box" style="border-color: var(--success); color: var(--success);">Confirmed</div>
-            </div>
-        </div>
-
-        <h3>Step 1: Route &amp; Time</h3>
-        <p>The customer selects:</p>
-        <ul>
-            <li><strong>Transfer type</strong> &mdash; Airport Pickup, Airport Drop-off, City to City, or Port Transfer</li>
-            <li><strong>Pickup location</strong> &mdash; Google Places autocomplete (or fallback dropdown)</li>
-            <li><strong>Drop-off location</strong> &mdash; Same autocomplete</li>
-            <li><strong>Date &amp; time</strong> &mdash; Cannot select past dates</li>
-            <li><strong>Passengers</strong> &mdash; 1 to 20</li>
-            <li><strong>Round trip</strong> &mdash; Optional toggle with return date</li>
-            <li><strong>Flight number</strong> &mdash; Shown for airport types</li>
-        </ul>
-
-        <h3>Step 2: Vehicle &amp; Extras</h3>
-        <p>After searching, the customer sees:</p>
-        <ul>
-            <li><strong>Route summary</strong> &mdash; Distance and estimated duration</li>
-            <li><strong>Vehicle cards</strong> &mdash; Name, capacity, features, price per vehicle</li>
-            <li><strong>Extras</strong> &mdash; Optional add-ons like child seats with quantity controls</li>
-            <li><strong>Price sidebar</strong> &mdash; Live price breakdown that updates when selections change</li>
-        </ul>
-
-        <h3>Step 3: Payment</h3>
-        <p>The customer enters their details and pays:</p>
-        <ul>
-            <li><strong>Customer info</strong> &mdash; Name, email, phone, special requests</li>
-            <li><strong>Pay Now</strong> &mdash; Creates the booking on the Django API</li>
-            <li><strong>Stripe card form</strong> &mdash; Secure Stripe Elements form appears</li>
-            <li><strong>Confirm Payment</strong> &mdash; Processes the card (handles 3D Secure)</li>
-            <li><strong>Confirmation</strong> &mdash; Shows booking reference number</li>
-        </ul>
-
-        <h3>Data Flow</h3>
-        <div class="diagram">
-            <div class="diagram-flow">
-                <div class="diagram-box">Customer Browser</div>
-                <span class="diagram-arrow">&rarr;</span>
-                <div class="diagram-box active">WordPress (AJAX Proxy)</div>
-                <span class="diagram-arrow">&rarr;</span>
-                <div class="diagram-box">Django API</div>
-            </div>
-            <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
-                All API calls go through WordPress. The browser never talks directly to Django.
-                This avoids CORS issues and keeps the API URL private.
-            </p>
-        </div>
-    </div>
-
-    <!-- API Setup -->
-    <div class="section" id="api-setup">
-        <h2>Django API Setup</h2>
-        <p>Your Django backend needs to be running and accessible from the WordPress server. Here's what to check:</p>
-
-        <h3>Required API Endpoints</h3>
-        <p>The plugin uses these endpoints (all public, no authentication required):</p>
-
+        <h3>Contact &amp; Messages</h3>
         <table>
-            <tr>
-                <th>Endpoint</th>
-                <th>Method</th>
-                <th>Used In</th>
-            </tr>
-            <tr>
-                <td><code>/api/v1/locations/google-maps-config/</code></td>
-                <td>GET</td>
-                <td>Step 1 (fetch Maps key)</td>
-            </tr>
-            <tr>
-                <td><code>/api/v1/locations/routes/get_pricing/</code></td>
-                <td>GET</td>
-                <td>Step 2 (vehicle pricing)</td>
-            </tr>
-            <tr>
-                <td><code>/api/v1/transfers/extras/</code></td>
-                <td>GET</td>
-                <td>Step 2 (add-ons)</td>
-            </tr>
-            <tr>
-                <td><code>/api/v1/transfers/quote/</code></td>
-                <td>POST</td>
-                <td>Step 2 (price breakdown)</td>
-            </tr>
-            <tr>
-                <td><code>/api/v1/transfers/</code></td>
-                <td>POST</td>
-                <td>Step 3 (create booking)</td>
-            </tr>
-            <tr>
-                <td><code>/api/v1/payments/</code></td>
-                <td>POST</td>
-                <td>Step 3 (create payment intent)</td>
-            </tr>
-            <tr>
-                <td><code>/api/v1/payments/confirm/</code></td>
-                <td>POST</td>
-                <td>Step 3 (confirm payment)</td>
-            </tr>
+            <tr><th>Setting</th><th>Description</th></tr>
+            <tr><td><strong>Contact Phone</strong></td><td>Phone number for customer inquiries (e.g. <code>+212 5XX-XXXXXX</code>)</td></tr>
+            <tr><td><strong>Contact Email</strong></td><td>Email for custom quote requests</td></tr>
+            <tr><td><strong>WhatsApp Number</strong></td><td>WhatsApp number with country code, no spaces (e.g. <code>212600000000</code>)</td></tr>
+            <tr><td><strong>Show "Contact Us" for Unknown Routes</strong></td><td>Routes without a price show a contact message instead</td></tr>
+            <tr><td><strong>No Route Message</strong></td><td>Custom message when a route is unavailable. Supports basic HTML.</td></tr>
         </table>
-
-        <h3>CORS Configuration</h3>
-        <p>Since the plugin uses a server-side proxy, CORS configuration on Django is <strong>not required</strong> for the plugin to work. The WordPress server makes the API calls, not the browser.</p>
-
-        <div class="callout callout-success">
-            <strong>No CORS needed</strong>
-            The plugin's AJAX proxy handles all API communication server-side using <code>wp_remote_get</code> and <code>wp_remote_post</code>. Your Django API just needs to be reachable from the WordPress server's network.
-        </div>
-
-        <h3>Testing the Connection</h3>
-        <p>To verify the WordPress server can reach your Django API, SSH into the WordPress server and run:</p>
-        <pre><code>curl -s https://api.transfers.ma/api/v1/vehicles/categories/ | head -c 200</code></pre>
-        <p>You should see a JSON response with vehicle categories.</p>
     </div>
 
-    <!-- Stripe -->
+    <!-- STRIPE -->
     <div class="section" id="stripe">
         <h2>Stripe Setup</h2>
-        <p>The plugin uses Stripe to process payments. You need two things configured:</p>
 
-        <h3>1. WordPress Plugin: Publishable Key</h3>
-        <p>Go to <strong>Settings &rarr; Transfers Booking</strong> and enter your Stripe <strong>publishable key</strong>.</p>
+        <h3>WordPress side</h3>
+        <p>Enter your Stripe <strong>publishable key</strong> in the plugin settings.</p>
         <ul>
-            <li>Get it from: <a href="https://dashboard.stripe.com/apikeys" target="_blank">Stripe Dashboard &rarr; API Keys</a></li>
-            <li>Test key starts with: <code>pk_test_...</code></li>
-            <li>Live key starts with: <code>pk_live_...</code></li>
+            <li>Test key: <code>pk_test_...</code></li>
+            <li>Live key: <code>pk_live_...</code></li>
+            <li>Get it from <a href="https://dashboard.stripe.com/apikeys" target="_blank">Stripe Dashboard &rarr; API Keys</a></li>
         </ul>
 
-        <h3>2. Django Backend: Secret Key &amp; Webhook</h3>
-        <p>On the Django side (Dashboard &rarr; Settings), configure:</p>
+        <h3>Django side</h3>
+        <p>In the Django dashboard Settings, configure:</p>
         <ul>
             <li><strong>Stripe Secret Key</strong> (<code>sk_test_...</code> or <code>sk_live_...</code>)</li>
             <li><strong>Stripe Webhook Secret</strong> (<code>whsec_...</code>)</li>
         </ul>
 
-        <h3>3. Stripe Webhook (Recommended)</h3>
-        <p>Set up a webhook in Stripe Dashboard to handle async payment confirmations:</p>
-
+        <h3>Webhook setup</h3>
         <div class="step">
-            <div class="step-title"><span class="step-number">1</span> Go to Stripe Webhooks</div>
-            <p>Navigate to <a href="https://dashboard.stripe.com/webhooks" target="_blank">Stripe Dashboard &rarr; Developers &rarr; Webhooks</a></p>
+            <div class="step-title"><span class="step-number">1</span> Create webhook in Stripe</div>
+            <p><a href="https://dashboard.stripe.com/webhooks" target="_blank">Stripe &rarr; Developers &rarr; Webhooks</a> &rarr; Add endpoint.</p>
+        </div>
+        <div class="step">
+            <div class="step-title"><span class="step-number">2</span> Set the endpoint URL</div>
+            <p><code>https://api.transfers.ma/api/v1/payments/webhooks/stripe/</code></p>
+            <p>Events: <code>payment_intent.succeeded</code> and <code>payment_intent.payment_failed</code></p>
+        </div>
+        <div class="step">
+            <div class="step-title"><span class="step-number">3</span> Copy signing secret</div>
+            <p>Copy the <code>whsec_...</code> value to Django Settings.</p>
         </div>
 
-        <div class="step">
-            <div class="step-title"><span class="step-number">2</span> Add endpoint</div>
-            <p>URL: <code>https://api.transfers.ma/api/v1/payments/webhooks/stripe/</code></p>
-            <p>Events: Select <code>payment_intent.succeeded</code> and <code>payment_intent.payment_failed</code></p>
-        </div>
-
-        <div class="step">
-            <div class="step-title"><span class="step-number">3</span> Copy the signing secret</div>
-            <p>Copy the <code>whsec_...</code> value and paste it in Django Settings &rarr; Stripe Webhook Secret.</p>
-        </div>
-
-        <h3>Testing with Test Cards</h3>
+        <h3>Test cards</h3>
         <table>
-            <tr>
-                <th>Card Number</th>
-                <th>Result</th>
-            </tr>
-            <tr>
-                <td><code>4242 4242 4242 4242</code></td>
-                <td style="color: var(--success)">Payment succeeds</td>
-            </tr>
-            <tr>
-                <td><code>4000 0000 0000 0002</code></td>
-                <td style="color: #dc3545">Card declined</td>
-            </tr>
-            <tr>
-                <td><code>4000 0025 0000 3155</code></td>
-                <td style="color: var(--warning)">Requires 3D Secure authentication</td>
-            </tr>
+            <tr><th>Card Number</th><th>Result</th></tr>
+            <tr><td><code>4242 4242 4242 4242</code></td><td style="color: var(--success)">Success</td></tr>
+            <tr><td><code>4000 0000 0000 0002</code></td><td style="color: var(--danger)">Declined</td></tr>
+            <tr><td><code>4000 0025 0000 3155</code></td><td style="color: var(--warning)">Requires 3D Secure</td></tr>
         </table>
-        <p>Use any future expiry date and any 3-digit CVC for testing.</p>
+        <p>Use any future expiry and any 3-digit CVC.</p>
+
+        <div class="callout callout-warning">
+            <strong>HTTPS required</strong>
+            Stripe requires your site to be served over HTTPS.
+        </div>
     </div>
 
-    <!-- Customization -->
-    <div class="section" id="customization">
-        <h2>Customization</h2>
+    <!-- LANGUAGES -->
+    <div class="section" id="i18n">
+        <h2>Languages &amp; RTL</h2>
 
-        <h3>Colors</h3>
-        <p>Change the <strong>Primary Color</strong> and <strong>Accent Color</strong> in Settings. These update CSS custom properties that control all colors across the widget:</p>
-        <pre><code>/* Automatically injected by the plugin */
-:root {
-    --tb-primary: #1a1a2e;   /* your primary color */
-    --tb-accent: #e94560;    /* your accent color */
-}</code></pre>
+        <h3>Using the <code>lang</code> parameter</h3>
+        <pre><code>[transfers_booking lang="fr_FR"]   &lt;!-- French --&gt;
+[transfers_booking lang="ar"]      &lt;!-- Arabic (auto-enables RTL) --&gt;
+[transfers_booking lang="es_ES"]   &lt;!-- Spanish --&gt;
+[transfers_booking lang="de_DE"]   &lt;!-- German --&gt;</code></pre>
 
-        <h3>Custom CSS</h3>
-        <p>To add custom styling, use your theme's <strong>Additional CSS</strong> (Appearance &rarr; Customize &rarr; Additional CSS) or a custom CSS plugin. All widget elements use the <code>tb-</code> prefix:</p>
-        <pre><code>/* Make buttons more rounded */
-.tb-btn {
-    border-radius: 50px;
-}
+        <h3>RTL support</h3>
+        <p>RTL layout is automatically enabled for Arabic (<code>ar</code>), Hebrew (<code>he</code>), Farsi (<code>fa</code>), and Urdu (<code>ur</code>).</p>
 
-/* Change the vehicle card hover effect */
-.tb-vehicle-card:hover {
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
+        <h3>Available translations</h3>
+        <table>
+            <tr><th>Language</th><th>File</th></tr>
+            <tr><td>French</td><td><code>transfers-booking-fr_FR.po</code></td></tr>
+            <tr><td>Spanish</td><td><code>transfers-booking-es_ES.po</code></td></tr>
+            <tr><td>German</td><td><code>transfers-booking-de_DE.po</code></td></tr>
+            <tr><td>Italian</td><td><code>transfers-booking-it_IT.po</code></td></tr>
+            <tr><td>Portuguese</td><td><code>transfers-booking-pt_PT.po</code></td></tr>
+            <tr><td>Arabic</td><td><code>transfers-booking-ar.po</code></td></tr>
+        </table>
 
-/* Style the progress bar numbers */
-.tb-progress__number {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
-}</code></pre>
-
-        <h3>RTL Support (Arabic)</h3>
-        <p>The widget automatically detects the WordPress RTL setting. When your site is set to Arabic or another RTL language, the layout mirrors automatically. An additional <code>tb-rtl.css</code> file handles directional overrides.</p>
-
-        <h3>Translation</h3>
-        <p>All visible strings are translatable via WordPress. The plugin uses the text domain <code>transfers-booking</code>.</p>
-        <p>To add a new language:</p>
+        <h3>Adding a new language</h3>
         <ol>
-            <li>Copy the <code>languages/transfers-booking.pot</code> template</li>
-            <li>Rename it to your locale (e.g., <code>transfers-booking-fr_FR.po</code>)</li>
-            <li>Translate the strings using a tool like <a href="https://poedit.net/" target="_blank">Poedit</a></li>
-            <li>Generate the <code>.mo</code> file and place both in the <code>languages/</code> folder</li>
+            <li>Copy <code>languages/transfers-booking.pot</code></li>
+            <li>Rename to your locale (e.g. <code>transfers-booking-nl_NL.po</code>)</li>
+            <li>Translate with <a href="https://poedit.net/" target="_blank">Poedit</a></li>
+            <li>Save &mdash; Poedit generates the <code>.mo</code> file automatically</li>
         </ol>
     </div>
 
-    <!-- Troubleshooting -->
+    <!-- PAGE BUILDERS -->
+    <div class="section" id="page-builders">
+        <h2>Page Builders</h2>
+
+        <h3>Elementor</h3>
+        <p>Add a <strong>Shortcode</strong> widget and paste <code>[transfers_booking]</code>. The plugin detects Elementor and loads assets correctly.</p>
+
+        <h3>Gutenberg (Block Editor)</h3>
+        <p>Add a <strong>Shortcode</strong> block and paste the shortcode.</p>
+
+        <h3>Classic Editor</h3>
+        <p>Paste the shortcode directly into the content area.</p>
+
+        <h3>Other page builders</h3>
+        <p>Any builder that supports WordPress shortcodes will work (Divi, WPBakery, Beaver Builder, etc.).</p>
+
+        <div class="callout callout-success">
+            <strong>No extra configuration needed</strong>
+            The plugin loads its CSS and JS directly when the shortcode renders, so it works with all page builders out of the box.
+        </div>
+    </div>
+
+    <!-- DATA FLOW -->
+    <div class="section" id="data-flow">
+        <h2>How It Works</h2>
+
+        <div class="diagram">
+            <div class="diagram-flow">
+                <div class="diagram-box">Customer's Browser</div>
+                <span class="diagram-arrow">&rarr;</span>
+                <div class="diagram-box active">WordPress (AJAX Proxy)</div>
+                <span class="diagram-arrow">&rarr;</span>
+                <div class="diagram-box">Django API</div>
+            </div>
+            <div class="diagram-label">All API calls go through WordPress. The browser never talks to Django directly. No CORS configuration needed.</div>
+        </div>
+
+        <h3>API endpoints used</h3>
+        <table>
+            <tr><th>Endpoint</th><th>Method</th><th>Used for</th></tr>
+            <tr><td><code>/api/v1/locations/google-maps-config/</code></td><td>GET</td><td>Fetch Maps API key</td></tr>
+            <tr><td><code>/api/v1/locations/routes/get_pricing/</code></td><td>GET</td><td>Vehicle pricing for a route</td></tr>
+            <tr><td><code>/api/v1/transfers/extras/</code></td><td>GET</td><td>Available add-ons</td></tr>
+            <tr><td><code>/api/v1/transfers/quote/</code></td><td>POST</td><td>Price breakdown</td></tr>
+            <tr><td><code>/api/v1/transfers/</code></td><td>POST</td><td>Create booking</td></tr>
+            <tr><td><code>/api/v1/payments/</code></td><td>POST</td><td>Create Stripe payment intent</td></tr>
+            <tr><td><code>/api/v1/payments/confirm/</code></td><td>POST</td><td>Confirm payment</td></tr>
+        </table>
+    </div>
+
+    <!-- TROUBLESHOOTING -->
     <div class="section" id="troubleshooting">
         <h2>Troubleshooting</h2>
 
         <h3>Booking form doesn't appear</h3>
         <ul>
-            <li>Make sure the plugin is <strong>activated</strong> in Plugins</li>
-            <li>Verify you added <code>[transfers_booking]</code> to the page content (not the title)</li>
-            <li>Check for JavaScript errors in the browser console (F12 &rarr; Console)</li>
+            <li>Make sure the plugin is <strong>activated</strong></li>
+            <li>Check the shortcode is in the page content, not the title</li>
+            <li>Check browser console (F12) for JavaScript errors</li>
         </ul>
 
-        <h3>Vehicles don't load / "No vehicles available"</h3>
+        <h3>Styles look wrong / theme overrides</h3>
         <ul>
-            <li>Verify the <strong>API Base URL</strong> is correct in Settings</li>
-            <li>Check that the Django API server is running and accessible from the WordPress server</li>
-            <li>Verify you have vehicles and routes configured in the Django dashboard</li>
-            <li>Open browser DevTools &rarr; Network tab &rarr; look for the <code>admin-ajax.php</code> request and check the response</li>
+            <li>The plugin includes <code>!important</code> overrides for common theme conflicts</li>
+            <li>Clear any caching plugins after updating the plugin</li>
+            <li>If theme colors still leak through, add custom CSS via <strong>Appearance &rarr; Customize &rarr; Additional CSS</strong></li>
+        </ul>
+
+        <h3>Vehicles don't load</h3>
+        <ul>
+            <li>Verify the <strong>API Base URL</strong> is correct</li>
+            <li>Check the Django API server is running</li>
+            <li>Ensure you have vehicles and routes configured in the Django dashboard</li>
+            <li>Open DevTools &rarr; Network &rarr; look for <code>admin-ajax.php</code> requests</li>
         </ul>
 
         <h3>Google Maps autocomplete not working</h3>
         <ul>
-            <li>Verify your Google Maps API key has the <strong>Places API</strong> enabled</li>
-            <li>Check for billing issues on the Google Cloud Console</li>
-            <li>The fallback location dropdown will appear automatically if Google Maps fails</li>
+            <li>Check your API key has the <strong>Places API</strong> enabled</li>
+            <li>Check for billing issues on Google Cloud Console</li>
+            <li>A fallback location dropdown appears if Maps is unavailable</li>
         </ul>
 
-        <h3>Payment fails / Stripe form doesn't appear</h3>
+        <h3>Payment errors</h3>
         <ul>
-            <li>Verify the <strong>Stripe Publishable Key</strong> is correct (starts with <code>pk_</code>)</li>
-            <li>Ensure the Django backend has the matching <strong>Stripe Secret Key</strong> configured</li>
-            <li>Check the browser console for Stripe.js errors</li>
-            <li>Your site <strong>must use HTTPS</strong> for Stripe to work</li>
-            <li>Test with card <code>4242 4242 4242 4242</code> first</li>
+            <li>Verify the Stripe key starts with <code>pk_</code></li>
+            <li>Your site must use <strong>HTTPS</strong></li>
+            <li>Check the Django backend has the matching secret key</li>
+            <li>Test with card <code>4242 4242 4242 4242</code></li>
         </ul>
 
-        <h3>"Something went wrong" errors</h3>
-        <ul>
-            <li>Open browser DevTools (F12) &rarr; Network tab</li>
-            <li>Find the failed <code>admin-ajax.php</code> request</li>
-            <li>Check the response body for error details from the Django API</li>
-            <li>Common issues: API server down, incorrect URL, missing routes/vehicles in database</li>
-        </ul>
-
-        <h3>Checking the AJAX Proxy</h3>
-        <p>All API calls go through WordPress AJAX. To debug, look at Network requests to <code>admin-ajax.php</code> with these POST parameters:</p>
-        <pre><code>action: tb_api_proxy
-nonce: (auto-generated)
-endpoint: get_pricing  (or other endpoint key)
-params: {"origin_lat": 31.6069, ...}</code></pre>
-        <p>The response will be:</p>
-        <pre><code>// Success:
-{"success": true, "data": { ... }}
-
-// Error:
-{"success": false, "data": {"message": "Error description"}}</code></pre>
+        <h3>Enable debug logging</h3>
+        <p>Turn on <strong>Enable Debug Log</strong> in Settings. Errors are logged to:</p>
+        <pre><code>wp-content/plugins/transfers-booking/debug.log</code></pre>
     </div>
 
-    <!-- Quick Reference -->
-    <div class="section" id="quick-reference">
+    <!-- QUICK REFERENCE -->
+    <div class="section" id="quick-ref">
         <h2>Quick Reference</h2>
 
         <h3>Shortcode</h3>
-        <pre><code>[transfers_booking]</code></pre>
+        <div class="shortcode-block">[transfers_booking]</div>
 
-        <h3>Settings Location</h3>
-        <p>WordPress Admin &rarr; <strong>Settings</strong> &rarr; <strong>Transfers Booking</strong></p>
+        <h3>Settings location</h3>
+        <p>WordPress Admin &rarr; <strong>Transfers Booking</strong> (left menu)</p>
 
-        <h3>Required Settings Checklist</h3>
+        <h3>Required settings checklist</h3>
         <table>
-            <tr>
-                <th>Setting</th>
-                <th>Where</th>
-                <th>Status</th>
-            </tr>
-            <tr>
-                <td>API Base URL</td>
-                <td>WP Settings &rarr; Transfers Booking</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
-            <tr>
-                <td>Stripe Publishable Key</td>
-                <td>WP Settings &rarr; Transfers Booking</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
-            <tr>
-                <td>Stripe Secret Key</td>
-                <td>Django Dashboard &rarr; Settings</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
-            <tr>
-                <td>Stripe Webhook Secret</td>
-                <td>Django Dashboard &rarr; Settings</td>
-                <td><span class="badge badge-optional">Recommended</span></td>
-            </tr>
-            <tr>
-                <td>Google Maps API Key</td>
-                <td>WP Settings or Django Settings</td>
-                <td><span class="badge badge-optional">Optional</span></td>
-            </tr>
-            <tr>
-                <td>Vehicles &amp; Routes</td>
-                <td>Django Dashboard</td>
-                <td><span class="badge badge-required">Required</span></td>
-            </tr>
+            <tr><th>Setting</th><th>Where</th><th></th></tr>
+            <tr><td>API Base URL</td><td>WP &rarr; Transfers Booking</td><td><span class="badge badge-required">Required</span></td></tr>
+            <tr><td>Stripe Publishable Key</td><td>WP &rarr; Transfers Booking</td><td><span class="badge badge-required">Required</span></td></tr>
+            <tr><td>Stripe Secret Key</td><td>Django Dashboard &rarr; Settings</td><td><span class="badge badge-required">Required</span></td></tr>
+            <tr><td>Vehicles &amp; Routes</td><td>Django Dashboard</td><td><span class="badge badge-required">Required</span></td></tr>
+            <tr><td>Google Maps API Key</td><td>WP Settings or Django Settings</td><td><span class="badge badge-optional">Optional</span></td></tr>
+            <tr><td>Stripe Webhook Secret</td><td>Django Dashboard &rarr; Settings</td><td><span class="badge badge-recommended">Recommended</span></td></tr>
         </table>
     </div>
 
 </div>
 
-<!-- Footer -->
 <div class="footer">
-    <strong>Transfers<span>.ma</span></strong> Booking Plugin v1.0.0<br>
-    &copy; 2024 Transfers.ma
+    <strong>Transfers<span>.ma</span></strong> Booking Plugin<br>
+    &copy; 2025 Transfers.ma
 </div>
 
 </body>
