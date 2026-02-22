@@ -56,12 +56,19 @@ class TransferCreateSerializer(serializers.ModelSerializer):
         required=False,
         write_only=True
     )
+    transfer_type = serializers.CharField(required=False, default='custom')
     customer_phone = serializers.CharField(validators=[validate_phone])
     pickup_datetime = serializers.DateTimeField(validators=[validate_future_datetime])
     pickup_latitude = serializers.FloatField(validators=[validate_latitude], required=False)
     pickup_longitude = serializers.FloatField(validators=[validate_longitude], required=False)
     dropoff_latitude = serializers.FloatField(validators=[validate_latitude], required=False)
     dropoff_longitude = serializers.FloatField(validators=[validate_longitude], required=False)
+
+    def validate_transfer_type(self, value):
+        valid = ['airport_pickup', 'airport_dropoff', 'city_to_city', 'port_transfer', 'custom']
+        if not value or value not in valid:
+            return 'custom'
+        return value
 
     class Meta:
         model = Transfer
