@@ -630,6 +630,8 @@
                 .then(function (booking) {
                     TB.State.set('bookingId', booking.id);
                     TB.State.set('bookingRef', booking.booking_ref);
+                    TB.State.set('bookingBasePrice', booking.base_price);
+                    TB.State.set('bookingExtrasPrice', booking.extras_price);
                     TB.State.set('totalPrice', booking.total_price);
                     TB.State.set('currency', booking.currency);
                     TB.State.save();
@@ -754,23 +756,37 @@
             setEl('tb-receipt-passengers', state.passengers);
             setEl('tb-receipt-payment', gatewayLabel);
 
-            // Price breakdown
-            var basePrice = quote.base_price || (vehicle ? vehicle.price : 0);
+            // Price breakdown — prefer booking data, fallback to quote, then vehicle card
+            var basePrice = state.bookingBasePrice || quote.base_price || (vehicle ? vehicle.price : 0);
             setEl('tb-receipt-base-price', TB.Utils.formatPrice(basePrice, currency));
 
-            // Extras
+            // Extras from quote (itemised) or booking extras total
             var extrasListEl = document.getElementById('tb-receipt-extras-list');
             if (extrasListEl) {
                 var extras = quote.extras || [];
+                var selectedExtras = state.selectedExtras || [];
                 var html = '';
-                for (var i = 0; i < extras.length; i++) {
-                    var e = extras[i];
-                    html += '<div class="tb-receipt__row">';
-                    html += '<span class="tb-receipt__label">' + TB.Utils.escapeHtml(e.name);
-                    if (e.quantity > 1) html += ' &times; ' + e.quantity;
-                    html += '</span>';
-                    html += '<span class="tb-receipt__value">' + TB.Utils.formatPrice(e.price, currency) + '</span>';
-                    html += '</div>';
+                if (extras.length > 0) {
+                    for (var i = 0; i < extras.length; i++) {
+                        var e = extras[i];
+                        html += '<div class="tb-receipt__row">';
+                        html += '<span class="tb-receipt__label">' + TB.Utils.escapeHtml(e.name);
+                        if (e.quantity > 1) html += ' &times; ' + e.quantity;
+                        html += '</span>';
+                        html += '<span class="tb-receipt__value">' + TB.Utils.formatPrice(e.price, currency) + '</span>';
+                        html += '</div>';
+                    }
+                } else if (selectedExtras.length > 0) {
+                    for (var j = 0; j < selectedExtras.length; j++) {
+                        var se = selectedExtras[j];
+                        var sePrice = se.price * (se.is_per_item ? se.quantity : 1);
+                        html += '<div class="tb-receipt__row">';
+                        html += '<span class="tb-receipt__label">' + TB.Utils.escapeHtml(se.name);
+                        if (se.is_per_item && se.quantity > 1) html += ' &times; ' + se.quantity;
+                        html += '</span>';
+                        html += '<span class="tb-receipt__value">' + TB.Utils.formatPrice(sePrice, currency) + '</span>';
+                        html += '</div>';
+                    }
                 }
                 extrasListEl.innerHTML = html;
             }
@@ -799,8 +815,9 @@
             var vehicle = state.selectedVehicle;
             var quote = state.quoteData || {};
             var currency = state.currency || 'MAD';
-            var basePrice = quote.base_price || (vehicle ? vehicle.price : 0);
+            var basePrice = state.bookingBasePrice || quote.base_price || (vehicle ? vehicle.price : 0);
             var extras = quote.extras || [];
+            var selectedExtras = state.selectedExtras || [];
             var isRoundTrip = quote.is_round_trip || state.isRoundTrip;
 
             var html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
@@ -831,11 +848,21 @@
                 + '<tr class="divider"><td colspan="2"></td></tr>'
                 + '<tr><td>Base price</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(basePrice, currency)) + '</td></tr>';
 
-            for (var i = 0; i < extras.length; i++) {
-                var e = extras[i];
-                var label = e.name;
-                if (e.quantity > 1) label += ' x ' + e.quantity;
-                html += '<tr><td>' + TB.Utils.escapeHtml(label) + '</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(e.price, currency)) + '</td></tr>';
+            if (extras.length > 0) {
+                for (var i = 0; i < extras.length; i++) {
+                    var e = extras[i];
+                    var label = e.name;
+                    if (e.quantity > 1) label += ' x ' + e.quantity;
+                    html += '<tr><td>' + TB.Utils.escapeHtml(label) + '</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(e.price, currency)) + '</td></tr>';
+                }
+            } else if (selectedExtras.length > 0) {
+                for (var j = 0; j < selectedExtras.length; j++) {
+                    var se = selectedExtras[j];
+                    var seLabel = se.name;
+                    if (se.is_per_item && se.quantity > 1) seLabel += ' x ' + se.quantity;
+                    var sePrice = se.price * (se.is_per_item ? se.quantity : 1);
+                    html += '<tr><td>' + TB.Utils.escapeHtml(seLabel) + '</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(sePrice, currency)) + '</td></tr>';
+                }
             }
 
             if (isRoundTrip) {

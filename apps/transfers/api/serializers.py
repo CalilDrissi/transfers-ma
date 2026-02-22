@@ -81,9 +81,10 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             'passengers', 'luggage', 'child_seats',
             'vehicle_category_id', 'special_requests',
             'is_round_trip', 'return_datetime', 'extras',
+            'base_price', 'extras_price',
             'total_price', 'deposit_amount', 'currency', 'status',
         ]
-        read_only_fields = ['id', 'booking_ref', 'total_price', 'deposit_amount', 'currency', 'status']
+        read_only_fields = ['id', 'booking_ref', 'base_price', 'extras_price', 'total_price', 'deposit_amount', 'currency', 'status']
 
     def create(self, validated_data):
         from apps.vehicles.models import VehicleCategory
