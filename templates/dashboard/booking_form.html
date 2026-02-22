@@ -265,6 +265,15 @@
     transition: none;
     box-shadow: none;
 }
+/* Give From/To more room than date */
+.tb-pill-bar__field--from,
+.tb-pill-bar__field--to {
+    flex: 2 1 0;
+}
+.tb-pill-bar__field--date,
+.tb-pill-bar__field--return {
+    flex: 1.4 1 0;
+}
 .tb-pill-bar__field:focus-within {
     border-color: #e5e7eb;
     box-shadow: none;
@@ -345,6 +354,7 @@
 #tb-return-field { position: relative; border-right: 1px solid #e5e7eb; }
 .tb-pill-bar__add-return {
     border: none;
+    border-right: 1px solid #e5e7eb;
     background: transparent;
     color: #6b7280;
     font-size: 0.85rem;
@@ -353,7 +363,7 @@
     padding: 8px 14px;
     white-space: nowrap;
     font-family: var(--tb-font);
-    flex-shrink: 0;
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -367,6 +377,7 @@
     align-items: center;
     padding: 0 8px;
     border-right: none;
+    flex: 0 0 auto;
 }
 .tb-pax-pill {
     display: flex;
