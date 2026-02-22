@@ -278,13 +278,13 @@
             html += '<div class="tb-leg-row__number">' + (isReturn ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-1"/></svg>' : (idx + 1)) + '</div>';
             html += '<div class="tb-leg-row__fields">';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--from">';
-            html += '<span class="tb-pill-bar__icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg></span>';
+            html += '<span class="tb-pill-bar__icon"></span>';
             html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="pickup" placeholder="' + (i18n.selectPickup || 'From city, airport, or hotel...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.pickupAddress || '') + '"' + (isReturn ? ' readonly' : '') + '>';
             if (!isReturn) html += '<button type="button" class="tb-pill-bar__clear" style="' + (leg.pickupAddress ? '' : 'display:none;') + '">&times;</button>';
             if (!isReturn) html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="pickup"></div>';
             html += '</div>';
             html += '<div class="tb-pill-bar__field tb-pill-bar__field--to">';
-            html += '<span class="tb-pill-bar__icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.79 1 3 2.79 3 5c0 3 4 7.5 4 7.5s4-4.5 4-7.5c0-2.21-1.79-4-4-4zm0 5.5A1.5 1.5 0 117 4a1.5 1.5 0 010 3z" fill="currentColor"/></svg></span>';
+            html += '<span class="tb-pill-bar__icon"></span>';
             html += '<input type="text" class="tb-pill-bar__input" data-leg="' + idx + '" data-field="dropoff" placeholder="' + (i18n.selectDropoff || 'To city, hotel, or address...') + '" autocomplete="off" value="' + TB.Utils.escapeHtml(leg.dropoffAddress || '') + '"' + (isReturn ? ' readonly' : '') + '>';
             if (!isReturn) html += '<button type="button" class="tb-pill-bar__clear" style="' + (leg.dropoffAddress ? '' : 'display:none;') + '">&times;</button>';
             if (!isReturn) html += '<div class="tb-autocomplete-dropdown" data-leg="' + idx + '" data-dropdown="dropoff"></div>';
