@@ -545,6 +545,15 @@ class TB_Public {
         if (!is_a($post, 'WP_Post')) {
             return false;
         }
-        return has_shortcode($post->post_content, $shortcode);
+        // Check standard post content
+        if (has_shortcode($post->post_content, $shortcode)) {
+            return true;
+        }
+        // Check Elementor content (stores shortcodes in post meta)
+        $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
+        if (!empty($elementor_data) && is_string($elementor_data) && strpos($elementor_data, $shortcode) !== false) {
+            return true;
+        }
+        return false;
     }
 }
