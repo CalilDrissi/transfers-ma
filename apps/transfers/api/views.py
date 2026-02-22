@@ -209,6 +209,7 @@ class TransferViewSet(viewsets.ModelViewSet):
         dropoff_lng = float(data['dropoff_longitude'])
 
         matched_route = None
+        is_reverse = False
         for route in Route.objects.filter(is_active=True):
             if route.origin_latitude and route.origin_longitude and route.destination_latitude and route.destination_longitude:
                 origin_dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.origin_latitude), float(route.origin_longitude)))
@@ -221,12 +222,14 @@ class TransferViewSet(viewsets.ModelViewSet):
                     dest_dist_rev = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.origin_latitude), float(route.origin_longitude)))
                     if origin_dist_rev <= float(route.destination_radius_km) and dest_dist_rev <= float(route.origin_radius_km):
                         matched_route = route
+                        is_reverse = True
                         break
 
         # Calculate base price: use route pricing if matched, else distance-based
         base_price = None
         if matched_route:
             from apps.locations.models import VehicleRoutePricing
+            from apps.locations.api.views import find_matching_pickup_zone, find_matching_dropoff_zone
             route_pricing = VehicleRoutePricing.objects.filter(
                 route=matched_route,
                 vehicle__category=vehicle_category,
@@ -236,6 +239,16 @@ class TransferViewSet(viewsets.ModelViewSet):
             ).first()
             if route_pricing:
                 base_price = route_pricing.price
+                # Apply zone adjustments (same logic as get_pricing)
+                if is_reverse:
+                    m_pickup = find_matching_dropoff_zone(matched_route, pickup_lat, pickup_lng)
+                    m_dropoff = find_matching_pickup_zone(matched_route, dropoff_lat, dropoff_lng)
+                else:
+                    m_pickup = find_matching_pickup_zone(matched_route, pickup_lat, pickup_lng)
+                    m_dropoff = find_matching_dropoff_zone(matched_route, dropoff_lat, dropoff_lng)
+                pickup_adj = Decimal(str(route_pricing.pickup_zone_adjustments.get(str(m_pickup.id), 0))) if m_pickup else Decimal('0')
+                dropoff_adj = Decimal(str(route_pricing.dropoff_zone_adjustments.get(str(m_dropoff.id), 0))) if m_dropoff else Decimal('0')
+                base_price = base_price + pickup_adj + dropoff_adj
 
         if base_price is None:
             base_price = self._calculate_price(distance_km, vehicle_category)

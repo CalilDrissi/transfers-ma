@@ -134,6 +134,18 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                         ).first()
                         if rp:
                             base_price = rp.price
+                            # Apply zone adjustments (same logic as get_pricing)
+                            is_reverse = not (o_dist <= float(route.origin_radius_km) and d_dist <= float(route.destination_radius_km))
+                            from apps.locations.api.views import find_matching_pickup_zone, find_matching_dropoff_zone
+                            if is_reverse:
+                                m_pickup = find_matching_dropoff_zone(route, float(pickup_lat), float(pickup_lng))
+                                m_dropoff = find_matching_pickup_zone(route, float(dropoff_lat), float(dropoff_lng))
+                            else:
+                                m_pickup = find_matching_pickup_zone(route, float(pickup_lat), float(pickup_lng))
+                                m_dropoff = find_matching_dropoff_zone(route, float(dropoff_lat), float(dropoff_lng))
+                            pickup_adj = Decimal(str(rp.pickup_zone_adjustments.get(str(m_pickup.id), 0))) if m_pickup else Decimal('0')
+                            dropoff_adj = Decimal(str(rp.dropoff_zone_adjustments.get(str(m_dropoff.id), 0))) if m_dropoff else Decimal('0')
+                            base_price = base_price + pickup_adj + dropoff_adj
                         break
 
         if base_price is None:
