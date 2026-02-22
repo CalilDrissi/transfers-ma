@@ -183,25 +183,13 @@
                         gateways.push(results[i].gateway_type);
                     }
 
-                    // Fallback: if API returned nothing, use WP config flags
-                    if (gateways.length === 0) {
-                        if (tbConfig.enableStripe) gateways.push('stripe');
-                        if (tbConfig.enableCash) gateways.push('cash');
-                        if (tbConfig.enablePaypal) gateways.push('paypal');
-                    }
-                    if (gateways.length === 0) gateways.push('stripe');
+                    if (gateways.length === 0) gateways.push('cash');
 
                     self._applyGatewaySelector(selector, gateways);
                 })
                 .catch(function () {
-                    // On API failure, fall back to WP config flags
-                    var gateways = [];
-                    if (tbConfig.enableStripe) gateways.push('stripe');
-                    if (tbConfig.enableCash) gateways.push('cash');
-                    if (tbConfig.enablePaypal) gateways.push('paypal');
-                    if (gateways.length === 0) gateways.push('stripe');
-
-                    self._applyGatewaySelector(selector, gateways);
+                    // On API failure, default to cash only
+                    self._applyGatewaySelector(selector, ['cash']);
                 });
         },
 

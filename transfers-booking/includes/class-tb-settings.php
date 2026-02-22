@@ -31,9 +31,6 @@ class TB_Settings {
             'tb_no_route_message'              => 'This route is not currently available for online booking. Please contact us for a custom quote.',
             'tb_show_no_route_message'         => '',
             'tb_enable_debug_log'              => '',
-            'tb_enable_cash'                   => '',
-            'tb_enable_stripe'                 => '1',
-            'tb_enable_paypal'                 => '',
         ];
     }
 
