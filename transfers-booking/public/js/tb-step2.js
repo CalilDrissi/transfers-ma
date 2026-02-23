@@ -47,8 +47,8 @@
                 state.dropoffLng,
                 state.passengers
             ).then(function (data) {
-                // No-route handling: show contact message instead of calculated prices
-                if (data.pricing_type === 'calculated' && tbConfig.showNoRouteMessage) {
+                // No-route handling: show contact message when no pricing configured
+                if ((!data.vehicle_options || data.vehicle_options.length === 0) && tbConfig.showNoRouteMessage) {
                     TB.Step2.renderNoRouteMessage();
                     return;
                 }
