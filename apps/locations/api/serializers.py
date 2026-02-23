@@ -194,34 +194,6 @@ class RouteWithPricingSerializer(serializers.ModelSerializer):
                 pricing.vehicle, adjusted_price, 'route', pricing
             ))
 
-        # Fallback: category-based calculated pricing (no per-vehicle adjustments available)
-        if not options:
-            for category in VehicleCategory.objects.filter(is_active=True).order_by('order'):
-                base_price = float(obj.distance_km) * 5 * float(category.price_multiplier)
-                options.append({
-                    'vehicle_id': None,
-                    'vehicle_name': category.name,
-                    'category_id': category.id,
-                    'category_name': category.name,
-                    'category_icon': category.icon,
-                    'category_description': category.description or '',
-                    'category_tagline': category.tagline or '',
-                    'category_included_amenities': category.included_amenities or [],
-                    'category_not_included': category.not_included or [],
-                    'category_image': category.image.url if category.image else None,
-                    'passengers': category.max_passengers,
-                    'luggage': category.max_luggage,
-                    'price': max(base_price, 100),
-                    'features': [],
-                    'image': category.image.url if category.image else None,
-                    'client_description': '',
-                    'key_features': [],
-                    'important_note': '',
-                    'important_note_type': 'info',
-                    'custom_info': {},
-                    'pricing_type': 'calculated'
-                })
-
         return sorted(options, key=lambda x: x['price'])
 
     def _build_vehicle_option(self, vehicle, price, pricing_type, pricing=None):

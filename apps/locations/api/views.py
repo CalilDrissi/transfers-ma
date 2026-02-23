@@ -528,63 +528,13 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                 data['matched_dropoff_zone'] = None
             return Response(data)
 
-        # No matching route - calculate distance and use category pricing
-        distance_km = float(haversine_distance(origin_lat, origin_lng, dest_lat, dest_lng))
-        duration_minutes = None
-
-        # Try to get actual driving distance
-        try:
-            distance_result = calculate_distance(
-                float(origin_lat), float(origin_lng),
-                float(dest_lat), float(dest_lng)
-            )
-            if distance_result.get('distance_km'):
-                distance_km = float(distance_result['distance_km'])
-                duration_minutes = distance_result.get('duration_minutes')
-        except Exception:
-            pass
-
-        if duration_minutes is None:
-            duration_minutes = int(float(distance_km) * 1.5)  # Estimate 40 km/h average
-
-        # Build vehicle options from categories
-        vehicle_options = []
-        for category in VehicleCategory.objects.filter(
-            is_active=True,
-            max_passengers__gte=passengers
-        ).order_by('order'):
-            base_price = Decimal(str(distance_km)) * Decimal('5') * category.price_multiplier
-            price = max(base_price, Decimal('100'))
-            vehicle_options.append({
-                'vehicle_id': None,
-                'vehicle_name': category.name,
-                'category_id': category.id,
-                'category_name': category.name,
-                'category_icon': category.icon or 'bi bi-car-front',
-                'category_description': category.description or '',
-                'category_image': category.image.url if category.image else None,
-                'passengers': category.max_passengers,
-                'luggage': category.max_luggage,
-                'price': float(price),
-                'features': [],
-                'image': category.image.url if category.image else None,
-                'custom_info': {}
-            })
-
+        # No matching zone or route — no pricing available
         return Response({
-            'id': None,
-            'name': 'Custom Route',
-            'pricing_type': 'calculated',
-            'custom_info': {},
-            'deposit_percentage': 0,
-            'origin_name': request.query_params.get('origin_name', 'Pickup'),
-            'destination_name': request.query_params.get('destination_name', 'Dropoff'),
-            'distance_km': round(distance_km, 1),
-            'estimated_duration_minutes': duration_minutes,
-            'duration_display': f"{duration_minutes // 60}h {duration_minutes % 60}min",
-            'vehicle_options': sorted(vehicle_options, key=lambda x: x['price']),
+            'error': 'No pricing configured for this route.',
+            'vehicle_options': [],
+            'pricing_type': 'none',
             'currency': SiteSettings.get_settings().default_currency,
-        })
+        }, status=200)
 
 
 @extend_schema(

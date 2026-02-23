@@ -199,59 +199,84 @@ class TransferViewSet(viewsets.ModelViewSet):
         except Exception:
             pass
 
-        # Look up matching route or zone for pricing
+        # Look up matching zone or route for pricing (no fallback)
         from apps.locations.models import Route, Zone
         from apps.locations.services import calculate_distance_haversine
+        from apps.locations.api.views import (
+            find_matching_zone, find_matching_pickup_zone, find_matching_dropoff_zone,
+            haversine_distance,
+        )
+        from apps.vehicles.models import VehicleZonePricing
 
         pickup_lat = float(data['pickup_latitude'])
         pickup_lng = float(data['pickup_longitude'])
         dropoff_lat = float(data['dropoff_latitude'])
         dropoff_lng = float(data['dropoff_longitude'])
 
-        matched_route = None
-        is_reverse = False
-        for route in Route.objects.filter(is_active=True):
-            if route.origin_latitude and route.origin_longitude and route.destination_latitude and route.destination_longitude:
-                origin_dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.origin_latitude), float(route.origin_longitude)))
-                dest_dist = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.destination_latitude), float(route.destination_longitude)))
-                if origin_dist <= float(route.origin_radius_km) and dest_dist <= float(route.destination_radius_km):
-                    matched_route = route
-                    break
-                if route.is_bidirectional:
-                    origin_dist_rev = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.destination_latitude), float(route.destination_longitude)))
-                    dest_dist_rev = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.origin_latitude), float(route.origin_longitude)))
-                    if origin_dist_rev <= float(route.destination_radius_km) and dest_dist_rev <= float(route.origin_radius_km):
-                        matched_route = route
-                        is_reverse = True
-                        break
-
-        # Calculate base price: use route pricing if matched, else distance-based
         base_price = None
-        if matched_route:
-            from apps.locations.models import VehicleRoutePricing
-            from apps.locations.api.views import find_matching_pickup_zone, find_matching_dropoff_zone
-            route_pricing = VehicleRoutePricing.objects.filter(
-                route=matched_route,
-                vehicle__category=vehicle_category,
-                is_active=True,
-                pickup_zone__isnull=True,
-                dropoff_zone__isnull=True,
-            ).first()
-            if route_pricing:
-                base_price = route_pricing.price
-                # Apply zone adjustments (same logic as get_pricing)
-                if is_reverse:
-                    m_pickup = find_matching_dropoff_zone(matched_route, pickup_lat, pickup_lng)
-                    m_dropoff = find_matching_pickup_zone(matched_route, dropoff_lat, dropoff_lng)
-                else:
-                    m_pickup = find_matching_pickup_zone(matched_route, pickup_lat, pickup_lng)
-                    m_dropoff = find_matching_dropoff_zone(matched_route, dropoff_lat, dropoff_lng)
-                pickup_adj = Decimal(str(route_pricing.pickup_zone_adjustments.get(str(m_pickup.id), 0))) if m_pickup else Decimal('0')
-                dropoff_adj = Decimal(str(route_pricing.dropoff_zone_adjustments.get(str(m_dropoff.id), 0))) if m_dropoff else Decimal('0')
-                base_price = base_price + pickup_adj + dropoff_adj
+        deposit_percentage_from_pricing = Decimal('0')
+
+        # 1. Zone pricing: both points in same zone
+        pickup_zone = find_matching_zone(pickup_lat, pickup_lng)
+        dropoff_zone = find_matching_zone(dropoff_lat, dropoff_lng)
+
+        if pickup_zone and dropoff_zone and pickup_zone.id == dropoff_zone.id:
+            zone = pickup_zone
+            zone_distance = distance_km or float(haversine_distance(pickup_lat, pickup_lng, dropoff_lat, dropoff_lng))
+            distance_range = zone.get_range_for_distance(zone_distance)
+            if distance_range:
+                zp = VehicleZonePricing.objects.filter(
+                    zone_distance_range=distance_range,
+                    vehicle__category=vehicle_category,
+                    is_active=True,
+                ).first()
+                if zp:
+                    base_price = zp.price
+                    deposit_percentage_from_pricing = zone.deposit_percentage
+
+        # 2. Route pricing with zone adjustments
+        matched_route = None
+        if base_price is None:
+            is_reverse = False
+            for route in Route.objects.filter(is_active=True):
+                if route.origin_latitude and route.origin_longitude and route.destination_latitude and route.destination_longitude:
+                    origin_dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.origin_latitude), float(route.origin_longitude)))
+                    dest_dist = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.destination_latitude), float(route.destination_longitude)))
+                    if origin_dist <= float(route.origin_radius_km) and dest_dist <= float(route.destination_radius_km):
+                        matched_route = route
+                        break
+                    if route.is_bidirectional:
+                        origin_dist_rev = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(route.destination_latitude), float(route.destination_longitude)))
+                        dest_dist_rev = float(calculate_distance_haversine(dropoff_lat, dropoff_lng, float(route.origin_latitude), float(route.origin_longitude)))
+                        if origin_dist_rev <= float(route.destination_radius_km) and dest_dist_rev <= float(route.origin_radius_km):
+                            matched_route = route
+                            is_reverse = True
+                            break
+
+            if matched_route:
+                from apps.locations.models import VehicleRoutePricing
+                route_pricing = VehicleRoutePricing.objects.filter(
+                    route=matched_route,
+                    vehicle__category=vehicle_category,
+                    is_active=True,
+                    pickup_zone__isnull=True,
+                    dropoff_zone__isnull=True,
+                ).first()
+                if route_pricing:
+                    base_price = route_pricing.price
+                    if is_reverse:
+                        m_pickup = find_matching_dropoff_zone(matched_route, pickup_lat, pickup_lng)
+                        m_dropoff = find_matching_pickup_zone(matched_route, dropoff_lat, dropoff_lng)
+                    else:
+                        m_pickup = find_matching_pickup_zone(matched_route, pickup_lat, pickup_lng)
+                        m_dropoff = find_matching_dropoff_zone(matched_route, dropoff_lat, dropoff_lng)
+                    pickup_adj = Decimal(str(route_pricing.pickup_zone_adjustments.get(str(m_pickup.id), 0))) if m_pickup else Decimal('0')
+                    dropoff_adj = Decimal(str(route_pricing.dropoff_zone_adjustments.get(str(m_dropoff.id), 0))) if m_dropoff else Decimal('0')
+                    base_price = base_price + pickup_adj + dropoff_adj
+                    deposit_percentage_from_pricing = matched_route.deposit_percentage
 
         if base_price is None:
-            base_price = self._calculate_price(distance_km, vehicle_category)
+            return Response({'error': 'No pricing configured for this route.'}, status=400)
 
         # Calculate extras
         extras_total = Decimal('0')
@@ -272,19 +297,9 @@ class TransferViewSet(viewsets.ModelViewSet):
 
         total = (base_price + extras_total) * multiplier
 
-        # Look up deposit percentage
-        deposit_percentage = Decimal('0')
+        # Deposit from percentage already captured during pricing lookup
+        deposit_percentage = deposit_percentage_from_pricing
         deposit_amount = Decimal('0')
-
-        if matched_route and matched_route.deposit_percentage > 0:
-            deposit_percentage = matched_route.deposit_percentage
-        else:
-            for zone in Zone.objects.filter(is_active=True, center_latitude__isnull=False):
-                dist = float(calculate_distance_haversine(pickup_lat, pickup_lng, float(zone.center_latitude), float(zone.center_longitude)))
-                if dist <= float(zone.radius_km) and zone.deposit_percentage > 0:
-                    deposit_percentage = zone.deposit_percentage
-                    break
-
         if deposit_percentage > 0:
             deposit_amount = (total * deposit_percentage / Decimal('100')).quantize(Decimal('0.01'))
 
@@ -304,18 +319,6 @@ class TransferViewSet(viewsets.ModelViewSet):
             'deposit_amount': float(deposit_amount),
             'currency': SiteSettings.get_settings().default_currency
         })
-
-    def _calculate_price(self, distance_km, vehicle_category):
-        """Calculate base price based on distance and vehicle category."""
-        if distance_km is None:
-            return Decimal('500') * vehicle_category.price_multiplier
-
-        # Base rate per km
-        base_rate_per_km = Decimal('5')  # 5 MAD per km
-        minimum_price = Decimal('100')   # Minimum 100 MAD
-
-        calculated_price = distance_km * base_rate_per_km * vehicle_category.price_multiplier
-        return max(calculated_price, minimum_price)
 
     @action(detail=True, methods=['post'])
     def assign_driver(self, request, pk=None):
