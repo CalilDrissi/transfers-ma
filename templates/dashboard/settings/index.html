@@ -161,10 +161,10 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="stripe_webhook_secret" class="form-label">{% trans "Webhook Secret" %}</label>
+                        <label for="stripe_webhook_secret" class="form-label">{% trans "Webhook Secret" %} <span class="text-muted fw-normal">({% trans "optional" %})</span></label>
                         <input type="password" class="form-control" id="stripe_webhook_secret" name="stripe_webhook_secret"
                                value="{{ site_settings.stripe_webhook_secret }}" placeholder="whsec_...">
-                        <div class="form-text">{% trans "Used to verify webhook events from Stripe (starts with whsec_)" %}</div>
+                        <div class="form-text">{% trans "Optional. Verifies webhook events from Stripe for extra reliability (starts with whsec_)" %}</div>
                     </div>
 
                     <button type="submit" class="btn btn-primary">
