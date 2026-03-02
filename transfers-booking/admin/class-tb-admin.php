@@ -75,6 +75,21 @@ class TB_Admin {
         $this->add_field('tb_primary_color', __('Primary Color', 'transfers-booking'), 'tb_appearance_section', 'color');
         $this->add_field('tb_accent_color', __('Accent Color', 'transfers-booking'), 'tb_appearance_section', 'color');
 
+        // Payment Settings
+        add_settings_section(
+            'tb_payment_section',
+            __('Payment', 'transfers-booking'),
+            function () {
+                echo '<p>' . esc_html__('Configure Stripe for card payments. Get your keys from the Stripe Dashboard.', 'transfers-booking') . '</p>';
+            },
+            'transfers-booking'
+        );
+
+        $this->add_field('tb_stripe_publishable_key', __('Stripe Publishable Key', 'transfers-booking'), 'tb_payment_section', 'text',
+            __('Starts with pk_live_ or pk_test_. This is the client-side key used in the browser.', 'transfers-booking'));
+        $this->add_field('tb_paypal_client_id', __('PayPal Client ID', 'transfers-booking'), 'tb_payment_section', 'text',
+            __('Optional. Leave empty if PayPal is not used.', 'transfers-booking'));
+
         // Contact & Messages
         add_settings_section(
             'tb_contact_section',
