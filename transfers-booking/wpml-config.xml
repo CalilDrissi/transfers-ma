@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wpml-config>
+    <admin-texts>
+        <key name="tb_tours_page_url" />
+        <key name="tb_rental_results_page_url" />
+        <key name="tb_rental_checkout_page_url" />
+        <key name="tb_rental_confirmation_page_url" />
+        <key name="tb_tour_checkout_page_url" />
+        <key name="tb_tour_confirmation_page_url" />
+        <key name="tb_contact_phone" />
+        <key name="tb_contact_email" />
+        <key name="tb_contact_whatsapp" />
+        <key name="tb_no_route_message" />
+    </admin-texts>
+    <shortcodes>
+        <shortcode>
+            <tag>transfers_booking</tag>
+        </shortcode>
+        <shortcode>
+            <tag>tours_listing</tag>
+        </shortcode>
+        <shortcode>
+            <tag>tour_detail</tag>
+        </shortcode>
+        <shortcode>
+            <tag>tour_checkout</tag>
+        </shortcode>
+        <shortcode>
+            <tag>tour_confirmation</tag>
+        </shortcode>
+        <shortcode>
+            <tag>rental_search</tag>
+        </shortcode>
+        <shortcode>
+            <tag>rental_results</tag>
+        </shortcode>
+        <shortcode>
+            <tag>rental_checkout</tag>
+        </shortcode>
+        <shortcode>
+            <tag>rental_confirmation</tag>
+        </shortcode>
+    </shortcodes>
+</wpml-config>

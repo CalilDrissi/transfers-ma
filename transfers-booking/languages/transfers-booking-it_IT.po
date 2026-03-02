@@ -24,7 +24,6 @@ msgstr "Transfers.ma Prenotazione"
 #. ==========================================
 #. ADMIN — Settings page
 #. ==========================================
-
 #: admin/class-tb-admin.php
 msgid "Transfers Booking"
 msgstr "Prenotazione Transfers"
@@ -168,7 +167,6 @@ msgstr "per incorporare il modulo di prenotazione in qualsiasi pagina."
 #. ==========================================
 #. JS CONFIG — i18n strings passed to JavaScript
 #. ==========================================
-
 #: public/class-tb-public.php
 msgid "Airport Pickup"
 msgstr "Ritiro in aeroporto"
@@ -352,7 +350,6 @@ msgstr "persona"
 #. ==========================================
 #. BOOKING WIDGET — 3-step wizard
 #. ==========================================
-
 #: public/partials/booking-widget.php
 msgid "Route"
 msgstr "Percorso"
@@ -528,7 +525,6 @@ msgstr "Prenota un altro trasferimento"
 #. ==========================================
 #. SEARCH WIDGET
 #. ==========================================
-
 #: public/partials/search-widget.php
 msgid "Transfers"
 msgstr "Trasferimenti"
@@ -632,7 +628,6 @@ msgstr "Pagamento sicuro"
 #. ==========================================
 #. RESULTS PAGE
 #. ==========================================
-
 #: public/partials/results-page.php
 msgid "Modify"
 msgstr "Modifica"
@@ -651,7 +646,9 @@ msgstr "Ricerca veicoli disponibili..."
 
 #: public/partials/results-page.php
 msgid "No vehicles available for this route. Try a different route or date."
-msgstr "Nessun veicolo disponibile per questo percorso. Prova un percorso o una data diversi."
+msgstr ""
+"Nessun veicolo disponibile per questo percorso. Prova un percorso o una data "
+"diversi."
 
 #: public/partials/results-page.php
 msgid "Back to Search"
@@ -672,7 +669,6 @@ msgstr "Aggiungi extra"
 #. ==========================================
 #. CHECKOUT PAGE
 #. ==========================================
-
 #: public/partials/checkout-page.php
 msgid "Back to vehicles"
 msgstr "Torna ai veicoli"
@@ -730,8 +726,12 @@ msgid "Loading payment methods..."
 msgstr "Caricamento metodi di pagamento..."
 
 #: public/partials/checkout-page.php
-msgid "Pay the full amount directly to your driver in cash (MAD). Your booking will be confirmed immediately."
-msgstr "Paga l'importo totale direttamente al tuo autista in contanti (MAD). La tua prenotazione sarà confermata immediatamente."
+msgid ""
+"Pay the full amount directly to your driver in cash (MAD). Your booking will "
+"be confirmed immediately."
+msgstr ""
+"Paga l'importo totale direttamente al tuo autista in contanti (MAD). La tua "
+"prenotazione sarà confermata immediatamente."
 
 #: public/partials/checkout-page.php
 msgid "Complete Booking"
@@ -768,7 +768,6 @@ msgstr "Autisti con licenza e assicurati"
 #. ==========================================
 #. CONFIRMATION PAGE
 #. ==========================================
-
 #: public/partials/confirmation-page.php
 msgid "Loading booking details..."
 msgstr "Caricamento dettagli prenotazione..."
@@ -779,7 +778,9 @@ msgstr "Prenotazione non trovata"
 
 #: public/partials/confirmation-page.php
 msgid "We could not find this booking. Please check your reference number."
-msgstr "Non abbiamo trovato questa prenotazione. Controlla il tuo numero di riferimento."
+msgstr ""
+"Non abbiamo trovato questa prenotazione. Controlla il tuo numero di "
+"riferimento."
 
 #: public/partials/confirmation-page.php
 msgid "Back to Home"
@@ -826,24 +827,36 @@ msgid "Check your email"
 msgstr "Controlla la tua email"
 
 #: public/partials/confirmation-page.php
-msgid "You will receive a confirmation email with all details and your driver's contact."
-msgstr "Riceverai un'email di conferma con tutti i dettagli e il contatto del tuo autista."
+msgid ""
+"You will receive a confirmation email with all details and your driver's "
+"contact."
+msgstr ""
+"Riceverai un'email di conferma con tutti i dettagli e il contatto del tuo "
+"autista."
 
 #: public/partials/confirmation-page.php
 msgid "Driver contacts you"
 msgstr "L'autista ti contatta"
 
 #: public/partials/confirmation-page.php
-msgid "24 hours before your pickup, your driver will send you a WhatsApp message with their details."
-msgstr "24 ore prima del ritiro, il tuo autista ti invierà un messaggio WhatsApp con i suoi dati."
+msgid ""
+"24 hours before your pickup, your driver will send you a WhatsApp message "
+"with their details."
+msgstr ""
+"24 ore prima del ritiro, il tuo autista ti invierà un messaggio WhatsApp con "
+"i suoi dati."
 
 #: public/partials/confirmation-page.php
 msgid "Meet your driver"
 msgstr "Incontra il tuo autista"
 
 #: public/partials/confirmation-page.php
-msgid "Your driver will meet you at the pickup point with a name sign. Sit back and enjoy the ride!"
-msgstr "Il tuo autista ti aspetterà al punto di ritiro con un cartello con il tuo nome. Rilassati e goditi il viaggio!"
+msgid ""
+"Your driver will meet you at the pickup point with a name sign. Sit back and "
+"enjoy the ride!"
+msgstr ""
+"Il tuo autista ti aspetterà al punto di ritiro con un cartello con il tuo "
+"nome. Rilassati e goditi il viaggio!"
 
 #: public/partials/confirmation-page.php
 msgid "Print"
@@ -852,7 +865,6 @@ msgstr "Stampa"
 #. ==========================================
 #. TOURS LISTING
 #. ==========================================
-
 #: public/partials/tours/tour-listing.php
 msgid "Day Trips & Tours"
 msgstr "Escursioni e tour"
@@ -932,7 +944,6 @@ msgstr "Vedi dettagli"
 #. ==========================================
 #. TOUR DETAIL
 #. ==========================================
-
 #: public/partials/tours/tour-detail.php
 msgid "Loading tour details..."
 msgstr "Caricamento dettagli tour..."
@@ -992,3 +1003,112 @@ msgstr "Guide locali con licenza"
 #: public/partials/tours/tour-detail.php
 msgid "Instant confirmation"
 msgstr "Conferma immediata"
+
+#. ==========================================
+#. Tour Checkout & Confirmation
+#. ==========================================
+#: public/class-tb-public.php
+msgid "Tour Booking"
+msgstr "Prenotazione tour"
+
+#: public/class-tb-public.php
+msgid "Confirm Booking"
+msgstr "Conferma prenotazione"
+
+#: public/class-tb-public.php
+msgid "Subtotal"
+msgstr "Subtotale"
+
+#: public/class-tb-public.php
+msgid "Back to tour"
+msgstr "Torna al tour"
+
+#: public/class-tb-public.php
+msgid "Tour Confirmed!"
+msgstr "Tour confermato!"
+
+#: public/class-tb-public.php
+msgid "Browse Tours"
+msgstr "Sfoglia i tour"
+
+#: public/class-tb-public.php
+msgid "Meet at pickup point"
+msgstr "Incontro al punto di ritiro"
+
+#: public/class-tb-public.php
+msgid "Enjoy your tour"
+msgstr "Goditi il tuo tour"
+
+#: public/class-tb-public.php
+msgid "Personal Details"
+msgstr "Dati personali"
+
+#: public/class-tb-public.php
+msgid "WhatsApp Number"
+msgstr "Numero WhatsApp"
+
+#: public/class-tb-public.php
+msgid "Tour Details"
+msgstr "Dettagli del tour"
+
+#: public/class-tb-public.php
+msgid "You will receive a confirmation email with all the tour details."
+msgstr "Riceverai un'e-mail di conferma con tutti i dettagli del tour."
+
+#: public/class-tb-public.php
+msgid "Meet at the pickup point on time with your booking reference."
+msgstr ""
+"Presentati al punto di ritiro in orario con il tuo riferimento di "
+"prenotazione."
+
+#: public/class-tb-public.php
+msgid "Your guide will be waiting. Have an amazing experience!"
+msgstr "La tua guida ti starà aspettando. Goditi un'esperienza fantastica!"
+
+#: public/class-tb-public.php
+msgid "Pay the full amount in cash to your tour guide on the day of the tour."
+msgstr "Paga l'intero importo in contanti alla tua guida il giorno del tour."
+
+#: public/partials/tours/tour-checkout.php
+msgid "I agree to the %s and tour conditions"
+msgstr "Accetto i %s e le condizioni del tour"
+
+#: public/partials/tours/tour-checkout.php
+msgid "Terms & Conditions"
+msgstr "Termini e condizioni"
+
+#: public/partials/tours/tour-checkout.php
+msgid "No hidden fees"
+msgstr "Nessun costo nascosto"
+
+#: public/partials/tours/tour-confirmation.php
+msgid "Tour"
+msgstr "Tour"
+
+#: public/partials/tours/tour-confirmation.php
+msgid "Type"
+msgstr "Tipo"
+
+#: admin/class-tb-admin.php
+msgid "Tour Checkout Page URL"
+msgstr "URL della pagina di checkout del tour"
+
+#: admin/class-tb-admin.php
+msgid "Tour checkout page. Default: /tour-checkout/"
+msgstr "Pagina di checkout del tour. Predefinito: /tour-checkout/"
+
+#: admin/class-tb-admin.php
+msgid "Tour Confirmation Page URL"
+msgstr "URL della pagina di conferma del tour"
+
+#: admin/class-tb-admin.php
+msgid "Tour booking confirmed page. Default: /tour-confirmed/"
+msgstr "Pagina di conferma prenotazione tour. Predefinito: /tour-confirmed/"
+
+#: public/partials/tours/tour-checkout.php
+msgid "Any special requirements or notes..."
+msgstr "Eventuali requisiti o note speciali..."
+
+#: public/partials/tours/tour-checkout.php
+msgid "e.g. +212600000000"
+msgstr "es. +212600000000"

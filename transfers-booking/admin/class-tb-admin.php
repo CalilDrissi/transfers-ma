@@ -127,6 +127,10 @@ class TB_Admin {
             __('Rental checkout page. Default: /rental-checkout/', 'transfers-booking'));
         $this->add_field('tb_rental_confirmation_page_url', __('Rental Confirmation Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
             __('Rental booking confirmed page. Default: /rental-confirmed/', 'transfers-booking'));
+        $this->add_field('tb_tour_checkout_page_url', __('Tour Checkout Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Tour checkout page. Default: /tour-checkout/', 'transfers-booking'));
+        $this->add_field('tb_tour_confirmation_page_url', __('Tour Confirmation Page URL', 'transfers-booking'), 'tb_pages_section', 'text',
+            __('Tour booking confirmed page. Default: /tour-confirmed/', 'transfers-booking'));
     }
 
     private function add_field($id, $label, $section, $type = 'text', $description = '', $options = []) {

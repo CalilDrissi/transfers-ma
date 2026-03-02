@@ -5,7 +5,13 @@
 .tb-tours-listing *::after,
 .tb-tour-detail *,
 .tb-tour-detail *::before,
-.tb-tour-detail *::after {
+.tb-tour-detail *::after,
+.tb-tour-checkout *,
+.tb-tour-checkout *::before,
+.tb-tour-checkout *::after,
+.tb-tour-confirmation *,
+.tb-tour-confirmation *::before,
+.tb-tour-confirmation *::after {
     box-sizing: border-box;
 }
 
@@ -962,6 +968,804 @@
 }
 
 /* ========================================
+   TOUR CHECKOUT
+   ======================================== */
+
+.tb-tour-checkout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1E293B;
+}
+
+.tb-tour-checkout__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #64748B;
+    text-decoration: none;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+}
+
+.tb-tour-checkout__back:hover {
+    color: #2E8BFF;
+}
+
+.tb-tour-checkout__layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 32px;
+    align-items: start;
+}
+
+.tb-tour-checkout__forms {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.tb-tour-checkout__card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.tb-tour-checkout__card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.tb-tour-checkout__card-title svg {
+    color: #2E8BFF;
+    flex-shrink: 0;
+}
+
+/* Tour Summary */
+
+.tb-tour-checkout__tour-summary h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 10px;
+}
+
+.tb-tour-checkout__tour-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.tb-tour-checkout__tour-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #64748B;
+}
+
+.tb-tour-checkout__tour-meta-item--private {
+    color: #2E8BFF;
+    font-weight: 500;
+}
+
+/* Form Fields */
+
+.tb-tour-checkout__field {
+    margin-bottom: 16px;
+}
+
+.tb-tour-checkout__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+.tb-tour-checkout__input {
+    width: 100%;
+    height: 44px;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1E293B;
+    transition: border-color 0.2s;
+    background: #fff;
+}
+
+.tb-tour-checkout__input:focus {
+    border-color: #2E8BFF;
+    outline: none;
+}
+
+.tb-tour-checkout__textarea {
+    width: 100%;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1E293B;
+    transition: border-color 0.2s;
+    resize: vertical;
+    background: #fff;
+}
+
+.tb-tour-checkout__textarea:focus {
+    border-color: #2E8BFF;
+    outline: none;
+}
+
+.tb-tour-checkout__phone-row {
+    display: flex;
+    align-items: stretch;
+}
+
+.tb-tour-checkout__phone-prefix {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: #F8FAFC;
+    border: 1.5px solid #CBD5E1;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    font-size: 14px;
+    color: #64748B;
+    font-weight: 500;
+}
+
+.tb-tour-checkout__input--phone {
+    border-radius: 0 8px 8px 0;
+}
+
+.tb-tour-checkout__field-error {
+    display: block;
+    font-size: 12px;
+    color: #EF4444;
+    margin-top: 4px;
+    min-height: 0;
+}
+
+.tb-tour-checkout__field-row {
+    display: flex;
+    gap: 16px;
+}
+
+.tb-tour-checkout__field-row .tb-tour-checkout__field {
+    flex: 1;
+}
+
+/* Coupon */
+
+.tb-tour-checkout__coupon-row {
+    display: flex;
+    gap: 8px;
+}
+
+.tb-tour-checkout__input--coupon {
+    flex: 1;
+}
+
+.tb-tour-checkout__coupon-btn {
+    height: 44px;
+    padding: 0 20px;
+    background: #F1F5F9;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    white-space: nowrap;
+}
+
+.tb-tour-checkout__coupon-btn:hover {
+    background: #E2E8F0;
+}
+
+.tb-tour-checkout__coupon-success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #10B981;
+}
+
+.tb-tour-checkout__coupon-success a {
+    color: #64748B;
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.tb-tour-checkout__coupon-error {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #EF4444;
+}
+
+/* Payment Gateways */
+
+.tb-tour-checkout__gateways {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tb-tour-checkout__gateways-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 0;
+    color: #64748B;
+    font-size: 14px;
+}
+
+.tb-tour-checkout__gateway {
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.tb-tour-checkout__gateway:has(input:checked) {
+    border-color: #2E8BFF;
+    background: #F0F7FF;
+}
+
+.tb-tour-checkout__gateway-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+}
+
+.tb-tour-checkout__gateway-label input[type="radio"] {
+    accent-color: #2E8BFF;
+}
+
+.tb-tour-checkout__gateway-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1E293B;
+}
+
+.tb-tour-checkout__gateway-desc {
+    font-size: 12px;
+    color: #64748B;
+    margin-left: auto;
+}
+
+/* Stripe */
+
+.tb-tour-checkout__stripe-container {
+    margin-top: 16px;
+    padding: 16px;
+    background: #F8FAFC;
+    border-radius: 10px;
+}
+
+.tb-tour-checkout__stripe-element {
+    padding: 12px;
+    background: #fff;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+}
+
+.tb-tour-checkout__stripe-errors {
+    font-size: 13px;
+    color: #EF4444;
+    margin-top: 8px;
+}
+
+/* PayPal */
+
+.tb-tour-checkout__paypal-container {
+    margin-top: 16px;
+    padding: 16px;
+    background: #F8FAFC;
+    border-radius: 10px;
+}
+
+/* Cash */
+
+.tb-tour-checkout__cash-container {
+    margin-top: 16px;
+}
+
+.tb-tour-checkout__cash-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #F0FDF4;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #065F46;
+}
+
+.tb-tour-checkout__cash-info svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Terms */
+
+.tb-tour-checkout__terms {
+    margin-top: 4px;
+}
+
+.tb-tour-checkout__terms-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    line-height: 1.5;
+}
+
+.tb-tour-checkout__terms-label input {
+    margin-top: 3px;
+    accent-color: #2E8BFF;
+}
+
+.tb-tour-checkout__terms-label a {
+    color: #2E8BFF;
+    text-decoration: none;
+}
+
+.tb-tour-checkout__terms-label a:hover {
+    text-decoration: underline;
+}
+
+/* Alert */
+
+.tb-tour-checkout__alert {
+    padding: 12px 16px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #DC2626;
+}
+
+/* Submit */
+
+.tb-tour-checkout__submit {
+    width: 100%;
+    height: 52px;
+    background: #2E8BFF;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tb-tour-checkout__submit:hover:not(:disabled) {
+    background: #1D6FE0;
+    transform: translateY(-1px);
+}
+
+.tb-tour-checkout__submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tb-tour-checkout__secure-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #94A3B8;
+    margin-top: 10px;
+}
+
+/* Spinner */
+
+.tb-tour-checkout__spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #E2E8F0;
+    border-top-color: #2E8BFF;
+    border-radius: 50%;
+    animation: tb-tours-spin 0.8s linear infinite;
+}
+
+.tb-tour-checkout__spinner-inline {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: tb-tours-spin 0.8s linear infinite;
+    vertical-align: middle;
+}
+
+/* Sidebar */
+
+.tb-tour-checkout__sidebar {
+    position: sticky;
+    top: 24px;
+}
+
+.tb-tour-summary {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.tb-tour-summary__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 20px;
+}
+
+.tb-tour-summary__lines {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tb-tour-summary__line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #475569;
+}
+
+.tb-tour-summary__line--discount {
+    color: #10B981;
+}
+
+.tb-tour-summary__divider {
+    height: 1px;
+    background: #E2E8F0;
+    margin: 16px 0;
+}
+
+.tb-tour-summary__total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.tb-tour-summary__trust {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #F1F5F9;
+}
+
+.tb-tour-summary__trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #64748B;
+    padding: 3px 0;
+}
+
+/* ========================================
+   TOUR CONFIRMATION
+   ======================================== */
+
+.tb-tour-confirmation {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1E293B;
+    text-align: center;
+}
+
+/* Loading */
+
+.tb-tour-confirmation__loading {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.tb-tour-confirmation__spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #E2E8F0;
+    border-top-color: #2E8BFF;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    animation: tb-tours-spin 0.8s linear infinite;
+}
+
+/* Error */
+
+.tb-tour-confirmation__error {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.tb-tour-confirmation__error h2 {
+    font-size: 20px;
+    margin-top: 16px;
+    color: #1E293B;
+}
+
+.tb-tour-confirmation__error p {
+    color: #64748B;
+    margin-top: 8px;
+}
+
+/* Success Icon */
+
+.tb-tour-confirmation__icon {
+    margin-bottom: 20px;
+}
+
+.tb-tour-confirmation__circle {
+    stroke-dasharray: 214;
+    stroke-dashoffset: 214;
+    animation: tb-tour-circle 0.6s ease forwards;
+}
+
+.tb-tour-confirmation__check {
+    stroke-dasharray: 60;
+    stroke-dashoffset: 60;
+    animation: tb-tour-check 0.4s ease forwards 0.5s;
+}
+
+@keyframes tb-tour-circle {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes tb-tour-check {
+    to { stroke-dashoffset: 0; }
+}
+
+.tb-tour-confirmation__title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 24px;
+}
+
+/* Booking Reference */
+
+.tb-tour-confirmation__ref {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 32px;
+}
+
+.tb-tour-confirmation__ref-label {
+    font-size: 13px;
+    color: #64748B;
+}
+
+.tb-tour-confirmation__ref-value {
+    display: inline-block;
+    padding: 10px 24px;
+    background: #F0F7FF;
+    border: 1.5px solid #2E8BFF;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2E8BFF;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.tb-tour-confirmation__ref-value:hover {
+    background: #DBEAFE;
+}
+
+.tb-tour-confirmation__ref-copied {
+    font-size: 12px;
+    color: #10B981;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Cards */
+
+.tb-tour-confirmation__card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.tb-tour-confirmation__card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.tb-tour-confirmation__detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.tb-tour-confirmation__detail-label {
+    display: block;
+    font-size: 12px;
+    color: #94A3B8;
+    margin-bottom: 2px;
+}
+
+.tb-tour-confirmation__detail-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1E293B;
+}
+
+/* Payment Lines */
+
+.tb-tour-confirmation__payment-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tb-tour-confirmation__payment-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #475569;
+}
+
+.tb-tour-confirmation__payment-line--total {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1E293B;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+/* Timeline */
+
+.tb-tour-confirmation__timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.tb-tour-confirmation__timeline-item {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 20px;
+    position: relative;
+}
+
+.tb-tour-confirmation__timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 36px;
+    width: 2px;
+    height: calc(100% - 36px);
+    background: #E2E8F0;
+}
+
+.tb-tour-confirmation__timeline-item:last-child::before {
+    display: none;
+}
+
+.tb-tour-confirmation__timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.tb-tour-confirmation__timeline-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #2E8BFF;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.tb-tour-confirmation__timeline-content {
+    flex: 1;
+}
+
+.tb-tour-confirmation__timeline-content strong {
+    font-size: 14px;
+    color: #1E293B;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.tb-tour-confirmation__timeline-content p {
+    font-size: 13px;
+    color: #64748B;
+    line-height: 1.5;
+}
+
+/* Action Buttons */
+
+.tb-tour-confirmation__actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.tb-tour-confirmation__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    border: none;
+}
+
+.tb-tour-confirmation__btn--outline {
+    background: #fff;
+    border: 1.5px solid #E2E8F0;
+    color: #475569;
+}
+
+.tb-tour-confirmation__btn--outline:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.tb-tour-confirmation__btn--primary {
+    background: #2E8BFF;
+    color: #fff;
+}
+
+.tb-tour-confirmation__btn--primary:hover {
+    background: #1D6FE0;
+}
+
+/* ========================================
    RESPONSIVE
    ======================================== */
 
@@ -1009,5 +1813,46 @@
 
     .tb-tour-detail__gallery {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Tour Checkout */
+
+    .tb-tour-checkout__layout {
+        grid-template-columns: 1fr;
+    }
+
+    .tb-tour-checkout__sidebar {
+        position: static;
+        order: -1;
+    }
+
+    .tb-tour-checkout__submit {
+        font-size: 16px;
+        height: 52px;
+    }
+
+    .tb-tour-checkout__input,
+    .tb-tour-checkout__textarea {
+        font-size: 16px;
+    }
+
+    .tb-tour-checkout__field-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    /* Tour Confirmation */
+
+    .tb-tour-confirmation__detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tb-tour-confirmation__actions {
+        flex-direction: column;
+    }
+
+    .tb-tour-confirmation__btn {
+        width: 100%;
+        justify-content: center;
     }
 }

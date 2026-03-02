@@ -269,16 +269,6 @@
                 html += '</div></div>';
                 firstActive = false;
 
-                // Partial card payment (only if deposit configured)
-                if (depositPct > 0) {
-                    html += '<div class="tb-payment-choice" data-gateway="stripe" data-type="deposit">';
-                    html += '<div class="tb-payment-choice__radio"></div>';
-                    html += '<div class="tb-payment-choice__content">';
-                    html += '<strong>' + (tbConfig.i18n.payPartial || 'Partial payment by card') + '</strong>';
-                    html += '<p>' + (tbConfig.i18n.payPartialDesc1 || '- Now you pay only part of the amount') + '</p>';
-                    html += '<p>' + (tbConfig.i18n.payPartialDesc2 || '- The rest in cash to the driver') + '</p>';
-                    html += '</div></div>';
-                }
             }
 
             if (hasCash) {

@@ -25,6 +25,8 @@ class TB_Settings {
             'tb_rental_results_page_url'       => '/rental-results/',
             'tb_rental_checkout_page_url'      => '/rental-checkout/',
             'tb_rental_confirmation_page_url'  => '/rental-confirmed/',
+            'tb_tour_checkout_page_url'        => '/tour-checkout/',
+            'tb_tour_confirmation_page_url'    => '/tour-confirmed/',
             'tb_contact_phone'                 => '',
             'tb_contact_email'                 => '',
             'tb_contact_whatsapp'              => '',

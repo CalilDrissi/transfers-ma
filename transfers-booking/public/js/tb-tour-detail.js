@@ -107,37 +107,40 @@
             }
 
             // Highlights
-            var destinations = data.destinations_list || data.destinations || [];
-            if (destinations.length > 0) {
+            var highlights = data.highlights || [];
+            if (highlights.length > 0) {
                 showSection('tb-tour-highlights-section');
                 var hlEl = document.getElementById('tb-tour-highlights');
                 if (hlEl) {
                     hlEl.innerHTML = '';
-                    for (var h = 0; h < destinations.length; h++) {
+                    for (var h = 0; h < highlights.length; h++) {
+                        var hl = highlights[h];
                         var item = document.createElement('div');
                         item.className = 'tb-tour-detail__highlight-item';
-                        item.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-6" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + escapeHtml(destinations[h]);
+                        item.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-6" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + escapeHtml(hl.text || hl);
                         hlEl.appendChild(item);
                     }
                 }
             }
 
             // Itinerary
-            if (data.itinerary && data.itinerary.length > 0) {
+            var stops = data.itinerary_stops || [];
+            if (stops.length > 0) {
                 showSection('tb-tour-itinerary-section');
                 var itEl = document.getElementById('tb-tour-itinerary');
                 if (itEl) {
                     itEl.innerHTML = '';
-                    for (var s = 0; s < data.itinerary.length; s++) {
-                        var stop = data.itinerary[s];
+                    for (var s = 0; s < stops.length; s++) {
+                        var stop = stops[s];
+                        var durLabel = stop.duration_minutes ? (stop.duration_minutes + ' min') : '';
                         var stopEl = document.createElement('div');
                         stopEl.className = 'tb-tour-detail__itinerary-stop';
                         stopEl.innerHTML =
                             '<div class="tb-tour-detail__itinerary-dot">' + (s + 1) + '</div>' +
                             '<div class="tb-tour-detail__itinerary-content">' +
-                                '<div class="tb-tour-detail__itinerary-name">' + escapeHtml(stop.name || stop.title || '') + '</div>' +
+                                '<div class="tb-tour-detail__itinerary-name">' + escapeHtml(stop.name || '') + '</div>' +
                                 (stop.description ? '<div class="tb-tour-detail__itinerary-desc">' + escapeHtml(stop.description) + '</div>' : '') +
-                                (stop.duration ? '<div class="tb-tour-detail__itinerary-duration">' + escapeHtml(stop.duration) + '</div>' : '') +
+                                (durLabel ? '<div class="tb-tour-detail__itinerary-duration">' + escapeHtml(durLabel) + '</div>' : '') +
                             '</div>';
                         itEl.appendChild(stopEl);
                     }
@@ -145,8 +148,8 @@
             }
 
             // Inclusions / Exclusions
-            var inclusions = data.inclusions_list || [];
-            var exclusions = data.exclusions_list || [];
+            var inclusions = parseList(data.inclusions);
+            var exclusions = parseList(data.exclusions);
             if (inclusions.length > 0 || exclusions.length > 0) {
                 showSection('tb-tour-incl-excl-section');
 
@@ -202,9 +205,8 @@
                 }
             }
 
-            // FAQ (from custom_info if available)
-            var customInfo = data.custom_info || {};
-            var faqs = customInfo.faq || [];
+            // FAQ
+            var faqs = data.faqs || [];
             if (faqs.length > 0) {
                 showSection('tb-tour-faq-section');
                 var faqEl = document.getElementById('tb-tour-faq');
@@ -325,7 +327,7 @@
             var children = parseInt(document.getElementById('tb-tour-children').textContent, 10) || 0;
             var isPrivate = document.getElementById('tb-tour-private') ? document.getElementById('tb-tour-private').checked : false;
 
-            var checkoutUrl = cfg.checkoutPageUrl || '/checkout/';
+            var checkoutUrl = cfg.tourCheckoutPageUrl || cfg.checkoutPageUrl || '/tour-checkout/';
             var sp = new URLSearchParams();
             sp.set('type', 'trip');
             sp.set('trip_id', trip.id);
@@ -463,6 +465,12 @@
         var pos = cfg2.currencyPosition || 'after';
         if (pos === 'before') return currency + ' ' + num;
         return num + ' ' + currency;
+    }
+
+    function parseList(str) {
+        if (Array.isArray(str)) return str;
+        if (!str || typeof str !== 'string') return [];
+        return str.split('\n').map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
     }
 
     function escapeHtml(str) {

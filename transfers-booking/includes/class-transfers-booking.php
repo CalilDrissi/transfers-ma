@@ -25,6 +25,8 @@ class Transfers_Booking {
         require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-results-shortcode.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-checkout-shortcode.php';
         require_once TB_PLUGIN_DIR . 'includes/class-tb-rental-confirmation-shortcode.php';
+        require_once TB_PLUGIN_DIR . 'includes/class-tb-tour-checkout-shortcode.php';
+        require_once TB_PLUGIN_DIR . 'includes/class-tb-tour-confirmation-shortcode.php';
         require_once TB_PLUGIN_DIR . 'admin/class-tb-admin.php';
         require_once TB_PLUGIN_DIR . 'public/class-tb-public.php';
     }
@@ -68,6 +70,12 @@ class Transfers_Booking {
         $rental_confirmation_shortcode = new TB_Rental_Confirmation_Shortcode();
         add_shortcode('rental_confirmation', [$rental_confirmation_shortcode, 'render']);
 
+        $tour_checkout_shortcode = new TB_Tour_Checkout_Shortcode();
+        add_shortcode('tour_checkout', [$tour_checkout_shortcode, 'render']);
+
+        $tour_confirmation_shortcode = new TB_Tour_Confirmation_Shortcode();
+        add_shortcode('tour_confirmation', [$tour_confirmation_shortcode, 'render']);
+
         // Rewrite rules for tour detail pages (/tours/{slug}/)
         add_action('init', [$this, 'register_rewrite_rules']);
 
@@ -94,6 +102,8 @@ class Transfers_Booking {
             'tb_contact_email',
             'tb_contact_whatsapp',
             'tb_no_route_message',
+            'tb_tour_checkout_page_url',
+            'tb_tour_confirmation_page_url',
         ];
 
         foreach ($translatable as $key) {

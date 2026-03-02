@@ -67,8 +67,9 @@ class TB_Public {
             wp_add_inline_style('tb-booking', $dynamic_css);
         }
 
-        // Tours listing & detail
-        if ($this->page_has_shortcode('tours_listing') || $this->page_has_shortcode('tour_detail')) {
+        // Tours listing, detail, checkout & confirmation
+        if ($this->page_has_shortcode('tours_listing') || $this->page_has_shortcode('tour_detail')
+            || $this->page_has_shortcode('tour_checkout') || $this->page_has_shortcode('tour_confirmation')) {
             wp_enqueue_style(
                 'tb-tours',
                 TB_PLUGIN_URL . 'public/css/tb-tours.css',
@@ -103,12 +104,15 @@ class TB_Public {
         $has_booking      = $this->page_has_shortcode('transfers_booking');
         $has_tours        = $this->page_has_shortcode('tours_listing');
         $has_tour_detail  = $this->page_has_shortcode('tour_detail');
+        $has_tour_checkout     = $this->page_has_shortcode('tour_checkout');
+        $has_tour_confirmation = $this->page_has_shortcode('tour_confirmation');
         $has_rental_search       = $this->page_has_shortcode('rental_search');
         $has_rental_results      = $this->page_has_shortcode('rental_results');
         $has_rental_checkout     = $this->page_has_shortcode('rental_checkout');
         $has_rental_confirmation = $this->page_has_shortcode('rental_confirmation');
 
         $needs_scripts = $has_booking || $has_tours || $has_tour_detail
+            || $has_tour_checkout || $has_tour_confirmation
             || $has_rental_search || $has_rental_results || $has_rental_checkout || $has_rental_confirmation;
 
         if (!$needs_scripts) {
@@ -128,7 +132,7 @@ class TB_Public {
         }
 
         // Ensure tb-utils and tb-api are loaded for pages that need the API
-        $needs_api = $has_tours || $has_tour_detail
+        $needs_api = $has_tours || $has_tour_detail || $has_tour_checkout || $has_tour_confirmation
             || $has_rental_results || $has_rental_checkout || $has_rental_confirmation;
         if ($needs_api && !$has_booking) {
             wp_enqueue_script(
@@ -271,6 +275,52 @@ class TB_Public {
             }
         }
 
+        // Tour checkout page scripts
+        if ($has_tour_checkout) {
+            wp_enqueue_script('stripe-js', 'https://js.stripe.com/v3/', [], null, true);
+
+            $paypal_client_id = TB_Settings::get('tb_paypal_client_id');
+            if ($paypal_client_id) {
+                wp_enqueue_script(
+                    'paypal-sdk',
+                    'https://www.paypal.com/sdk/js?client-id=' . urlencode($paypal_client_id) . '&currency=MAD',
+                    [],
+                    null,
+                    true
+                );
+            }
+
+            $tour_checkout_deps = ['tb-api', 'stripe-js'];
+            if ($paypal_client_id) {
+                $tour_checkout_deps[] = 'paypal-sdk';
+            }
+
+            wp_enqueue_script(
+                'tb-tour-checkout',
+                TB_PLUGIN_URL . 'public/js/tb-tour-checkout.js',
+                $tour_checkout_deps,
+                $this->version,
+                true
+            );
+            if (!$config_handle) {
+                $config_handle = 'tb-api';
+            }
+        }
+
+        // Tour confirmation page scripts
+        if ($has_tour_confirmation) {
+            wp_enqueue_script(
+                'tb-tour-confirmation',
+                TB_PLUGIN_URL . 'public/js/tb-tour-confirmation.js',
+                ['tb-api'],
+                $this->version,
+                true
+            );
+            if (!$config_handle) {
+                $config_handle = 'tb-api';
+            }
+        }
+
         // Pass config to JavaScript
         if ($config_handle) {
             wp_localize_script($config_handle, 'tbConfig', $this->get_js_config());
@@ -302,6 +352,8 @@ class TB_Public {
             'rentalResultsPageUrl'        => TB_Settings::get('tb_rental_results_page_url'),
             'rentalCheckoutPageUrl'       => TB_Settings::get('tb_rental_checkout_page_url'),
             'rentalConfirmationPageUrl'   => TB_Settings::get('tb_rental_confirmation_page_url'),
+            'tourCheckoutPageUrl'         => TB_Settings::get('tb_tour_checkout_page_url'),
+            'tourConfirmationPageUrl'     => TB_Settings::get('tb_tour_confirmation_page_url'),
             'showNoRouteMessage'   => true,
             'noRouteMessage'       => TB_Settings::get_translated('tb_no_route_message'),
             'contact'              => [
@@ -432,6 +484,38 @@ class TB_Public {
                 'fullCardDesc'       => __('Pay the full amount securely by credit or debit card', 'transfers-booking'),
                 'depositCardDesc'    => __('Pay a deposit now, rest to driver', 'transfers-booking'),
                 'cashDesc'           => __('Pay the full amount in cash to your driver', 'transfers-booking'),
+                // Tour checkout & confirmation strings
+                'tourBooking'        => __('Tour Booking', 'transfers-booking'),
+                'confirmBooking'     => __('Confirm Booking', 'transfers-booking'),
+                'orderSummary'       => __('Order Summary', 'transfers-booking'),
+                'subtotal'           => __('Subtotal', 'transfers-booking'),
+                'specialRequests'    => __('Special Requests', 'transfers-booking'),
+                'promoCode'          => __('Promo Code', 'transfers-booking'),
+                'privateTour'        => __('Private Tour', 'transfers-booking'),
+                'backToTour'         => __('Back to tour', 'transfers-booking'),
+                'tourConfirmed'      => __('Tour Confirmed!', 'transfers-booking'),
+                'browseTours'        => __('Browse Tours', 'transfers-booking'),
+                'meetAtPickup'       => __('Meet at pickup point', 'transfers-booking'),
+                'enjoyYourTour'      => __('Enjoy your tour', 'transfers-booking'),
+                'personalDetails'    => __('Personal Details', 'transfers-booking'),
+                'fullName'           => __('Full Name', 'transfers-booking'),
+                'emailAddress'       => __('Email Address', 'transfers-booking'),
+                'phoneNumber'        => __('Phone Number', 'transfers-booking'),
+                'whatsappNumber'     => __('WhatsApp Number', 'transfers-booking'),
+                'tourDetails'        => __('Tour Details', 'transfers-booking'),
+                'paymentMethod'      => __('Payment Method', 'transfers-booking'),
+                'total'              => __('Total', 'transfers-booking'),
+                'bookingReference'   => __('Booking Reference', 'transfers-booking'),
+                'copied'             => __('Copied!', 'transfers-booking'),
+                'whatsNextTitle'     => __("What's Next", 'transfers-booking'),
+                'checkYourEmail'     => __('Check your email', 'transfers-booking'),
+                'emailConfirmation'  => __('You will receive a confirmation email with all the tour details.', 'transfers-booking'),
+                'meetPickupPoint'    => __('Meet at the pickup point on time with your booking reference.', 'transfers-booking'),
+                'enjoyTourDesc'      => __('Your guide will be waiting. Have an amazing experience!', 'transfers-booking'),
+                'print'              => __('Print', 'transfers-booking'),
+                'backToHome'         => __('Back to Home', 'transfers-booking'),
+                'loadingPayment'     => __('Loading payment methods...', 'transfers-booking'),
+                'cashTourDesc'       => __('Pay the full amount in cash to your tour guide on the day of the tour.', 'transfers-booking'),
             ],
         ];
     }
