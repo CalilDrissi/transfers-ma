@@ -1833,6 +1833,16 @@ input[type="date"], input[type="time"], select, textarea {
     color: var(--tb-text-muted);
 }
 
+.tb-no-vehicles-msg {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    color: var(--tb-text-muted);
+    background: var(--tb-bg-subtle, #f8f9fa);
+    border-radius: var(--tb-radius);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
 .tb-spinner {
     display: inline-block;
     width: 24px;

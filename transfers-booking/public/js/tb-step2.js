@@ -263,8 +263,17 @@
             var container = document.getElementById('tb-vehicles-container');
             var options = data.vehicle_options || [];
 
+            // Filter by passenger capacity and luggage capacity
+            var reqPax = parseInt(TB.State.get('passengers')) || 1;
+            var reqLug = parseInt(TB.State.get('luggage')) || 1;
+            options = options.filter(function (v) {
+                return (v.passengers || 99) >= reqPax && (v.luggage || 99) >= reqLug;
+            });
+
             if (options.length === 0) {
-                container.innerHTML = '<div class="tb-loading">' + tbConfig.i18n.noVehicles + '</div>';
+                container.innerHTML = '<div class="tb-no-vehicles-msg">' +
+                    (tbConfig.i18n.noVehiclesForGroup || 'No vehicles available for this group size. Please reduce the number of passengers or luggage and try again.') +
+                    '</div>';
                 return;
             }
 

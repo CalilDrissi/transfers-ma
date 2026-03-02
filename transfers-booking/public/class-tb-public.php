@@ -308,6 +308,7 @@ class TB_Public {
                 'loading'            => __('Loading...', 'transfers-booking'),
                 'processing'         => __('Processing...', 'transfers-booking'),
                 'noVehicles'         => __('No vehicles available for this route.', 'transfers-booking'),
+                'noVehiclesForGroup' => __('No vehicles available for this group size. Please reduce the number of passengers or luggage.', 'transfers-booking'),
                 'errorGeneric'       => __('Something went wrong. Please try again.', 'transfers-booking'),
                 'paymentFailed'      => __('Payment failed. Please try again.', 'transfers-booking'),
                 'distance'           => __('Distance', 'transfers-booking'),
