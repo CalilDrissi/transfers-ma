@@ -9,8 +9,20 @@ class StripeGateway(PaymentGatewayBase):
     """Stripe payment gateway implementation."""
 
     def __init__(self):
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-        self.webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+        # Prefer SiteSettings (dashboard-managed) over .env
+        secret_key = settings.STRIPE_SECRET_KEY
+        webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+        try:
+            from apps.accounts.models import SiteSettings
+            ss = SiteSettings.get_settings()
+            if ss.stripe_secret_key:
+                secret_key = ss.stripe_secret_key
+            if ss.stripe_webhook_secret:
+                webhook_secret = ss.stripe_webhook_secret
+        except Exception:
+            pass
+        stripe.api_key = secret_key
+        self.webhook_secret = webhook_secret
 
     @property
     def gateway_type(self) -> str:
