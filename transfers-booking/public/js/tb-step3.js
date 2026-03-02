@@ -298,6 +298,9 @@
             var choices = container.querySelectorAll('.tb-payment-choice');
             for (var i = 0; i < choices.length; i++) {
                 choices[i].addEventListener('click', function () {
+                    // Clear any previous payment errors
+                    TB.Utils.hideAlert('tb-payment-errors');
+
                     // Deselect all
                     for (var j = 0; j < choices.length; j++) {
                         choices[j].classList.remove('tb-payment-choice--active');
@@ -863,9 +866,16 @@
                 })
                 .catch(function (err) {
                     TB.Utils.setButtonLoading(payBtn, false);
-                    var msg = (typeof err === 'string') ? err
+                    var raw = (typeof err === 'string') ? err
                         : (err && err.message) ? err.message
-                        : tbConfig.i18n.errorGeneric || 'An error occurred.';
+                        : '';
+                    // Sanitize Stripe API key errors — don't expose raw error to user
+                    var msg;
+                    if (raw.toLowerCase().indexOf('api key') !== -1 || raw.toLowerCase().indexOf('authorization') !== -1) {
+                        msg = tbConfig.i18n.paymentFailed || 'Payment processing is temporarily unavailable. Please try another payment method or contact us.';
+                    } else {
+                        msg = raw || tbConfig.i18n.errorGeneric || 'An error occurred.';
+                    }
                     TB.Utils.showAlert('tb-payment-errors', msg);
                 });
         },
