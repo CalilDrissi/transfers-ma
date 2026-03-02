@@ -16,12 +16,32 @@ class TB_Public {
         $this->version = $version ?: (defined('TB_VERSION') ? TB_VERSION : '1.0.0');
     }
 
+    /**
+     * Darken a hex colour by a percentage.
+     */
+    public static function darken_hex_static($hex, $percent = 12) {
+        return self::darken_hex($hex, $percent);
+    }
+
+    private static function darken_hex($hex, $percent = 12) {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+        }
+        $r = max(0, hexdec(substr($hex, 0, 2)) * (1 - $percent / 100));
+        $g = max(0, hexdec(substr($hex, 2, 2)) * (1 - $percent / 100));
+        $b = max(0, hexdec(substr($hex, 4, 2)) * (1 - $percent / 100));
+        return sprintf('#%02x%02x%02x', (int) $r, (int) $g, (int) $b);
+    }
+
     public function enqueue_styles() {
         // Always inject color CSS vars on all frontend pages (harmless when unused)
         $primary = esc_attr(TB_Settings::get('tb_primary_color'));
         $accent = esc_attr(TB_Settings::get('tb_accent_color'));
-        add_action('wp_head', function () use ($primary, $accent) {
-            echo '<style id="tb-custom-props">:root{--tb-primary:' . $primary . ';--tb-accent:' . $accent . ';}</style>';
+        // Compute a darker hover shade from the accent color
+        $accent_hover = self::darken_hex($accent, 12);
+        add_action('wp_head', function () use ($primary, $accent, $accent_hover) {
+            echo '<style id="tb-custom-props">.tb-booking-widget{--tb-primary:' . $primary . ';--tb-accent:' . $accent . ';--tb-accent-hover:' . $accent_hover . ';}</style>';
         });
 
         // Original booking widget
@@ -43,7 +63,7 @@ class TB_Public {
             }
 
             // Belt-and-suspenders: also inline on the booking stylesheet
-            $dynamic_css = ":root { --tb-primary: {$primary}; --tb-accent: {$accent}; }";
+            $dynamic_css = ".tb-booking-widget { --tb-primary: {$primary}; --tb-accent: {$accent}; --tb-accent-hover: {$accent_hover}; }";
             wp_add_inline_style('tb-booking', $dynamic_css);
         }
 

@@ -26,7 +26,8 @@ class TB_Shortcode {
             wp_enqueue_style('tb-booking', TB_PLUGIN_URL . 'public/css/tb-booking.css', [], TB_VERSION);
             $primary = esc_attr(TB_Settings::get('tb_primary_color'));
             $accent = esc_attr(TB_Settings::get('tb_accent_color'));
-            wp_add_inline_style('tb-booking', ":root { --tb-primary: {$primary}; --tb-accent: {$accent}; }");
+            $accent_hover = TB_Public::darken_hex_static($accent, 12);
+            wp_add_inline_style('tb-booking', ".tb-booking-widget { --tb-primary: {$primary}; --tb-accent: {$accent}; --tb-accent-hover: {$accent_hover}; }");
         }
         $gmaps_key = TB_Settings::get('tb_google_maps_api_key');
         if ($gmaps_key && !wp_script_is('google-maps', 'enqueued')) {
@@ -226,12 +227,12 @@ html body #tb-booking-widget .tb-mode-tab:hover {
 }
 html body #tb-booking-widget .tb-mode-tab--active {
     background: transparent !important;
-    color: #3b82f6 !important;
-    border-bottom-color: #3b82f6 !important;
+    color: var(--tb-accent) !important;
+    border-bottom-color: var(--tb-accent) !important;
 }
 html body #tb-booking-widget .tb-mode-tab--active:hover {
     background: transparent !important;
-    color: #3b82f6 !important;
+    color: var(--tb-accent) !important;
 }
 
 /* Hero headline */
@@ -531,7 +532,7 @@ html body #tb-booking-widget .tb-pill-bar__btn {
 }
 html body #tb-booking-widget .tb-pill-bar__btn--accent,
 html body #tb-booking-widget .tb-pill-bar__btn--search {
-    background: #3b82f6 !important;
+    background: var(--tb-accent) !important;
     color: #fff !important;
     border-radius: 50px !important;
 }
@@ -648,7 +649,7 @@ html body #tb-booking-widget .tb-vehicle-card--selected {
 
 /* Search button (blue) — covered by #tb-booking-widget rules above */
 html body #tb-booking-widget .tb-pill-bar__search {
-    background: #3b82f6 !important;
+    background: var(--tb-accent) !important;
     color: #fff !important;
     border: none !important;
     border-radius: 50px !important;
@@ -685,8 +686,8 @@ html body #tb-booking-widget .tb-pax-stepper__btn {
     box-shadow: none !important;
 }
 html body #tb-booking-widget .tb-pax-stepper__btn:hover {
-    border-color: #3b82f6 !important;
-    color: #3b82f6 !important;
+    border-color: var(--tb-accent) !important;
+    color: var(--tb-accent) !important;
 }
 
 /* ═══ Checkout Progress Bar (Step 3) ═══ */
