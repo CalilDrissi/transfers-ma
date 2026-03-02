@@ -152,13 +152,181 @@
         init: function () {
             phoneDropdown = initPhoneDropdown('tb-phone-prefix', 'tb-phone-flag', 'tb-phone-code', 'tb-phone-dropdown', 'tb-phone-search', 'tb-phone-list');
             waDropdown = initPhoneDropdown('tb-wa-prefix', 'tb-wa-flag', 'tb-wa-code', 'tb-wa-dropdown', 'tb-wa-search', 'tb-wa-list');
+            this.populateNationality();
             this.renderOrderSummary();
+            this.renderPaymentChoices();
             this.renderPaymentOptions();
             this.renderGatewaySelector();
             this.restoreCustomerInfo();
             this.initStripe();
             this.bindEvents();
             this.resetPaymentUI();
+            this.renderMiniMap();
+        },
+
+        populateNationality: function () {
+            var select = document.getElementById('tb-customer-nationality');
+            if (!select) return;
+            for (var i = 0; i < COUNTRIES.length; i++) {
+                var c = COUNTRIES[i];
+                var opt = document.createElement('option');
+                opt.value = c.iso;
+                opt.textContent = c.flag + ' ' + c.name;
+                select.appendChild(opt);
+            }
+        },
+
+        renderMiniMap: function () {
+            var mapContainer = document.getElementById('tb-checkout-map');
+            if (!mapContainer || typeof google === 'undefined' || !google.maps) {
+                if (mapContainer) mapContainer.style.display = 'none';
+                return;
+            }
+            var state = TB.State.getAll();
+            if (!state.pickupLat || !state.dropoffLat) {
+                mapContainer.style.display = 'none';
+                return;
+            }
+            var pLat = parseFloat(state.pickupLat);
+            var pLng = parseFloat(state.pickupLng);
+            var dLat = parseFloat(state.dropoffLat);
+            var dLng = parseFloat(state.dropoffLng);
+
+            var map = new google.maps.Map(mapContainer, {
+                zoom: 10,
+                center: { lat: (pLat + dLat) / 2, lng: (pLng + dLng) / 2 },
+                disableDefaultUI: true,
+                zoomControl: false,
+                styles: [
+                    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+                    { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+                ]
+            });
+
+            var directionsService = new google.maps.DirectionsService();
+            var directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true,
+                polylineOptions: { strokeColor: '#e94560', strokeWeight: 3, strokeOpacity: 0.8 }
+            });
+
+            new google.maps.Marker({
+                position: { lat: pLat, lng: pLng }, map: map,
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: '#e94560', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
+            });
+            new google.maps.Marker({
+                position: { lat: dLat, lng: dLng }, map: map,
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: '#0f3460', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
+            });
+
+            directionsService.route({
+                origin: { lat: pLat, lng: pLng },
+                destination: { lat: dLat, lng: dLng },
+                travelMode: google.maps.TravelMode.DRIVING
+            }, function (result, status) {
+                if (status === 'OK') directionsRenderer.setDirections(result);
+            });
+        },
+
+        renderPaymentChoices: function () {
+            var self = this;
+            var container = document.getElementById('tb-payment-choices');
+            if (!container) return;
+
+            // Fetch gateways and build card-style payment options
+            TB.API.getGateways()
+                .then(function (data) {
+                    var results = data.results || data;
+                    var gateways = [];
+                    for (var i = 0; i < results.length; i++) {
+                        gateways.push(results[i].gateway_type);
+                    }
+                    if (gateways.length === 0) gateways.push('cash');
+                    self._buildPaymentChoiceCards(container, gateways);
+                })
+                .catch(function () {
+                    self._buildPaymentChoiceCards(container, ['cash']);
+                });
+        },
+
+        _buildPaymentChoiceCards: function (container, gateways) {
+            var state = TB.State.getAll();
+            var pricingData = state.pricingData || {};
+            var depositPct = pricingData.deposit_percentage || 0;
+            var hasStripe = gateways.indexOf('stripe') !== -1;
+            var hasCash = gateways.indexOf('cash') !== -1;
+            var html = '';
+            var firstActive = true;
+
+            if (hasStripe) {
+                // Full card payment
+                html += '<div class="tb-payment-choice' + (firstActive ? ' tb-payment-choice--active' : '') + '" data-gateway="stripe" data-type="full">';
+                html += '<div class="tb-payment-choice__radio"></div>';
+                html += '<div class="tb-payment-choice__content">';
+                html += '<strong>' + (tbConfig.i18n.payByCard || 'By card on the website') + '</strong>';
+                html += '<p>' + (tbConfig.i18n.payByCardDesc1 || '- You pay the whole amount now') + '</p>';
+                html += '<p>' + (tbConfig.i18n.payByCardDesc2 || '- Free cancellation before the trip') + '</p>';
+                html += '</div></div>';
+                firstActive = false;
+
+                // Partial card payment (only if deposit configured)
+                if (depositPct > 0) {
+                    html += '<div class="tb-payment-choice" data-gateway="stripe" data-type="deposit">';
+                    html += '<div class="tb-payment-choice__radio"></div>';
+                    html += '<div class="tb-payment-choice__content">';
+                    html += '<strong>' + (tbConfig.i18n.payPartial || 'Partial payment by card') + '</strong>';
+                    html += '<p>' + (tbConfig.i18n.payPartialDesc1 || '- Now you pay only part of the amount') + '</p>';
+                    html += '<p>' + (tbConfig.i18n.payPartialDesc2 || '- The rest in cash to the driver') + '</p>';
+                    html += '</div></div>';
+                }
+            }
+
+            if (hasCash) {
+                html += '<div class="tb-payment-choice' + (firstActive ? ' tb-payment-choice--active' : '') + '" data-gateway="cash" data-type="full">';
+                html += '<div class="tb-payment-choice__radio"></div>';
+                html += '<div class="tb-payment-choice__content">';
+                html += '<strong>' + (tbConfig.i18n.payCashTitle || 'Cash on arrival') + '</strong>';
+                html += '<p>' + (tbConfig.i18n.payCashDesc || '- You pay the whole amount on arrival') + '</p>';
+                html += '</div></div>';
+                if (firstActive) firstActive = false;
+            }
+
+            container.innerHTML = html;
+
+            // Bind clicks
+            var self = this;
+            var choices = container.querySelectorAll('.tb-payment-choice');
+            for (var i = 0; i < choices.length; i++) {
+                choices[i].addEventListener('click', function () {
+                    // Deselect all
+                    for (var j = 0; j < choices.length; j++) {
+                        choices[j].classList.remove('tb-payment-choice--active');
+                    }
+                    this.classList.add('tb-payment-choice--active');
+
+                    var gw = this.getAttribute('data-gateway');
+                    var type = this.getAttribute('data-type');
+
+                    // Update the hidden gateway radio
+                    var radio = document.querySelector('input[name="tb-gateway"][value="' + gw + '"]');
+                    if (radio) {
+                        radio.checked = true;
+                        radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+
+                    // Update payment type
+                    TB.State.set('paymentChoice', type);
+                    if (type === 'deposit') {
+                        var depRadio = document.querySelector('input[name="tb-payment-type"][value="deposit"]');
+                        if (depRadio) depRadio.checked = true;
+                    } else {
+                        var fullRadio = document.querySelector('input[name="tb-payment-type"][value="full"]');
+                        if (fullRadio) fullRadio.checked = true;
+                    }
+
+                    self.updatePayButtonText();
+                });
+            }
         },
 
         initStripe: function () {
@@ -351,7 +519,7 @@
             }
 
             // Save customer info on input
-            var fields = ['tb-customer-first-name', 'tb-customer-last-name', 'tb-customer-email', 'tb-customer-phone', 'tb-customer-whatsapp', 'tb-special-requests'];
+            var fields = ['tb-customer-first-name', 'tb-customer-last-name', 'tb-customer-email', 'tb-customer-phone', 'tb-customer-whatsapp', 'tb-special-requests', 'tb-customer-nationality'];
             for (var j = 0; j < fields.length; j++) {
                 var el = document.getElementById(fields[j]);
                 if (el) {
@@ -433,6 +601,8 @@
                 TB.State.set('customerWhatsapp', waNum ? waCode + waNum : '');
             }
             if (requests) TB.State.set('specialRequests', requests.value.trim());
+            var nationality = document.getElementById('tb-customer-nationality');
+            if (nationality) TB.State.set('customerNationality', nationality.value);
         },
 
         renderOrderSummary: function () {
@@ -455,6 +625,22 @@
             if (routeFrom) routeFrom.textContent = TB.Utils.shortName(state.pickupAddress);
             if (routeTo) routeTo.textContent = TB.Utils.shortName(state.dropoffAddress);
             if (basePrice && state.selectedVehicle) basePrice.textContent = TB.Utils.formatPrice(state.selectedVehicle.price);
+
+            // Round trip: show return leg in sidebar
+            var returnLeg = document.getElementById('tb-order-return-leg');
+            if (returnLeg) {
+                if (state.isRoundTrip || state.mode === 'round-trip') {
+                    returnLeg.style.display = '';
+                    var returnFrom = document.getElementById('tb-order-return-from');
+                    var returnTo = document.getElementById('tb-order-return-to');
+                    var returnPrice = document.getElementById('tb-order-return-price');
+                    if (returnFrom) returnFrom.textContent = TB.Utils.shortName(state.dropoffAddress);
+                    if (returnTo) returnTo.textContent = TB.Utils.shortName(state.pickupAddress);
+                    if (returnPrice && state.selectedVehicle) returnPrice.textContent = TB.Utils.formatPrice(state.selectedVehicle.price);
+                } else {
+                    returnLeg.style.display = 'none';
+                }
+            }
 
             // Transfer details card
             var pickupDisplay = document.getElementById('tb-checkout-pickup-display');
@@ -575,6 +761,12 @@
             if (!email) errors.push({ field: 'email', msg: tbConfig.i18n.required });
             else if (!TB.Utils.validateEmail(email)) errors.push({ field: 'email', msg: tbConfig.i18n.invalidEmail });
             if (!phone || !TB.Utils.validatePhone(phone)) errors.push({ field: 'phone', msg: tbConfig.i18n.invalidPhone });
+
+            // Terms checkbox
+            var termsCheckbox = document.getElementById('tb-terms-checkbox');
+            if (termsCheckbox && !termsCheckbox.checked) {
+                errors.push({ field: 'terms', msg: tbConfig.i18n.termsRequired || 'You must accept the terms and conditions' });
+            }
 
             for (var i = 0; i < errors.length; i++) {
                 TB.Utils.showFieldError(errors[i].field, errors[i].msg);

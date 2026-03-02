@@ -401,6 +401,16 @@ class TB_Public {
                 'email'              => __('Email', 'transfers-booking'),
                 'address'            => __('Address', 'transfers-booking'),
                 'whatsapp'           => __('Contact via WhatsApp', 'transfers-booking'),
+                // Redesign: vehicle cards & checkout
+                'perWay'             => __('per way', 'transfers-booking'),
+                'select'             => __('Select', 'transfers-booking'),
+                'termsRequired'      => __('You must accept the terms and conditions', 'transfers-booking'),
+                'payByCard'          => __('Pay by Card', 'transfers-booking'),
+                'payPartial'         => __('Pay Partial', 'transfers-booking'),
+                'payCashTitle'       => __('Pay Cash', 'transfers-booking'),
+                'fullCardDesc'       => __('Pay the full amount securely by credit or debit card', 'transfers-booking'),
+                'depositCardDesc'    => __('Pay a deposit now, rest to driver', 'transfers-booking'),
+                'cashDesc'           => __('Pay the full amount in cash to your driver', 'transfers-booking'),
             ],
         ];
     }

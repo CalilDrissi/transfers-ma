@@ -57,6 +57,15 @@
                 if (data.currency) TB.State.set('currency', data.currency);
                 TB.Step2.renderVehicles(data);
                 TB.Step2.renderRouteInfo(data);
+
+                // Render map if coordinates available
+                var s = TB.State.getAll();
+                if (s.pickupLat && s.dropoffLat) {
+                    TB.Step2.renderMap(
+                        parseFloat(s.pickupLat), parseFloat(s.pickupLng),
+                        parseFloat(s.dropoffLat), parseFloat(s.dropoffLng)
+                    );
+                }
             }).catch(function (err) {
                 if (tbConfig.showNoRouteMessage) {
                     TB.Step2.renderNoRouteMessage();
@@ -113,11 +122,13 @@
             var dropoff = document.getElementById('tb-result-dropoff');
             var distance = document.getElementById('tb-result-distance');
             var duration = document.getElementById('tb-result-duration');
+            var dateEl = document.getElementById('tb-result-date');
 
             if (pickup) pickup.textContent = TB.Utils.shortName(TB.State.get('pickupAddress'));
             if (dropoff) dropoff.textContent = TB.Utils.shortName(TB.State.get('dropoffAddress'));
             if (distance) distance.textContent = (data.distance_km || '--') + ' km';
             if (duration) duration.textContent = TB.Utils.formatDuration(data.estimated_duration_minutes);
+            if (dateEl) dateEl.textContent = TB.Utils.formatDateTime(TB.State.get('pickupDatetime'));
 
             // Route/Zone notice
             var noticeEl = document.getElementById('tb-route-notice');
@@ -179,6 +190,75 @@
             return '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v4M8 11h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
         },
 
+        renderMap: function (pickupLat, pickupLng, dropoffLat, dropoffLng) {
+            var mapContainer = document.getElementById('tb-route-map');
+            if (!mapContainer || typeof google === 'undefined' || !google.maps) {
+                if (mapContainer) mapContainer.style.display = 'none';
+                return;
+            }
+
+            var map = new google.maps.Map(mapContainer, {
+                zoom: 10,
+                center: { lat: (pickupLat + dropoffLat) / 2, lng: (pickupLng + dropoffLng) / 2 },
+                disableDefaultUI: true,
+                zoomControl: true,
+                styles: [
+                    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+                    { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+                ]
+            });
+
+            var directionsService = new google.maps.DirectionsService();
+            var directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: '#e94560',
+                    strokeWeight: 4,
+                    strokeOpacity: 0.8
+                }
+            });
+
+            // Custom markers
+            new google.maps.Marker({
+                position: { lat: pickupLat, lng: pickupLng },
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 8,
+                    fillColor: '#e94560',
+                    fillOpacity: 1,
+                    strokeColor: '#fff',
+                    strokeWeight: 2
+                },
+                title: 'Pickup'
+            });
+            new google.maps.Marker({
+                position: { lat: dropoffLat, lng: dropoffLng },
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 8,
+                    fillColor: '#0f3460',
+                    fillOpacity: 1,
+                    strokeColor: '#fff',
+                    strokeWeight: 2
+                },
+                title: 'Drop-off'
+            });
+
+            directionsService.route({
+                origin: { lat: pickupLat, lng: pickupLng },
+                destination: { lat: dropoffLat, lng: dropoffLng },
+                travelMode: google.maps.TravelMode.DRIVING
+            }, function (result, status) {
+                if (status === 'OK') directionsRenderer.setDirections(result);
+            });
+
+            // Store map reference for Step 3 mini-map
+            TB.Step2._map = map;
+        },
+
         renderVehicles: function (data) {
             var container = document.getElementById('tb-vehicles-container');
             var options = data.vehicle_options || [];
@@ -189,23 +269,30 @@
             }
 
             var currency = data.currency || TB.State.get('currency') || tbConfig.currencySymbol || 'MAD';
+            var isRound = TB.State.get('isRoundTrip') || TB.State.get('mode') === 'round-trip';
             var html = '';
+
             for (var i = 0; i < options.length; i++) {
                 var v = options[i];
                 var price = Math.round(v.price || 0);
                 html += '<div class="tb-vehicle-card" data-category-id="' + v.category_id + '">';
-                html += '<h3 class="tb-vehicle-card__header">' + TB.Utils.escapeHtml(v.category_name || v.vehicle_name) + '</h3>';
-                html += '<div class="tb-vehicle-card__body">';
-                // Image
+
+                // LEFT: Vehicle image
                 html += '<div class="tb-vehicle-card__image">';
                 if (v.category_image || v.image) {
-                    html += '<img src="' + TB.Utils.escapeHtml(v.category_image || v.image) + '" alt="' + TB.Utils.escapeHtml(v.category_name || '') + '">';
+                    html += '<img src="' + TB.Utils.escapeHtml(v.category_image || v.image) + '" alt="' + TB.Utils.escapeHtml(v.category_name || '') + '" loading="lazy">';
                 } else {
                     html += '<span class="tb-vehicle-card__image-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0zm10 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0z"/><path d="M5 17H3v-6l2-5h9l4 5h3v6h-2"/><path d="M5 17h6m4 0h2"/></svg></span>';
                 }
+                // Vehicle models text below image
+                if (v.vehicle_name && v.vehicle_name !== v.category_name) {
+                    html += '<p class="tb-vehicle-card__models">' + TB.Utils.escapeHtml(v.vehicle_name) + '</p>';
+                }
                 html += '</div>';
-                // Details
+
+                // CENTER: Specs and features
                 html += '<div class="tb-vehicle-card__details">';
+                html += '<h3 class="tb-vehicle-card__name">' + TB.Utils.escapeHtml(v.category_name || v.vehicle_name) + '</h3>';
                 html += '<div class="tb-vehicle-card__specs">';
                 html += '<span class="tb-vehicle-card__spec"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 1.5C5.33 9.5 2 10.83 2 12.5V14h12v-1.5c0-1.67-3.33-3-6-3z" fill="currentColor"/></svg> ' + (v.passengers || '--') + '</span>';
                 html += '<span class="tb-vehicle-card__spec"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.5 4V2.5A1 1 0 016.5 1.5h3a1 1 0 011 1V4M2 5h12a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg> ' + (v.luggage || '--') + '</span>';
@@ -224,11 +311,6 @@
                     }
                     html += '</div>';
                 }
-                // Models
-                if (v.vehicle_name && v.vehicle_name !== v.category_name) {
-                    html += '<p class="tb-vehicle-card__models">' + TB.Utils.escapeHtml(v.vehicle_name) + '</p>';
-                }
-                html += '</div>';
                 // Important note
                 if (v.important_note) {
                     var noteType = v.important_note_type || 'info';
@@ -236,15 +318,26 @@
                     html += TB.Step2._noticeIcon(noteType) + ' ' + TB.Utils.escapeHtml(v.important_note);
                     html += '</div>';
                 }
-                // Pricing
+                html += '</div>';
+
+                // RIGHT: Price + Select button + Payment icons
                 html += '<div class="tb-vehicle-card__pricing">';
-                html += '<div><span class="tb-vehicle-card__price-amount">' + price + '</span> <span class="tb-vehicle-card__price-currency">' + TB.Utils.escapeHtml(currency) + '</span></div>';
+                html += '<div class="tb-vehicle-card__price">';
+                html += '<span class="tb-vehicle-card__price-amount">' + price + '</span>';
+                html += ' <span class="tb-vehicle-card__price-currency">' + TB.Utils.escapeHtml(currency) + '</span>';
+                if (isRound) {
+                    html += '<div class="tb-vehicle-card__price-note">' + (tbConfig.i18n.perWay || 'per way') + '</div>';
+                }
+                html += '</div>';
+                // Payment icons (Visa + Mastercard)
                 html += '<div class="tb-vehicle-card__payment-icons">';
                 html += '<span class="tb-vehicle-card__payment-icon"><svg viewBox="0 0 24 16"><rect width="24" height="16" rx="2" fill="#1A1F71"/><text x="12" y="11" text-anchor="middle" fill="#fff" font-size="7" font-weight="bold" font-family="sans-serif">VISA</text></svg></span>';
                 html += '<span class="tb-vehicle-card__payment-icon"><svg viewBox="0 0 24 16"><rect width="24" height="16" rx="2" fill="#f5f5f5"/><circle cx="9" cy="8" r="5" fill="#EB001B" opacity="0.8"/><circle cx="15" cy="8" r="5" fill="#F79E1B" opacity="0.8"/></svg></span>';
                 html += '</div>';
-                html += '<button type="button" class="tb-vehicle-card__select-btn">' + (tbConfig.i18n.search || 'Select') + '</button>';
-                html += '</div></div></div>';
+                html += '<button type="button" class="tb-vehicle-card__select-btn">' + (tbConfig.i18n.select || 'Select') + '</button>';
+                html += '</div>';
+
+                html += '</div>';
             }
             container.innerHTML = html;
 
@@ -481,7 +574,7 @@
             var sVehicle = document.getElementById('tb-sidebar-vehicle');
             var sPass = document.getElementById('tb-sidebar-passengers');
 
-            if (sRoute) sRoute.textContent = TB.Utils.shortName(state.pickupAddress) + ' → ' + TB.Utils.shortName(state.dropoffAddress);
+            if (sRoute) sRoute.textContent = TB.Utils.shortName(state.pickupAddress) + ' \u2192 ' + TB.Utils.shortName(state.dropoffAddress);
             if (sDate) sDate.textContent = TB.Utils.formatDateTime(state.pickupDatetime);
             if (sVehicle) sVehicle.textContent = state.selectedVehicle ? state.selectedVehicle.category_name : '--';
             if (sPass) sPass.textContent = state.passengers;

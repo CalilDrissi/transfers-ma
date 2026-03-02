@@ -1,7 +1,12 @@
 <?php defined('ABSPATH') || exit; ?>
 
 <div class="tb-confirmation">
-    <div class="tb-confirmation__icon">&#10003;</div>
+    <div class="tb-confirmation__icon">
+        <svg class="tb-confirmation__checkmark" viewBox="0 0 52 52" width="64" height="64">
+            <circle class="tb-confirmation__circle" cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path class="tb-confirmation__check" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M14 27l7 7 16-16"/>
+        </svg>
+    </div>
     <h2 class="tb-confirmation__title"><?php esc_html_e('Booking Confirmed!', 'transfers-booking'); ?></h2>
     <p class="tb-confirmation__subtitle"><?php esc_html_e('Your transfer has been successfully booked.', 'transfers-booking'); ?></p>
 
@@ -60,13 +65,15 @@
             <span class="tb-receipt__label"><?php esc_html_e('Payment', 'transfers-booking'); ?></span>
             <span class="tb-receipt__value" id="tb-receipt-payment">--</span>
         </div>
-        <button type="button" id="tb-download-receipt" class="tb-btn tb-btn--outline tb-btn--full">
+    </div>
+
+    <div class="tb-confirmation__actions">
+        <button type="button" id="tb-download-receipt" class="tb-btn tb-btn--outline">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 12v2h12v-2"/></svg>
             <?php esc_html_e('Download Receipt', 'transfers-booking'); ?>
         </button>
+        <button type="button" id="tb-book-another" class="tb-btn tb-btn--primary">
+            <?php esc_html_e('Book Another Transfer', 'transfers-booking'); ?>
+        </button>
     </div>
-
-    <button type="button" id="tb-book-another" class="tb-btn tb-btn--primary">
-        <?php esc_html_e('Book Another Transfer', 'transfers-booking'); ?>
-    </button>
 </div>

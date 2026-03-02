@@ -992,6 +992,271 @@ html body .pac-item .pac-item-query + span {
     white-space: normal !important;
 }
 
+/* ═══ Step 2: Route Bar & Vehicle Cards ═══ */
+html body #tb-booking-widget .tb-route-bar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    background: #fff !important;
+    border-radius: 12px !important;
+    padding: 1rem 1.25rem !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+    border: none !important;
+    margin-bottom: 0.75rem !important;
+    flex-wrap: wrap !important;
+}
+html body #tb-booking-widget .tb-route-bar__point {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.6rem !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+html body #tb-booking-widget .tb-route-bar__label {
+    display: block !important;
+    font-size: 0.72rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: var(--tb-text-muted, #6c757d) !important;
+    font-weight: 600 !important;
+}
+html body #tb-booking-widget .tb-route-bar__address {
+    display: block !important;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    color: var(--tb-text-dark, #1a1a2e) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 260px !important;
+}
+html body #tb-booking-widget .tb-trust-strip {
+    display: flex !important;
+    gap: 1.5rem !important;
+    justify-content: flex-end !important;
+    padding: 0.75rem 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+html body #tb-booking-widget .tb-trust-strip__badge {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 0.82rem !important;
+    color: var(--tb-text-muted, #6c757d) !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+html body #tb-booking-widget .tb-route-map {
+    width: 100% !important;
+    height: 250px !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    margin-bottom: 1.5rem !important;
+}
+html body #tb-booking-widget .tb-checkout-map {
+    width: 100% !important;
+    height: 180px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    margin-bottom: 1rem !important;
+}
+html body #tb-booking-widget .tb-vehicle-card {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    cursor: pointer !important;
+    border: 2px solid var(--tb-border, #e0e0e0) !important;
+    background: #fff !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+html body #tb-booking-widget .tb-vehicle-card:hover {
+    border-color: var(--tb-accent, #e94560) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
+}
+html body #tb-booking-widget .tb-vehicle-card.tb-selected,
+html body #tb-booking-widget .tb-vehicle-card--selected {
+    border-color: var(--tb-accent, #e94560) !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__image {
+    width: 220px !important;
+    min-height: 160px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    background: var(--tb-light-bg, #f8f9fa) !important;
+    padding: 1rem !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__image img {
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__details {
+    flex: 1 !important;
+    padding: 1.25rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__name {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    margin: 0 0 0.5rem !important;
+    color: var(--tb-text-dark, #1a1a2e) !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__specs {
+    display: flex !important;
+    gap: 1rem !important;
+    font-size: 0.85rem !important;
+    color: var(--tb-text-muted, #6c757d) !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__pricing {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 1.25rem !important;
+    min-width: 130px !important;
+    gap: 0.5rem !important;
+    border-left: 1px solid var(--tb-border, #e0e0e0) !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__price-amount {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    color: var(--tb-accent, #e94560) !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__select-btn {
+    background: var(--tb-accent, #e94560) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 20px !important;
+    padding: 8px 22px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+html body #tb-booking-widget .tb-vehicle-card__select-btn:hover {
+    background: var(--tb-accent-hover, #d63d56) !important;
+    color: #fff !important;
+}
+
+/* ═══ How It Works ═══ */
+html body #tb-booking-widget .tb-how-it-works {
+    margin-top: 3rem !important;
+    padding-top: 2rem !important;
+    border-top: 1px solid var(--tb-border, #e0e0e0) !important;
+}
+html body #tb-booking-widget .tb-how-it-works__steps {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 2rem !important;
+}
+html body #tb-booking-widget .tb-how-it-works__number {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    background: var(--tb-accent, #e94560) !important;
+    color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    margin: 0 auto 1rem !important;
+}
+
+/* ═══ Payment Choice Cards ═══ */
+html body #tb-booking-widget .tb-payment-choices {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    margin-bottom: 1.5rem !important;
+}
+html body #tb-booking-widget .tb-payment-choice {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+    padding: 1rem 1.25rem !important;
+    border: 2px solid var(--tb-border, #e0e0e0) !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    background: #fff !important;
+}
+html body #tb-booking-widget .tb-payment-choice:hover {
+    border-color: var(--tb-accent, #e94560) !important;
+}
+html body #tb-booking-widget .tb-payment-choice--active {
+    border-color: var(--tb-accent, #e94560) !important;
+    background: rgba(233, 69, 96, 0.03) !important;
+}
+html body #tb-booking-widget .tb-payment-choice__radio {
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    border: 2px solid var(--tb-border, #e0e0e0) !important;
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+    position: relative !important;
+}
+html body #tb-booking-widget .tb-payment-choice--active .tb-payment-choice__radio {
+    border-color: var(--tb-accent, #e94560) !important;
+}
+
+/* ═══ Terms & Promo ═══ */
+html body #tb-booking-widget .tb-terms__label {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    cursor: pointer !important;
+    font-size: 0.88rem !important;
+    color: var(--tb-text-dark, #1a1a2e) !important;
+}
+html body #tb-booking-widget .tb-terms__label a {
+    color: var(--tb-accent, #e94560) !important;
+    text-decoration: underline !important;
+}
+html body #tb-booking-widget .tb-promo-row {
+    display: flex !important;
+    gap: 0.5rem !important;
+}
+html body #tb-booking-widget .tb-promo-row__input {
+    flex: 1 !important;
+}
+
+/* ═══ Confirmation ═══ */
+html body #tb-booking-widget .tb-confirmation__checkmark {
+    color: var(--tb-success, #10b981) !important;
+}
+html body #tb-booking-widget .tb-confirmation__actions {
+    display: flex !important;
+    gap: 1rem !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+}
+html body #tb-booking-widget .tb-confirmation__actions .tb-btn--outline {
+    background: transparent !important;
+    border: 2px solid var(--tb-border, #e0e0e0) !important;
+    color: var(--tb-text-dark, #1a1a2e) !important;
+}
+html body #tb-booking-widget .tb-confirmation__actions .tb-btn--outline:hover {
+    border-color: var(--tb-accent, #e94560) !important;
+    color: var(--tb-accent, #e94560) !important;
+}
+
+/* ═══ Summary Gradient: Return Leg ═══ */
+html body #tb-booking-widget .tb-summary-gradient__divider {
+    height: 1px !important;
+    background: rgba(255,255,255,0.15) !important;
+    margin: 0.75rem 0 !important;
+}
+
 /* ═══ Step 1: Mobile overrides ═══ */
 @media (max-width: 768px) {
     html body #tb-booking-widget #tb-step-1 {
@@ -1100,6 +1365,89 @@ html body .pac-item .pac-item-query + span {
     html body #tb-booking-widget .tb-mode-tab {
         padding: 8px 14px !important;
         font-size: 0.82rem !important;
+    }
+    /* Step 2: mobile vehicle cards */
+    html body #tb-booking-widget .tb-vehicle-card {
+        flex-direction: column !important;
+    }
+    html body #tb-booking-widget .tb-vehicle-card__image {
+        width: 100% !important;
+        min-height: 140px !important;
+        max-height: 180px !important;
+    }
+    html body #tb-booking-widget .tb-vehicle-card__pricing {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        border-left: none !important;
+        border-top: 1px solid var(--tb-border, #e0e0e0) !important;
+        padding: 1rem 1.25rem !important;
+        width: 100% !important;
+        min-width: unset !important;
+    }
+    /* Step 2: route bar mobile */
+    html body #tb-booking-widget .tb-route-bar {
+        flex-direction: column !important;
+        gap: 0 !important;
+        padding: 0 !important;
+    }
+    html body #tb-booking-widget .tb-route-bar__point {
+        padding: 12px 16px !important;
+        border-bottom: 1px solid var(--tb-border, #e0e0e0) !important;
+        width: 100% !important;
+    }
+    html body #tb-booking-widget .tb-route-bar__swap-icon {
+        display: none !important;
+    }
+    html body #tb-booking-widget .tb-route-bar__address {
+        max-width: 100% !important;
+    }
+    html body #tb-booking-widget .tb-route-map {
+        height: 180px !important;
+    }
+    /* Step 2: trust strip mobile */
+    html body #tb-booking-widget .tb-trust-strip {
+        flex-wrap: wrap !important;
+        gap: 8px 16px !important;
+        justify-content: center !important;
+    }
+    /* Step 2: how-it-works mobile */
+    html body #tb-booking-widget .tb-how-it-works__steps {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+    html body #tb-booking-widget .tb-how-it-works__step {
+        display: flex !important;
+        align-items: flex-start !important;
+        text-align: left !important;
+        gap: 1rem !important;
+    }
+    html body #tb-booking-widget .tb-how-it-works__number {
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 1rem !important;
+    }
+    /* Step 3: single column */
+    html body #tb-booking-widget .tb-step3-layout {
+        grid-template-columns: 1fr !important;
+    }
+    html body #tb-booking-widget .tb-step3-sidebar {
+        position: static !important;
+        order: -1 !important;
+    }
+    html body #tb-booking-widget .tb-checkout-map {
+        height: 140px !important;
+    }
+    /* Confirmation mobile */
+    html body #tb-booking-widget .tb-confirmation__actions {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    html body #tb-booking-widget .tb-confirmation__actions .tb-btn {
+        width: 100% !important;
+        justify-content: center !important;
     }
 }
 </style>';

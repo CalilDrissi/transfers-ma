@@ -17,6 +17,8 @@
         <!-- Transfer Details Card -->
         <div class="tb-card">
             <h4 class="tb-card__title"><?php esc_html_e('Transfer Details', 'transfers-booking'); ?></h4>
+            <!-- Mini Map -->
+            <div id="tb-checkout-map" class="tb-checkout-map"></div>
             <div class="tb-checkout-location">
                 <span class="tb-checkout-location__dot tb-checkout-location__dot--pickup"></span>
                 <span class="tb-checkout-location__text" id="tb-checkout-pickup-display">--</span>
@@ -67,10 +69,16 @@
                 <div class="tb-field-error" data-field="email"></div>
             </div>
             <div class="tb-form-group">
+                <label class="tb-label"><?php esc_html_e('Nationality', 'transfers-booking'); ?></label>
+                <select id="tb-customer-nationality" class="tb-input tb-select">
+                    <option value=""><?php esc_html_e('Please select country', 'transfers-booking'); ?></option>
+                </select>
+            </div>
+            <div class="tb-form-group">
                 <label class="tb-label" for="tb-customer-phone"><?php esc_html_e('Phone Number', 'transfers-booking'); ?> *</label>
                 <div class="tb-phone-input">
                     <div class="tb-phone-input__prefix" id="tb-phone-prefix" tabindex="0">
-                        <span class="tb-phone-input__flag" id="tb-phone-flag">🇲🇦</span>
+                        <span class="tb-phone-input__flag" id="tb-phone-flag">&#x1F1F2;&#x1F1E6;</span>
                         <span class="tb-phone-input__code" id="tb-phone-code">+212</span>
                         <svg class="tb-phone-input__arrow" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
                     </div>
@@ -86,7 +94,7 @@
                 <label class="tb-label"><?php esc_html_e('WhatsApp Number', 'transfers-booking'); ?></label>
                 <div class="tb-phone-input">
                     <div class="tb-phone-input__prefix" id="tb-wa-prefix" tabindex="0">
-                        <span class="tb-phone-input__flag" id="tb-wa-flag">🇲🇦</span>
+                        <span class="tb-phone-input__flag" id="tb-wa-flag">&#x1F1F2;&#x1F1E6;</span>
                         <span class="tb-phone-input__code" id="tb-wa-code">+212</span>
                         <svg class="tb-phone-input__arrow" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
                     </div>
@@ -99,37 +107,43 @@
             </div>
         </div>
 
+        <!-- Promo Code Card -->
+        <div class="tb-card">
+            <h4 class="tb-card__title"><?php esc_html_e('Promo Code', 'transfers-booking'); ?></h4>
+            <div class="tb-promo-row">
+                <input type="text" id="tb-promo-code" class="tb-input tb-promo-row__input" placeholder="<?php esc_attr_e('Enter promo code', 'transfers-booking'); ?>">
+                <button type="button" id="tb-promo-apply" class="tb-btn tb-btn--outline tb-promo-row__btn"><?php esc_html_e('Apply', 'transfers-booking'); ?></button>
+            </div>
+            <div id="tb-promo-message" class="tb-promo-message" style="display:none;"></div>
+        </div>
+
         <!-- Payment Card -->
         <div class="tb-card" id="tb-payment-card">
-            <h4 class="tb-card__title"><?php esc_html_e('Payment', 'transfers-booking'); ?></h4>
+            <h4 class="tb-card__title"><?php esc_html_e('Payment Options', 'transfers-booking'); ?></h4>
             <div id="tb-payment-errors" class="tb-alert tb-alert--error" style="display: none;"></div>
 
-            <!-- Gateway Selector (hidden until JS applies active gateways) -->
+            <!-- Payment Choice Cards -->
+            <div id="tb-payment-choices" class="tb-payment-choices">
+                <!-- Dynamically populated by JS based on available gateways -->
+            </div>
+
+            <!-- Legacy Gateway Selector (hidden, used internally) -->
             <div class="tb-gateway-selector" id="tb-gateway-selector" style="display: none !important;">
                 <label class="tb-gateway-option" data-gateway="stripe" style="display: none !important;">
                     <input type="radio" name="tb-gateway" value="stripe">
-                    <span class="tb-gateway-option__icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                    </span>
                     <span class="tb-gateway-option__label"><?php esc_html_e('Credit / Debit Card', 'transfers-booking'); ?></span>
                 </label>
                 <label class="tb-gateway-option" data-gateway="cash" style="display: none !important;">
                     <input type="radio" name="tb-gateway" value="cash">
-                    <span class="tb-gateway-option__icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M2 9h2M20 9h2M2 15h2M20 15h2"/></svg>
-                    </span>
                     <span class="tb-gateway-option__label"><?php esc_html_e('Cash on Pickup', 'transfers-booking'); ?></span>
                 </label>
                 <label class="tb-gateway-option" data-gateway="paypal" style="display: none !important;">
                     <input type="radio" name="tb-gateway" value="paypal">
-                    <span class="tb-gateway-option__icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7.5 21L9 13h5.5c3.5 0 6-2.5 6-5.5S18 2 14.5 2H8L5 21h2.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 17l1-5h4.5c2.5 0 4.5-1.8 4.5-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg>
-                    </span>
                     <span class="tb-gateway-option__label"><?php esc_html_e('PayPal', 'transfers-booking'); ?></span>
                 </label>
             </div>
 
-            <!-- Payment options (shown when deposit available) -->
+            <!-- Legacy Payment options (hidden, used internally) -->
             <div id="tb-payment-options" class="tb-payment-options" style="display: none;">
                 <label class="tb-payment-option tb-payment-option--active">
                     <input type="radio" name="tb-payment-type" value="full" checked>
@@ -137,9 +151,6 @@
                         <span class="tb-payment-option__label"><?php esc_html_e('Pay full amount', 'transfers-booking'); ?></span>
                         <span class="tb-payment-option__amount" id="tb-option-full-amount"></span>
                     </div>
-                    <span class="tb-payment-option__check">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </span>
                 </label>
                 <label class="tb-payment-option">
                     <input type="radio" name="tb-payment-type" value="deposit">
@@ -148,13 +159,24 @@
                         <span class="tb-payment-option__amount" id="tb-option-deposit-amount"></span>
                         <span class="tb-payment-option__note" id="tb-option-remaining"></span>
                     </div>
-                    <span class="tb-payment-option__check">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </span>
                 </label>
             </div>
+
+            <!-- Terms & Conditions -->
+            <div class="tb-terms">
+                <label class="tb-terms__label">
+                    <input type="checkbox" id="tb-terms-checkbox" class="tb-terms__checkbox">
+                    <span><?php printf(
+                        esc_html__('I agree to the %sTerms & Conditions%s and %sPrivacy Policy%s', 'transfers-booking'),
+                        '<a href="#" target="_blank">', '</a>',
+                        '<a href="#" target="_blank">', '</a>'
+                    ); ?></span>
+                </label>
+                <div class="tb-field-error" data-field="terms"></div>
+            </div>
+
             <button type="button" id="tb-pay-button" class="tb-btn tb-btn--primary tb-btn--full">
-                <?php esc_html_e('Pay Now', 'transfers-booking'); ?>
+                <?php esc_html_e('Proceed to Checkout', 'transfers-booking'); ?>
             </button>
             <div id="tb-stripe-element" style="display: none !important;"></div>
             <button type="button" id="tb-confirm-payment-btn" class="tb-btn tb-btn--primary tb-btn--full" style="display: none !important; margin-top: 0.75rem;">
@@ -181,6 +203,19 @@
             <div class="tb-summary-gradient__stop">
                 <span class="tb-summary-gradient__dot"></span>
                 <span class="tb-summary-gradient__stop-text" id="tb-order-route-to">--</span>
+            </div>
+            <!-- Round trip return leg (hidden by default) -->
+            <div id="tb-order-return-leg" style="display:none;">
+                <div class="tb-summary-gradient__divider"></div>
+                <div class="tb-summary-gradient__stop">
+                    <span class="tb-summary-gradient__dot"></span>
+                    <span class="tb-summary-gradient__stop-text" id="tb-order-return-from">--</span>
+                    <span class="tb-summary-gradient__stop-price" id="tb-order-return-price">--</span>
+                </div>
+                <div class="tb-summary-gradient__stop">
+                    <span class="tb-summary-gradient__dot"></span>
+                    <span class="tb-summary-gradient__stop-text" id="tb-order-return-to">--</span>
+                </div>
             </div>
             <div class="tb-summary-gradient__extras" id="tb-order-extras-list"></div>
             <div class="tb-summary-gradient__total">
