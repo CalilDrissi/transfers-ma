@@ -337,6 +337,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{% url 'dashboard:custom_field_list' %}" class="nav-link {% active_link request '/custom-fields/' %}" title="{% trans 'Custom Fields' %}">
+                    <i class="bi bi-list-check"></i>
+                    <span class="nav-link-text">{% trans "Custom Fields" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{% url 'dashboard:reports' %}" class="nav-link {% active_link request '/reports/' %}" title="{% trans 'Reports' %}">
                     <i class="bi bi-bar-chart"></i>
                     <span class="nav-link-text">{% trans "Reports" %}</span>
