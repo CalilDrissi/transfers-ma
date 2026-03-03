@@ -162,6 +162,11 @@
             this.bindEvents();
             this.resetPaymentUI();
             this.renderMiniMap();
+
+            // Load custom fields
+            if (TB.CustomFields) {
+                TB.CustomFields.init('transfer', 'tb-custom-fields-container', 'tb-custom-fields-card');
+            }
         },
 
         populateNationality: function () {
@@ -761,6 +766,11 @@
                 errors.push({ field: 'terms', msg: tbConfig.i18n.termsRequired || 'You must accept the terms and conditions' });
             }
 
+            // Custom fields validation
+            if (TB.CustomFields && !TB.CustomFields.validate()) {
+                errors.push({ field: '_custom', msg: '' });
+            }
+
             for (var i = 0; i < errors.length; i++) {
                 TB.Utils.showFieldError(errors[i].field, errors[i].msg);
             }
@@ -802,6 +812,7 @@
                 vehicle_category_id: state.selectedVehicle.category_id,
                 flight_number: state.flightNumber || '',
                 special_requests: state.specialRequests || '',
+                custom_field_values: TB.CustomFields ? TB.CustomFields.getValues() : {},
                 is_round_trip: state.isRoundTrip,
                 extras: extrasPayload
             };

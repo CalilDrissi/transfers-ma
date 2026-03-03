@@ -41,6 +41,11 @@
             this.initCoupon();
             this.initTerms();
             this.initSubmit();
+
+            // Load custom fields
+            if (TB.CustomFields) {
+                TB.CustomFields.init('trip', 'tb-tour-custom-fields-container', 'tb-tour-custom-fields-card');
+            }
         },
 
         /* ── Parse URL params ─────────────────── */
@@ -350,6 +355,9 @@
                 showAlert('tb-tour-checkout-alert', i18n.selectPayment || 'Please select a payment method');
                 valid = false;
             }
+            if (TB.CustomFields && !TB.CustomFields.validate()) {
+                valid = false;
+            }
 
             return valid;
         },
@@ -371,6 +379,7 @@
                 customer_phone: document.getElementById('tb-tour-phone').value.trim(),
                 whatsapp_number: (document.getElementById('tb-tour-whatsapp') || {}).value || '',
                 special_requests: (document.getElementById('tb-tour-requests') || {}).value || '',
+                custom_field_values: TB.CustomFields ? TB.CustomFields.getValues() : {},
                 coupon_code: state.coupon ? state.coupon.code : null,
                 payment_gateway: state.selectedGateway
             };

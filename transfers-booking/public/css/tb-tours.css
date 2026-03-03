@@ -1856,3 +1856,30 @@
         justify-content: center;
     }
 }
+
+/* ── Custom Fields ────────────────────────── */
+.tb-tour-checkout__field-help {
+    display: block;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+.tb-tour-checkout__input--error,
+.tb-tour-checkout__textarea.tb-tour-checkout__input--error {
+    border-color: #ef4444 !important;
+}
+.tb-tour-checkout__checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #334155;
+}
+.tb-tour-checkout__checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #2E8BFF;
+    cursor: pointer;
+    flex-shrink: 0;
+}

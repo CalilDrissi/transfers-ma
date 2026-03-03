@@ -158,7 +158,7 @@ class TB_Public {
         if ($has_booking) {
             wp_enqueue_script('stripe-js', 'https://js.stripe.com/v3/', [], null, true);
 
-            $scripts = ['tb-utils', 'tb-api', 'tb-state', 'tb-step1', 'tb-step2', 'tb-step3', 'tb-wizard'];
+            $scripts = ['tb-utils', 'tb-api', 'tb-custom-fields', 'tb-state', 'tb-step1', 'tb-step2', 'tb-step3', 'tb-wizard'];
             $prev_handle = 'stripe-js';
             foreach ($scripts as $handle) {
                 wp_enqueue_script(
@@ -290,7 +290,15 @@ class TB_Public {
                 );
             }
 
-            $tour_checkout_deps = ['tb-api', 'stripe-js'];
+            wp_enqueue_script(
+                'tb-custom-fields',
+                TB_PLUGIN_URL . 'public/js/tb-custom-fields.js',
+                ['tb-api'],
+                $this->version,
+                true
+            );
+
+            $tour_checkout_deps = ['tb-api', 'tb-custom-fields', 'stripe-js'];
             if ($paypal_client_id) {
                 $tour_checkout_deps[] = 'paypal-sdk';
             }

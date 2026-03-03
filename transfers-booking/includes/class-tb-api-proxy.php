@@ -24,6 +24,7 @@ class TB_API_Proxy {
         'get_trips'           => ['method' => 'GET',  'path' => '/trips/'],
         'get_trip_detail'     => ['method' => 'GET',  'path' => '/trips/', 'dynamic' => true],
         'get_trip_schedules'  => ['method' => 'GET',  'path' => '/trips/', 'dynamic' => true],
+        'get_custom_fields'   => ['method' => 'GET',  'path' => '/custom-fields/'],
         'create_trip_booking' => ['method' => 'POST', 'path' => '/trips/bookings/'],
         'trip_booking_by_ref' => ['method' => 'GET',  'path' => '/trips/bookings/by-ref/', 'dynamic' => true],
         // Car rental endpoints

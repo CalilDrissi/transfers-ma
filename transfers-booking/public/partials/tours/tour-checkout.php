@@ -80,6 +80,15 @@ defined('ABSPATH') || exit;
                 </div>
             </div>
 
+            <!-- Custom Fields (dynamically populated by JS) -->
+            <div class="tb-tour-checkout__card" id="tb-tour-custom-fields-card" style="display:none;">
+                <h3 class="tb-tour-checkout__card-title">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h12v2H4V4zm0 5h12v2H4V9zm0 5h8v2H4v-2z" fill="currentColor"/></svg>
+                    <?php esc_html_e('Additional Information', 'transfers-booking'); ?>
+                </h3>
+                <div id="tb-tour-custom-fields-container"></div>
+            </div>
+
             <!-- Promo Code -->
             <div class="tb-tour-checkout__card">
                 <h3 class="tb-tour-checkout__card-title">

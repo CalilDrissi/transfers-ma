@@ -107,6 +107,12 @@
             </div>
         </div>
 
+        <!-- Custom Fields (dynamically populated by JS) -->
+        <div id="tb-custom-fields-card" class="tb-card" style="display:none;">
+            <h4 class="tb-card__title"><?php esc_html_e('Additional Information', 'transfers-booking'); ?></h4>
+            <div id="tb-custom-fields-container"></div>
+        </div>
+
         <!-- Promo Code Card -->
         <div class="tb-card">
             <h4 class="tb-card__title"><?php esc_html_e('Promo Code', 'transfers-booking'); ?></h4>
