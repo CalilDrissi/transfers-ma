@@ -20,6 +20,7 @@ urlpatterns = [
     path('trips/create/', views.trip_create, name='trip_create'),
     path('trips/<int:pk>/preview/', views.trip_preview, name='trip_preview'),
     path('trips/<int:pk>/', views.trip_detail, name='trip_detail'),
+    path('trips/bookings/<int:pk>/', views.trip_booking_detail, name='trip_booking_detail'),
     path('trips/bookings/', views.trip_booking_list, name='trip_booking_list'),
 
     # Transfer Vehicles
@@ -64,6 +65,11 @@ urlpatterns = [
     path('coupons/', views.coupon_list, name='coupon_list'),
     path('coupons/create/', views.coupon_create, name='coupon_create'),
     path('coupons/<int:pk>/', views.coupon_detail, name='coupon_detail'),
+
+    # Custom Fields
+    path('custom-fields/', views.custom_field_list, name='custom_field_list'),
+    path('custom-fields/create/', views.custom_field_create, name='custom_field_create'),
+    path('custom-fields/<int:pk>/', views.custom_field_detail, name='custom_field_detail'),
 
     # Extras
     path('extras/', views.extra_list, name='extra_list'),

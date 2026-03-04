@@ -23,7 +23,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 
 class TripViewSet(viewsets.ModelViewSet):
     """ViewSet for trips/tours."""
-    queryset = Trip.objects.prefetch_related('images', 'schedules', 'destinations')
+    queryset = Trip.objects.prefetch_related('images', 'schedules')
     permission_classes = [HasAPIKeyOrIsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['trip_type', 'is_featured', 'is_active', 'departure_location']
@@ -37,7 +37,7 @@ class TripViewSet(viewsets.ModelViewSet):
         return TripSerializer
 
     def get_queryset(self):
-        queryset = Trip.objects.prefetch_related('images', 'schedules', 'destinations')
+        queryset = Trip.objects.prefetch_related('images', 'schedules')
         if not self.request.user.is_staff:
             queryset = queryset.filter(is_active=True)
         return queryset
@@ -60,7 +60,7 @@ class TripViewSet(viewsets.ModelViewSet):
 
 class TripBookingViewSet(viewsets.ModelViewSet):
     """ViewSet for trip bookings."""
-    queryset = TripBooking.objects.select_related('trip', 'customer', 'pickup_location')
+    queryset = TripBooking.objects.select_related('trip', 'customer')
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'trip', 'is_private', 'trip_date']
     search_fields = ['booking_ref', 'customer_name', 'customer_email']
@@ -82,7 +82,7 @@ class TripBookingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = TripBooking.objects.select_related('trip', 'customer', 'pickup_location')
+        queryset = TripBooking.objects.select_related('trip', 'customer')
 
         if user.is_staff:
             return queryset

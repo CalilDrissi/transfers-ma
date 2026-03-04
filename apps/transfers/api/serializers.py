@@ -41,7 +41,7 @@ class TransferSerializer(serializers.ModelSerializer):
             'vehicle_category', 'base_price', 'extras_price', 'discount',
             'total_price', 'deposit_amount', 'currency', 'status', 'special_requests',
             'is_round_trip', 'return_datetime', 'booked_extras',
-            'created_at'
+            'custom_field_values', 'created_at'
         ]
         read_only_fields = [
             'id', 'booking_ref', 'status', 'created_at',
@@ -64,6 +64,19 @@ class TransferCreateSerializer(serializers.ModelSerializer):
     dropoff_latitude = serializers.FloatField(validators=[validate_latitude], required=False)
     dropoff_longitude = serializers.FloatField(validators=[validate_longitude], required=False)
 
+    custom_field_values = serializers.JSONField(required=False, default=dict)
+
+    def validate_custom_field_values(self, value):
+        from apps.accounts.models import CustomField
+        required_fields = CustomField.objects.filter(
+            is_active=True, is_required=True, applies_to__in=['transfer', 'both']
+        ).values_list('name', flat=True)
+        for field_name in required_fields:
+            if field_name not in value or not str(value[field_name]).strip():
+                field = CustomField.objects.get(name=field_name)
+                raise serializers.ValidationError({field_name: f'{field.label} is required.'})
+        return value
+
     def validate_transfer_type(self, value):
         valid = ['airport_pickup', 'airport_dropoff', 'city_to_city', 'port_transfer', 'custom']
         if not value or value not in valid:
@@ -81,6 +94,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             'passengers', 'luggage', 'child_seats',
             'vehicle_category_id', 'special_requests',
             'is_round_trip', 'return_datetime', 'extras',
+            'custom_field_values',
             'base_price', 'extras_price',
             'total_price', 'deposit_amount', 'currency', 'status',
         ]
@@ -218,60 +232,6 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             transfer.deposit_amount = (transfer.total_price * deposit_percentage_from_pricing / Decimal('100')).quantize(Decimal('0.01'))
 
         transfer.save()
-
-        # Send email notifications
-        try:
-            from apps.notifications.tasks import (
-                send_booking_confirmation, send_admin_new_booking_alert,
-                send_supplier_new_booking_alert,
-            )
-            booking_details = {
-                'pickup_address': transfer.pickup_address,
-                'dropoff_address': transfer.dropoff_address,
-                'pickup_datetime': str(transfer.pickup_datetime),
-                'passengers': transfer.passengers,
-                'vehicle_category': vehicle_category.name,
-                'is_round_trip': transfer.is_round_trip,
-                'return_datetime': str(transfer.return_datetime) if transfer.return_datetime else '',
-                'flight_number': transfer.flight_number or '',
-                'special_requests': transfer.special_requests or '',
-                'base_price': str(transfer.base_price),
-                'extras_price': str(transfer.extras_price),
-                'deposit_amount': str(transfer.deposit_amount),
-                'total_price': str(transfer.total_price),
-                'currency': transfer.currency,
-                'customer_phone': transfer.customer_phone,
-            }
-            # Email to customer (with PDF receipt)
-            send_booking_confirmation.delay(
-                booking_ref=transfer.booking_ref,
-                customer_email=transfer.customer_email,
-                customer_name=transfer.customer_name,
-                booking_details=booking_details,
-            )
-            # Email to admin (with PDF receipt)
-            send_admin_new_booking_alert.delay(
-                booking_ref=transfer.booking_ref,
-                customer_name=transfer.customer_name,
-                customer_email=transfer.customer_email,
-                customer_phone=transfer.customer_phone,
-                booking_details=booking_details,
-            )
-            # Email to vehicle supplier (if supplier_email exists on any vehicle in category)
-            supplier_vehicle = vehicle_category.vehicles.filter(
-                supplier_email__gt='',
-            ).values('supplier_email', 'supplier_name').first()
-            if supplier_vehicle:
-                send_supplier_new_booking_alert.delay(
-                    booking_ref=transfer.booking_ref,
-                    supplier_email=supplier_vehicle['supplier_email'],
-                    supplier_name=supplier_vehicle['supplier_name'],
-                    customer_name=transfer.customer_name,
-                    customer_phone=transfer.customer_phone,
-                    booking_details=booking_details,
-                )
-        except Exception:
-            pass
 
         # Handle round trip
         if transfer.is_round_trip and transfer.return_datetime:

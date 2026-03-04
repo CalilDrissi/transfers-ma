@@ -1,0 +1,123 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Custom Field" %} - {{ field.label }}{% endblock %}
+{% block page_title %}{% trans "Custom Field" %}: {{ field.label }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:custom_field_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">{% trans "Edit Custom Field" %}</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_field">
+
+                    <div class="mb-3">
+                        <label for="label" class="form-label">{% trans "Label" %} *</label>
+                        <input type="text" class="form-control" id="label" name="label" value="{{ field.label }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">{% trans "Internal Name" %}</label>
+                        <input type="text" class="form-control" value="{{ field.name }}" disabled>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="field_type" class="form-label">{% trans "Field Type" %} *</label>
+                            <select class="form-select" id="field_type" name="field_type" required>
+                                <option value="text" {% if field.field_type == 'text' %}selected{% endif %}>{% trans "Text" %}</option>
+                                <option value="textarea" {% if field.field_type == 'textarea' %}selected{% endif %}>{% trans "Text Area" %}</option>
+                                <option value="select" {% if field.field_type == 'select' %}selected{% endif %}>{% trans "Dropdown Select" %}</option>
+                                <option value="checkbox" {% if field.field_type == 'checkbox' %}selected{% endif %}>{% trans "Checkbox" %}</option>
+                                <option value="number" {% if field.field_type == 'number' %}selected{% endif %}>{% trans "Number" %}</option>
+                                <option value="date" {% if field.field_type == 'date' %}selected{% endif %}>{% trans "Date" %}</option>
+                                <option value="email" {% if field.field_type == 'email' %}selected{% endif %}>{% trans "Email" %}</option>
+                                <option value="phone" {% if field.field_type == 'phone' %}selected{% endif %}>{% trans "Phone" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="applies_to" class="form-label">{% trans "Applies To" %}</label>
+                            <select class="form-select" id="applies_to" name="applies_to">
+                                <option value="both" {% if field.applies_to == 'both' %}selected{% endif %}>{% trans "Both Transfers & Tours" %}</option>
+                                <option value="transfer" {% if field.applies_to == 'transfer' %}selected{% endif %}>{% trans "Transfer Bookings Only" %}</option>
+                                <option value="trip" {% if field.applies_to == 'trip' %}selected{% endif %}>{% trans "Tour Bookings Only" %}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="placeholder" class="form-label">{% trans "Placeholder" %}</label>
+                        <input type="text" class="form-control" id="placeholder" name="placeholder" value="{{ field.placeholder }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="help_text_field" class="form-label">{% trans "Help Text" %}</label>
+                        <input type="text" class="form-control" id="help_text_field" name="help_text_field" value="{{ field.help_text_field }}">
+                    </div>
+
+                    <div class="mb-3" id="options-group" {% if field.field_type != 'select' %}style="display:none;"{% endif %}>
+                        <label for="options" class="form-label">{% trans "Options" %}</label>
+                        <textarea class="form-control" id="options" name="options" rows="4">{{ field.options|join:"\n" }}</textarea>
+                        <small class="text-muted">{% trans "One option per line." %}</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="display_order" class="form-label">{% trans "Display Order" %}</label>
+                            <input type="number" class="form-control" id="display_order" name="display_order" value="{{ field.display_order }}" min="0">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_required" name="is_required" {% if field.is_required %}checked{% endif %}>
+                            <label class="form-check-label" for="is_required">{% trans "Required field" %}</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if field.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Save Changes" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-danger">
+            <div class="card-header text-danger">{% trans "Danger Zone" %}</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_field">
+                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Delete this custom field?');">
+                        <i class="bi bi-trash me-1"></i>{% trans "Delete Custom Field" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('field_type').addEventListener('change', function() {
+    document.getElementById('options-group').style.display = this.value === 'select' ? '' : 'none';
+});
+</script>
+{% endblock %}

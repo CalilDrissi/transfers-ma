@@ -1,5 +1,9 @@
 from rest_framework import serializers
-from apps.trips.models import Trip, TripImage, TripSchedule, TripBooking
+from apps.trips.models import (
+    Trip, TripImage, TripSchedule, TripBooking,
+    TripHighlight, TripItineraryStop, TripFAQ,
+    TripContentBlock, TripPriceTier
+)
 
 
 class TripImageSerializer(serializers.ModelSerializer):
@@ -19,9 +23,47 @@ class TripScheduleSerializer(serializers.ModelSerializer):
         ]
 
 
+class TripHighlightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripHighlight
+        fields = ['id', 'icon', 'text', 'order']
+
+
+class TripItineraryStopSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripItineraryStop
+        fields = [
+            'id', 'stop_type', 'name', 'location', 'description',
+            'duration_minutes', 'has_admission', 'order'
+        ]
+
+
+class TripFAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripFAQ
+        fields = ['id', 'question', 'answer', 'order']
+
+
+class TripContentBlockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripContentBlock
+        fields = ['id', 'title', 'content', 'order']
+
+
+class TripPriceTierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripPriceTier
+        fields = ['id', 'name', 'min_travelers', 'max_travelers', 'price_per_person', 'total_price', 'order']
+
+
 class TripSerializer(serializers.ModelSerializer):
     images = TripImageSerializer(many=True, read_only=True)
     schedules = TripScheduleSerializer(many=True, read_only=True)
+    highlights = TripHighlightSerializer(many=True, read_only=True)
+    itinerary_stops = TripItineraryStopSerializer(many=True, read_only=True)
+    faqs = TripFAQSerializer(many=True, read_only=True)
+    content_blocks = TripContentBlockSerializer(many=True, read_only=True)
+    price_tiers = TripPriceTierSerializer(many=True, read_only=True)
     inclusions_list = serializers.ListField(read_only=True)
     exclusions_list = serializers.ListField(read_only=True)
     destinations_list = serializers.ListField(read_only=True)
@@ -30,12 +72,18 @@ class TripSerializer(serializers.ModelSerializer):
         model = Trip
         fields = [
             'id', 'name', 'slug', 'description', 'short_description',
-            'trip_type', 'departure_location', 'destinations', 'destinations_list',
+            'trip_type', 'service_type', 'departure_location',
+            'destinations', 'destinations_list', 'driver_languages',
             'duration_hours', 'duration_days', 'min_participants', 'max_participants',
-            'price_per_person', 'child_price', 'private_tour_price', 'currency',
+            'pricing_model', 'price_per_person', 'child_price',
+            'private_tour_price', 'currency',
             'inclusions', 'exclusions', 'inclusions_list', 'exclusions_list',
-            'itinerary', 'featured_image', 'images', 'schedules',
-            'is_featured', 'order'
+            'cancellation_policy', 'booking_notice_hours', 'instant_confirmation',
+            'child_policy', 'accessibility_info',
+            'featured_image', 'images', 'schedules',
+            'highlights', 'itinerary_stops', 'faqs',
+            'content_blocks', 'price_tiers',
+            'is_featured', 'order',
         ]
 
 
@@ -63,7 +111,7 @@ class TripBookingSerializer(serializers.ModelSerializer):
             'pickup_address',
             'price_per_adult', 'price_per_child', 'extras_price',
             'discount', 'total_price', 'currency',
-            'status', 'special_requests', 'created_at'
+            'status', 'special_requests', 'custom_field_values', 'created_at'
         ]
         read_only_fields = [
             'id', 'booking_ref', 'status', 'created_at',
@@ -81,8 +129,21 @@ class TripBookingCreateSerializer(serializers.ModelSerializer):
             'trip_id', 'schedule_id', 'trip_date',
             'customer_name', 'customer_email', 'customer_phone',
             'adults', 'children', 'is_private',
-            'pickup_address', 'special_requests'
+            'pickup_address', 'special_requests', 'custom_field_values'
         ]
+
+    custom_field_values = serializers.JSONField(required=False, default=dict)
+
+    def validate_custom_field_values(self, value):
+        from apps.accounts.models import CustomField
+        required_fields = CustomField.objects.filter(
+            is_active=True, is_required=True, applies_to__in=['trip', 'both']
+        ).values_list('name', flat=True)
+        for field_name in required_fields:
+            if field_name not in value or not str(value[field_name]).strip():
+                field = CustomField.objects.get(name=field_name)
+                raise serializers.ValidationError({field_name: f'{field.label} is required.'})
+        return value
 
     def create(self, validated_data):
         trip_id = validated_data.pop('trip_id')

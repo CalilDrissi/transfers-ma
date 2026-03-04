@@ -170,6 +170,9 @@ class Transfer(models.Model):
 
     # Additional info
     special_requests = models.TextField(_('special requests'), blank=True)
+    custom_field_values = models.JSONField(
+        _("custom field values"), default=dict, blank=True,
+        help_text=_("Values submitted for admin-defined custom fields"))
     internal_notes = models.TextField(_('internal notes'), blank=True)
 
     # Round trip

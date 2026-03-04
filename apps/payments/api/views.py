@@ -229,10 +229,11 @@ class PaymentViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
     def _update_booking_status(self, payment, new_status):
-        """Update the associated booking status."""
+        """Update the associated booking status and send confirmation emails."""
+        booking = None
         if payment.payment_type == Payment.PaymentType.TRANSFER:
             from apps.transfers.models import Transfer
-            booking = Transfer.objects.get(id=payment.object_id)
+            booking = Transfer.objects.select_related('vehicle_category').get(id=payment.object_id)
             booking.status = new_status
             booking.save()
         elif payment.payment_type == Payment.PaymentType.TRIP:
@@ -240,6 +241,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
             booking = TripBooking.objects.get(id=payment.object_id)
             booking.status = new_status
             booking.save()
+
+        if not booking:
+            return
+
         # Send payment receipt email
         try:
             from apps.notifications.tasks import send_payment_receipt
@@ -256,6 +261,62 @@ class PaymentViewSet(viewsets.ModelViewSet):
             )
         except Exception:
             pass
+
+        # Send booking confirmation emails (only for transfers)
+        if payment.payment_type == Payment.PaymentType.TRANSFER:
+            try:
+                from apps.notifications.tasks import (
+                    send_booking_confirmation, send_admin_new_booking_alert,
+                    send_supplier_new_booking_alert,
+                )
+                booking_details = {
+                    'pickup_address': booking.pickup_address,
+                    'dropoff_address': booking.dropoff_address,
+                    'pickup_datetime': str(booking.pickup_datetime),
+                    'passengers': booking.passengers,
+                    'vehicle_category': booking.vehicle_category.name if booking.vehicle_category else '',
+                    'is_round_trip': booking.is_round_trip,
+                    'return_datetime': str(booking.return_datetime) if booking.return_datetime else '',
+                    'flight_number': booking.flight_number or '',
+                    'special_requests': booking.special_requests or '',
+                    'base_price': str(booking.base_price),
+                    'extras_price': str(booking.extras_price),
+                    'deposit_amount': str(booking.deposit_amount),
+                    'total_price': str(booking.total_price),
+                    'currency': booking.currency,
+                    'customer_phone': booking.customer_phone,
+                }
+                # Email to customer
+                send_booking_confirmation.delay(
+                    booking_ref=booking.booking_ref,
+                    customer_email=booking.customer_email,
+                    customer_name=booking.customer_name,
+                    booking_details=booking_details,
+                )
+                # Email to admin
+                send_admin_new_booking_alert.delay(
+                    booking_ref=booking.booking_ref,
+                    customer_name=booking.customer_name,
+                    customer_email=booking.customer_email,
+                    customer_phone=booking.customer_phone,
+                    booking_details=booking_details,
+                )
+                # Email to vehicle supplier
+                if booking.vehicle_category:
+                    supplier_vehicle = booking.vehicle_category.vehicles.filter(
+                        supplier_email__gt='',
+                    ).values('supplier_email', 'supplier_name').first()
+                    if supplier_vehicle:
+                        send_supplier_new_booking_alert.delay(
+                            booking_ref=booking.booking_ref,
+                            supplier_email=supplier_vehicle['supplier_email'],
+                            supplier_name=supplier_vehicle['supplier_name'],
+                            customer_name=booking.customer_name,
+                            customer_phone=booking.customer_phone,
+                            booking_details=booking_details,
+                        )
+            except Exception:
+                pass
 
     @action(detail=True, methods=['post'])
     def refund(self, request, pk=None):

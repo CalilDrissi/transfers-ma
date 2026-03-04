@@ -1,0 +1,69 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Custom Fields" %}{% endblock %}
+{% block page_title %}{% trans "Custom Fields" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:custom_field_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>{% trans "Add Custom Field" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        {% if fields %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>{% trans "Label" %}</th>
+                        <th>{% trans "Type" %}</th>
+                        <th>{% trans "Applies To" %}</th>
+                        <th>{% trans "Required" %}</th>
+                        <th>{% trans "Order" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field in fields %}
+                    <tr>
+                        <td><strong>{{ field.label }}</strong><br><small class="text-muted">{{ field.name }}</small></td>
+                        <td>{{ field.get_field_type_display }}</td>
+                        <td>{{ field.get_applies_to_display }}</td>
+                        <td>
+                            {% if field.is_required %}
+                            <span class="badge bg-warning text-dark">{% trans "Required" %}</span>
+                            {% else %}
+                            <span class="text-muted">{% trans "Optional" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ field.display_order }}</td>
+                        <td>
+                            {% if field.is_active %}
+                            <span class="badge bg-success">{% trans "Active" %}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'dashboard:custom_field_detail' pk=field.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-list-check" style="font-size: 3rem;"></i>
+            <p class="mt-3">{% trans "No custom fields yet. Add one to collect additional information on booking forms." %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

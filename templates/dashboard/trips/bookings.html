@@ -50,7 +50,7 @@
                 <tbody>
                     {% for booking in bookings %}
                     <tr>
-                        <td><strong>{{ booking.booking_ref }}</strong></td>
+                        <td><a href="{% url 'dashboard:trip_booking_detail' pk=booking.pk %}"><strong>{{ booking.booking_ref }}</strong></a></td>
                         <td>
                             {{ booking.customer_name }}<br>
                             <small class="text-muted">{{ booking.customer_email }}</small>

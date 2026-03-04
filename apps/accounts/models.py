@@ -264,3 +264,49 @@ class SiteSettings(models.Model):
         """Get or create the singleton settings instance."""
         settings, _ = cls.objects.get_or_create(pk=1)
         return settings
+
+
+class CustomField(models.Model):
+    """Admin-defined custom fields for booking forms."""
+
+    class FieldType(models.TextChoices):
+        TEXT = 'text', _('Text')
+        TEXTAREA = 'textarea', _('Text Area')
+        SELECT = 'select', _('Dropdown Select')
+        CHECKBOX = 'checkbox', _('Checkbox')
+        NUMBER = 'number', _('Number')
+        DATE = 'date', _('Date')
+        EMAIL = 'email', _('Email')
+        PHONE = 'phone', _('Phone')
+
+    class AppliesTo(models.TextChoices):
+        TRANSFER = 'transfer', _('Transfer Bookings Only')
+        TRIP = 'trip', _('Tour Bookings Only')
+        BOTH = 'both', _('Both Transfers & Tours')
+
+    name = models.SlugField(
+        _('field name'), max_length=100, unique=True,
+        help_text=_('Internal identifier (auto-generated from label).'))
+    label = models.CharField(_('label'), max_length=200,
+        help_text=_('Label shown to the customer on the booking form'))
+    field_type = models.CharField(_('field type'), max_length=20,
+        choices=FieldType.choices, default=FieldType.TEXT)
+    placeholder = models.CharField(_('placeholder'), max_length=200, blank=True)
+    help_text_field = models.CharField(_('help text'), max_length=300, blank=True,
+        help_text=_('Small helper text shown below the field'))
+    options = models.JSONField(_('options'), default=list, blank=True,
+        help_text=_('For select fields: list of option strings'))
+    is_required = models.BooleanField(_('required'), default=False)
+    applies_to = models.CharField(_('applies to'), max_length=10,
+        choices=AppliesTo.choices, default=AppliesTo.BOTH)
+    display_order = models.PositiveSmallIntegerField(_('display order'), default=0)
+    is_active = models.BooleanField(_('active'), default=True)
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('custom field')
+        verbose_name_plural = _('custom fields')
+        ordering = ['display_order', 'label']
+
+    def __str__(self):
+        return f"{self.label} ({self.get_field_type_display()})"

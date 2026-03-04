@@ -1,0 +1,168 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Trip Booking" %} - {{ booking.booking_ref }}{% endblock %}
+{% block page_title %}{{ booking.booking_ref }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:trip_booking_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Bookings" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Customer -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-person me-2"></i>{% trans "Customer" %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-2"><strong>{% trans "Name" %}</strong><br>{{ booking.customer_name }}</div>
+                    <div class="col-md-4 mb-2"><strong>{% trans "Email" %}</strong><br><a href="mailto:{{ booking.customer_email }}">{{ booking.customer_email }}</a></div>
+                    <div class="col-md-4 mb-2"><strong>{% trans "Phone" %}</strong><br>{{ booking.customer_phone }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-map me-2"></i>{% trans "Trip Details" %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <strong>{% trans "Tour" %}</strong><br>
+                        <a href="{% url 'dashboard:trip_detail' pk=booking.trip.pk %}">{{ booking.trip.name }}</a>
+                    </div>
+                    <div class="col-md-3 mb-2"><strong>{% trans "Date" %}</strong><br>{{ booking.trip_date }}</div>
+                    <div class="col-md-3 mb-2">
+                        <strong>{% trans "Private" %}</strong><br>
+                        {% if booking.is_private %}<span class="badge bg-info">{% trans "Yes" %}</span>{% else %}{% trans "No" %}{% endif %}
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-3 mb-2"><strong>{% trans "Adults" %}</strong><br>{{ booking.adults }}</div>
+                    <div class="col-md-3 mb-2"><strong>{% trans "Children" %}</strong><br>{{ booking.children }}</div>
+                    {% if booking.pickup_address %}
+                    <div class="col-md-6 mb-2"><strong>{% trans "Pickup" %}</strong><br>{{ booking.pickup_address }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Requests -->
+        {% if booking.special_requests %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-chat-text me-2"></i>{% trans "Special Requests" %}
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ booking.special_requests }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Custom Fields -->
+        {% if custom_fields_display %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-list-check me-2"></i>{% trans "Custom Information" %}
+            </div>
+            <div class="card-body">
+                {% for field in custom_fields_display %}
+                <div class="mb-2">
+                    <strong>{{ field.label }}:</strong>
+                    {% if field.value == True %}<span class="badge bg-success">Yes</span>
+                    {% elif field.value == False %}<span class="badge bg-secondary">No</span>
+                    {% else %}{{ field.value }}{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Internal Notes -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-journal-text me-2"></i>{% trans "Internal Notes" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_notes">
+                    <textarea class="form-control mb-2" name="internal_notes" rows="3">{{ booking.internal_notes }}</textarea>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-save me-1"></i>{% trans "Save Notes" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Status -->
+        <div class="card mb-4">
+            <div class="card-header">{% trans "Status" %}</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_status">
+                    <select class="form-select mb-2" name="status">
+                        {% for value, label in statuses %}
+                        <option value="{{ value }}" {% if booking.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary w-100 btn-sm">{% trans "Update Status" %}</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="card mb-4">
+            <div class="card-header">{% trans "Pricing" %}</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>{{ booking.adults }} {% trans "adult(s)" %} × {{ booking.price_per_adult }} {{ booking.currency }}</span>
+                    <strong>{{ booking.price_per_adult|floatformat:0 }}</strong>
+                </div>
+                {% if booking.children > 0 %}
+                <div class="d-flex justify-content-between mb-1">
+                    <span>{{ booking.children }} {% trans "child(ren)" %} × {{ booking.price_per_child }} {{ booking.currency }}</span>
+                    <strong>{{ booking.price_per_child|floatformat:0 }}</strong>
+                </div>
+                {% endif %}
+                {% if booking.extras_price > 0 %}
+                <div class="d-flex justify-content-between mb-1">
+                    <span>{% trans "Extras" %}</span>
+                    <strong>{{ booking.extras_price }} {{ booking.currency }}</strong>
+                </div>
+                {% endif %}
+                {% if booking.discount > 0 %}
+                <div class="d-flex justify-content-between mb-1 text-success">
+                    <span>{% trans "Discount" %}</span>
+                    <strong>-{{ booking.discount }} {{ booking.currency }}</strong>
+                </div>
+                {% endif %}
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>{% trans "Total" %}</strong>
+                    <strong class="fs-5">{{ booking.total_price }} {{ booking.currency }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="card">
+            <div class="card-body text-muted small">
+                <div class="mb-1"><strong>{% trans "Created" %}:</strong> {{ booking.created_at }}</div>
+                <div><strong>{% trans "Ref" %}:</strong> {{ booking.booking_ref }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

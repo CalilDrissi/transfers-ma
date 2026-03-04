@@ -1,0 +1,108 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Add Custom Field" %}{% endblock %}
+{% block page_title %}{% trans "Add Custom Field" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:custom_field_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">{% trans "Field Details" %}</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="label" class="form-label">{% trans "Label" %} *</label>
+                        <input type="text" class="form-control" id="label" name="label" required
+                               placeholder="e.g. Hotel Name, Pickup Time">
+                        <small class="text-muted">{% trans "Label shown to customers on the booking form" %}</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="field_type" class="form-label">{% trans "Field Type" %} *</label>
+                            <select class="form-select" id="field_type" name="field_type" required>
+                                <option value="text">{% trans "Text" %}</option>
+                                <option value="textarea">{% trans "Text Area" %}</option>
+                                <option value="select">{% trans "Dropdown Select" %}</option>
+                                <option value="checkbox">{% trans "Checkbox" %}</option>
+                                <option value="number">{% trans "Number" %}</option>
+                                <option value="date">{% trans "Date" %}</option>
+                                <option value="email">{% trans "Email" %}</option>
+                                <option value="phone">{% trans "Phone" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="applies_to" class="form-label">{% trans "Applies To" %}</label>
+                            <select class="form-select" id="applies_to" name="applies_to">
+                                <option value="both">{% trans "Both Transfers & Tours" %}</option>
+                                <option value="transfer">{% trans "Transfer Bookings Only" %}</option>
+                                <option value="trip">{% trans "Tour Bookings Only" %}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="placeholder" class="form-label">{% trans "Placeholder" %}</label>
+                        <input type="text" class="form-control" id="placeholder" name="placeholder"
+                               placeholder="e.g. Enter your hotel name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="help_text_field" class="form-label">{% trans "Help Text" %}</label>
+                        <input type="text" class="form-control" id="help_text_field" name="help_text_field"
+                               placeholder="Small helper text shown below the field">
+                    </div>
+
+                    <div class="mb-3" id="options-group" style="display:none;">
+                        <label for="options" class="form-label">{% trans "Options" %}</label>
+                        <textarea class="form-control" id="options" name="options" rows="4"
+                                  placeholder="One option per line, e.g.:&#10;Morning&#10;Afternoon&#10;Evening"></textarea>
+                        <small class="text-muted">{% trans "One option per line. Only used for Dropdown Select fields." %}</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="display_order" class="form-label">{% trans "Display Order" %}</label>
+                            <input type="number" class="form-control" id="display_order" name="display_order" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_required" name="is_required">
+                            <label class="form-check-label" for="is_required">{% trans "Required field" %}</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-check-lg me-1"></i>{% trans "Create Custom Field" %}
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+document.getElementById('field_type').addEventListener('change', function() {
+    document.getElementById('options-group').style.display = this.value === 'select' ? '' : 'none';
+});
+</script>
+{% endblock %}

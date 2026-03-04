@@ -85,6 +85,25 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- Custom Fields -->
+        {% if custom_fields_display %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-list-check me-2"></i>{% trans "Custom Information" %}
+            </div>
+            <div class="card-body">
+                {% for field in custom_fields_display %}
+                <div class="mb-2">
+                    <strong>{{ field.label }}:</strong>
+                    {% if field.value == True %}<span class="badge bg-success">Yes</span>
+                    {% elif field.value == False %}<span class="badge bg-secondary">No</span>
+                    {% else %}{{ field.value }}{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Sidebar -->

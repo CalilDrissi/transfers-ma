@@ -192,11 +192,27 @@ def transfer_detail(request, pk):
         is_active=True
     )
 
+    # Resolve custom field values to display labels
+    custom_fields_display = []
+    if transfer.custom_field_values:
+        from apps.accounts.models import CustomField
+        field_labels = dict(
+            CustomField.objects.filter(
+                name__in=transfer.custom_field_values.keys()
+            ).values_list('name', 'label')
+        )
+        for key, value in transfer.custom_field_values.items():
+            custom_fields_display.append({
+                'label': field_labels.get(key, key.replace('_', ' ').title()),
+                'value': value,
+            })
+
     context = {
         'transfer': transfer,
         'drivers': drivers,
         'vehicles': vehicles,
         'statuses': Transfer.Status.choices,
+        'custom_fields_display': custom_fields_display,
     }
     return render(request, 'dashboard/transfers/detail.html', context)
 
@@ -1718,7 +1734,6 @@ def trip_create(request):
     }
     return render(request, 'dashboard/trips/create.html', context)
 
-
 @login_required
 @user_passes_test(is_admin)
 def trip_detail(request, pk):
@@ -1765,11 +1780,73 @@ def trip_detail(request, pk):
             trip.meta_keywords = request.POST.get('meta_keywords', '')
             trip.status = request.POST.get('status', trip.status)
             trip.is_active = trip.status == 'published'
+            trip.is_featured = request.POST.get('is_featured') == 'on'
+            trip.order = request.POST.get('order') or 0
 
             if request.FILES.get('featured_image'):
                 trip.featured_image = request.FILES['featured_image']
 
             trip.save()
+
+            # Handle gallery: delete checked images
+            for img in trip.images.all():
+                if request.POST.get(f'delete_image_{img.id}'):
+                    img.image.delete(save=False)
+                    img.delete()
+
+            # Handle gallery: add new images
+            new_images = request.FILES.getlist('gallery_images')
+            existing_count = trip.images.count()
+            for idx, img_file in enumerate(new_images):
+                TripImage.objects.create(
+                    trip=trip,
+                    image=img_file,
+                    order=existing_count + idx
+                )
+
+            # Handle highlights: clear and re-create
+            trip.highlights.all().delete()
+            highlight_texts = request.POST.getlist('highlight_text[]')
+            highlight_icons = request.POST.getlist('highlight_icon[]')
+            for idx, text in enumerate(highlight_texts):
+                if text.strip():
+                    icon = highlight_icons[idx] if idx < len(highlight_icons) else 'bi-check-circle'
+                    TripHighlight.objects.create(
+                        trip=trip, text=text.strip(), icon=icon, order=idx
+                    )
+
+            # Handle itinerary stops: clear and re-create
+            trip.itinerary_stops.all().delete()
+            stop_names = request.POST.getlist('stop_name[]')
+            stop_types = request.POST.getlist('stop_type[]')
+            stop_locations = request.POST.getlist('stop_location[]')
+            stop_descriptions = request.POST.getlist('stop_description[]')
+            stop_durations = request.POST.getlist('stop_duration[]')
+            for idx, name in enumerate(stop_names):
+                if name.strip():
+                    TripItineraryStop.objects.create(
+                        trip=trip,
+                        name=name.strip(),
+                        stop_type=stop_types[idx] if idx < len(stop_types) else 'stop',
+                        location=stop_locations[idx] if idx < len(stop_locations) else '',
+                        description=stop_descriptions[idx] if idx < len(stop_descriptions) else '',
+                        duration_minutes=int(stop_durations[idx]) if idx < len(stop_durations) and stop_durations[idx] else None,
+                        order=idx
+                    )
+
+            # Handle FAQs: clear and re-create
+            trip.faqs.all().delete()
+            faq_questions = request.POST.getlist('faq_question[]')
+            faq_answers = request.POST.getlist('faq_answer[]')
+            for idx, question in enumerate(faq_questions):
+                if question.strip() and idx < len(faq_answers) and faq_answers[idx].strip():
+                    TripFAQ.objects.create(
+                        trip=trip,
+                        question=question.strip(),
+                        answer=faq_answers[idx].strip(),
+                        order=idx
+                    )
+
             messages.success(request, 'Tour updated successfully.')
 
         elif action == 'delete_trip':
@@ -1792,6 +1869,7 @@ def trip_detail(request, pk):
         'all_trips': all_trips,
     }
     return render(request, 'dashboard/trips/detail.html', context)
+
 
 
 @login_required
@@ -2307,3 +2385,136 @@ def booking_form(request):
         'site_settings': site_settings,
     }
     return render(request, 'dashboard/booking_form.html', context)
+
+
+
+# ── Trip Booking Detail ──────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_admin)
+def trip_booking_detail(request, pk):
+    """Trip booking detail view."""
+    booking = get_object_or_404(
+        TripBooking.objects.select_related('trip', 'customer'),
+        pk=pk
+    )
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'update_status':
+            booking.status = request.POST.get('status', booking.status)
+            booking.save()
+            messages.success(request, 'Status updated successfully.')
+        elif action == 'save_notes':
+            booking.internal_notes = request.POST.get('internal_notes', '')
+            booking.save()
+            messages.success(request, 'Notes saved.')
+        return redirect('dashboard:trip_booking_detail', pk=pk)
+
+    # Resolve custom field values
+    custom_fields_display = []
+    if booking.custom_field_values:
+        from apps.accounts.models import CustomField
+        field_labels = dict(
+            CustomField.objects.filter(
+                name__in=booking.custom_field_values.keys()
+            ).values_list('name', 'label')
+        )
+        for key, value in booking.custom_field_values.items():
+            custom_fields_display.append({
+                'label': field_labels.get(key, key.replace('_', ' ').title()),
+                'value': value,
+            })
+
+    context = {
+        'booking': booking,
+        'statuses': TripBooking.Status.choices,
+        'custom_fields_display': custom_fields_display,
+    }
+    return render(request, 'dashboard/trips/booking_detail.html', context)
+
+
+# ── Custom Fields ────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_admin)
+def custom_field_list(request):
+    from apps.accounts.models import CustomField
+    fields = CustomField.objects.all().order_by('display_order', 'label')
+    context = {'fields': fields}
+    return render(request, 'dashboard/custom_fields/list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def custom_field_create(request):
+    from apps.accounts.models import CustomField
+    if request.method == 'POST':
+        label = request.POST.get('label', '').strip()
+        if label:
+            from django.utils.text import slugify
+            name = slugify(label).replace('-', '_')
+            # Ensure unique
+            base_name = name
+            counter = 1
+            while CustomField.objects.filter(name=name).exists():
+                name = f'{base_name}_{counter}'
+                counter += 1
+
+            # Parse options
+            options_text = request.POST.get('options', '').strip()
+            options = [o.strip() for o in options_text.split('\n') if o.strip()] if options_text else []
+
+            CustomField.objects.create(
+                name=name,
+                label=label,
+                field_type=request.POST.get('field_type', 'text'),
+                placeholder=request.POST.get('placeholder', ''),
+                help_text_field=request.POST.get('help_text_field', ''),
+                options=options,
+                is_required=request.POST.get('is_required') == 'on',
+                applies_to=request.POST.get('applies_to', 'both'),
+                display_order=int(request.POST.get('display_order', 0) or 0),
+                is_active=request.POST.get('is_active') == 'on',
+            )
+            messages.success(request, f'Custom field {label} created successfully.')
+            return redirect('dashboard:custom_field_list')
+        else:
+            messages.error(request, 'Label is required.')
+    return render(request, 'dashboard/custom_fields/create.html')
+
+
+@login_required
+@user_passes_test(is_admin)
+def custom_field_detail(request, pk):
+    from apps.accounts.models import CustomField
+    field = get_object_or_404(CustomField, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_field':
+            field.label = request.POST.get('label', field.label).strip()
+            field.field_type = request.POST.get('field_type', field.field_type)
+            field.placeholder = request.POST.get('placeholder', '')
+            field.help_text_field = request.POST.get('help_text_field', '')
+            field.applies_to = request.POST.get('applies_to', field.applies_to)
+            field.display_order = int(request.POST.get('display_order', 0) or 0)
+            field.is_required = request.POST.get('is_required') == 'on'
+            field.is_active = request.POST.get('is_active') == 'on'
+
+            options_text = request.POST.get('options', '').strip()
+            field.options = [o.strip() for o in options_text.split('\n') if o.strip()] if options_text else []
+
+            field.save()
+            messages.success(request, 'Custom field updated successfully.')
+
+        elif action == 'delete_field':
+            field.delete()
+            messages.success(request, 'Custom field deleted.')
+            return redirect('dashboard:custom_field_list')
+
+        return redirect('dashboard:custom_field_detail', pk=pk)
+
+    context = {'field': field}
+    return render(request, 'dashboard/custom_fields/detail.html', context)

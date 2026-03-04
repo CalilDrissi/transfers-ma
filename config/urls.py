@@ -5,6 +5,11 @@ from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from apps.transfers.api.search import UnifiedSearchView
+from rest_framework.routers import DefaultRouter
+from apps.accounts.api.custom_fields import CustomFieldViewSet
+
+custom_fields_router = DefaultRouter()
+custom_fields_router.register(r'custom-fields', CustomFieldViewSet, basename='custom-fields')
 
 urlpatterns = [
     # Django Admin
@@ -14,6 +19,9 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # Custom Fields API (standalone router)
+    path('api/v1/', include(custom_fields_router.urls)),
 
     # API v1
     path('api/v1/auth/', include('apps.accounts.api.urls')),
