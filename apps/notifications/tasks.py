@@ -7,6 +7,15 @@ from .emails import send_templated_email
 logger = logging.getLogger(__name__)
 
 
+def _load_email_template(email_type):
+    """Load an EmailTemplate from the DB, or return None for defaults."""
+    try:
+        from .models import EmailTemplate
+        return EmailTemplate.objects.filter(email_type=email_type).first()
+    except Exception:
+        return None
+
+
 def _build_receipt_pdf(booking_ref, customer_name, customer_email, customer_phone, booking_details):
     """Build a PDF receipt and return (filename, bytes, mime) or None."""
     try:
@@ -42,20 +51,29 @@ def _build_receipt_pdf(booking_ref, customer_name, customer_email, customer_phon
 def send_booking_confirmation(booking_ref, customer_email, customer_name, booking_details):
     """Send booking confirmation email to the customer with PDF receipt attached."""
     try:
+        tpl = _load_email_template('booking_customer')
+        if tpl and not tpl.is_active:
+            return
+
         attachments = []
         receipt = _build_receipt_pdf(booking_ref, customer_name, customer_email,
                                      booking_details.get('customer_phone', ''), booking_details)
         if receipt:
             attachments.append(receipt)
 
+        subject = tpl.get_subject(booking_ref=booking_ref) if tpl else f"Booking Confirmation - {booking_ref}"
+        context = {
+            'booking_ref': booking_ref,
+            'customer_name': customer_name,
+            'details': booking_details,
+        }
+        if tpl:
+            context.update(tpl.template_context())
+
         send_templated_email(
-            subject=f"Booking Confirmation - {booking_ref}",
+            subject=subject,
             template_name='emails/booking_confirmation.html',
-            context={
-                'booking_ref': booking_ref,
-                'customer_name': customer_name,
-                'details': booking_details,
-            },
+            context=context,
             to_emails=[customer_email],
             attachments=attachments,
         )
@@ -103,6 +121,10 @@ def send_status_update(booking_ref, customer_email, customer_name, new_status):
 def send_admin_new_booking_alert(booking_ref, customer_name, customer_email, customer_phone, booking_details):
     """Send new booking alert to admin with PDF receipt attached."""
     try:
+        tpl = _load_email_template('booking_admin')
+        if tpl and not tpl.is_active:
+            return
+
         from apps.accounts.models import SiteSettings
         site_settings = SiteSettings.get_settings()
         admin_email = site_settings.contact_email or getattr(settings, 'DEFAULT_FROM_EMAIL', '')
@@ -114,16 +136,21 @@ def send_admin_new_booking_alert(booking_ref, customer_name, customer_email, cus
         if receipt:
             attachments.append(receipt)
 
+        subject = tpl.get_subject(booking_ref=booking_ref) if tpl else f"New Booking - {booking_ref}"
+        context = {
+            'booking_ref': booking_ref,
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'customer_phone': customer_phone,
+            'details': booking_details,
+        }
+        if tpl:
+            context.update(tpl.template_context())
+
         send_templated_email(
-            subject=f"New Booking - {booking_ref}",
+            subject=subject,
             template_name='emails/admin_new_booking.html',
-            context={
-                'booking_ref': booking_ref,
-                'customer_name': customer_name,
-                'customer_email': customer_email,
-                'customer_phone': customer_phone,
-                'details': booking_details,
-            },
+            context=context,
             to_emails=[admin_email],
             attachments=attachments,
         )
@@ -138,16 +165,25 @@ def send_supplier_new_booking_alert(booking_ref, supplier_email, supplier_name, 
         return
 
     try:
+        tpl = _load_email_template('booking_supplier')
+        if tpl and not tpl.is_active:
+            return
+
+        subject = tpl.get_subject(booking_ref=booking_ref) if tpl else f"New Transfer Booking - {booking_ref}"
+        context = {
+            'booking_ref': booking_ref,
+            'supplier_name': supplier_name,
+            'customer_name': customer_name,
+            'customer_phone': customer_phone,
+            'details': booking_details,
+        }
+        if tpl:
+            context.update(tpl.template_context())
+
         send_templated_email(
-            subject=f"New Transfer Booking - {booking_ref}",
+            subject=subject,
             template_name='emails/supplier_new_booking.html',
-            context={
-                'booking_ref': booking_ref,
-                'supplier_name': supplier_name,
-                'customer_name': customer_name,
-                'customer_phone': customer_phone,
-                'details': booking_details,
-            },
+            context=context,
             to_emails=[supplier_email],
         )
     except Exception:

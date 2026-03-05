@@ -344,6 +344,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{% url 'dashboard:email_template_list' %}" class="nav-link {% active_link request '/email-templates/' %}" title="{% trans 'Email Templates' %}">
+                    <i class="bi bi-envelope"></i>
+                    <span class="nav-link-text">{% trans "Email Templates" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{% url 'dashboard:reports' %}" class="nav-link {% active_link request '/reports/' %}" title="{% trans 'Reports' %}">
                     <i class="bi bi-bar-chart"></i>
                     <span class="nav-link-text">{% trans "Reports" %}</span>

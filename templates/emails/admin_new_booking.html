@@ -1,8 +1,9 @@
 {% extends "emails/base.html" %}
 {% block content %}
-<h2>New Booking Alert</h2>
-<p>A new transfer booking has been placed.</p>
+<h2>{{ heading|default:"New Booking Alert" }}</h2>
+<p>{{ intro_text|default:"A new transfer booking has been placed." }}</p>
 
+{% if show_customer_info|default:True %}
 <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
     <div class="detail-row">
         <span class="detail-label">Booking Reference:</span>
@@ -18,38 +19,63 @@
         <span class="detail-label">Phone:</span> {{ customer_phone }}
     </div>
 </div>
+{% endif %}
 
 <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    {% if show_pickup|default:True %}
     <div class="detail-row">
         <span class="detail-label">Pickup:</span> {{ details.pickup_address }}
     </div>
+    {% endif %}
+    {% if show_dropoff|default:True %}
     <div class="detail-row">
         <span class="detail-label">Drop-off:</span> {{ details.dropoff_address }}
     </div>
+    {% endif %}
+    {% if show_datetime|default:True %}
     <div class="detail-row">
         <span class="detail-label">Date & Time:</span> {{ details.pickup_datetime }}
     </div>
-    {% if details.vehicle_category %}
+    {% endif %}
+    {% if show_vehicle|default:True and details.vehicle_category %}
     <div class="detail-row">
         <span class="detail-label">Vehicle:</span> {{ details.vehicle_category }}
     </div>
     {% endif %}
+    {% if show_passengers|default:True %}
     <div class="detail-row">
         <span class="detail-label">Passengers:</span> {{ details.passengers }}
     </div>
-    {% if details.is_round_trip %}
+    {% endif %}
+    {% if show_trip_type|default:True and details.is_round_trip %}
     <div class="detail-row">
         <span class="detail-label">Trip Type:</span> Round Trip
     </div>
     {% endif %}
+    {% if show_flight_number|default:True and details.flight_number %}
+    <div class="detail-row">
+        <span class="detail-label">Flight Number:</span> {{ details.flight_number }}
+    </div>
+    {% endif %}
+    {% if show_special_requests|default:True and details.special_requests %}
+    <div class="detail-row">
+        <span class="detail-label">Special Requests:</span> {{ details.special_requests }}
+    </div>
+    {% endif %}
 </div>
 
+{% if show_price|default:True %}
 <div style="background: #e8f5e9; border-radius: 8px; padding: 16px; margin: 16px 0;">
     <div class="detail-row" style="border-bottom: none;">
         <span class="detail-label">Total Price:</span>
         <strong style="font-size: 18px;">{{ details.total_price }} {{ details.currency|default:"MAD" }}</strong>
     </div>
 </div>
+{% endif %}
+
+{% if closing_text %}
+<p>{{ closing_text }}</p>
+{% endif %}
 
 <p style="margin-top: 16px;">
     <a href="{{ site_url }}/dashboard/bookings/" class="btn">View in Dashboard</a>

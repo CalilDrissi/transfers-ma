@@ -1,0 +1,144 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Email Template" %}{% endblock %}
+{% block page_title %}{{ template.get_email_type_display }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:email_template_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="row g-4">
+        <!-- Left column: main fields -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">{% trans "Email Content" %}</div>
+                <div class="card-body">
+                    <!-- Logo -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{% trans "Logo" %}</label>
+                        {% if template.logo %}
+                        <div class="mb-2">
+                            <img src="{{ template.logo.url }}" alt="Logo" style="max-height: 60px;" class="d-block mb-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="clear_logo" id="clearLogo">
+                                <label class="form-check-label small" for="clearLogo">{% trans "Remove logo" %}</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" name="logo" accept="image/*">
+                        <div class="form-text">{% trans "Optional. Shown in email header instead of site name." %}</div>
+                    </div>
+
+                    <!-- Subject -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="subject">{% trans "Subject" %}</label>
+                        <input type="text" class="form-control" id="subject" name="subject" value="{{ template.subject }}" required>
+                        <div class="form-text">{% trans "Use {booking_ref} as a placeholder for the booking reference." %}</div>
+                    </div>
+
+                    <!-- Heading -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="heading">{% trans "Heading" %}</label>
+                        <input type="text" class="form-control" id="heading" name="heading" value="{{ template.heading }}" required>
+                    </div>
+
+                    <!-- Intro Text -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="intro_text">{% trans "Intro Text" %}</label>
+                        <textarea class="form-control" id="intro_text" name="intro_text" rows="3">{{ template.intro_text }}</textarea>
+                    </div>
+
+                    <!-- Closing Text -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="closing_text">{% trans "Closing Text" %}</label>
+                        <textarea class="form-control" id="closing_text" name="closing_text" rows="3">{{ template.closing_text }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: toggles -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">{% trans "Status" %}</div>
+                <div class="card-body">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if template.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="isActive">{% trans "Active" %}</label>
+                    </div>
+                    <div class="form-text">{% trans "When inactive, this email will not be sent." %}</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">{% trans "Visible Details" %}</div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_pickup" id="show_pickup" {% if template.show_pickup %}checked{% endif %}>
+                        <label class="form-check-label" for="show_pickup">{% trans "Pickup Location" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_dropoff" id="show_dropoff" {% if template.show_dropoff %}checked{% endif %}>
+                        <label class="form-check-label" for="show_dropoff">{% trans "Dropoff Location" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_datetime" id="show_datetime" {% if template.show_datetime %}checked{% endif %}>
+                        <label class="form-check-label" for="show_datetime">{% trans "Date & Time" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_vehicle" id="show_vehicle" {% if template.show_vehicle %}checked{% endif %}>
+                        <label class="form-check-label" for="show_vehicle">{% trans "Vehicle" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_passengers" id="show_passengers" {% if template.show_passengers %}checked{% endif %}>
+                        <label class="form-check-label" for="show_passengers">{% trans "Passengers" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_trip_type" id="show_trip_type" {% if template.show_trip_type %}checked{% endif %}>
+                        <label class="form-check-label" for="show_trip_type">{% trans "Trip Type" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_flight_number" id="show_flight_number" {% if template.show_flight_number %}checked{% endif %}>
+                        <label class="form-check-label" for="show_flight_number">{% trans "Flight Number" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_special_requests" id="show_special_requests" {% if template.show_special_requests %}checked{% endif %}>
+                        <label class="form-check-label" for="show_special_requests">{% trans "Special Requests" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_price" id="show_price" {% if template.show_price %}checked{% endif %}>
+                        <label class="form-check-label" for="show_price">{% trans "Price" %}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="show_customer_info" id="show_customer_info" {% if template.show_customer_info %}checked{% endif %}>
+                        <label class="form-check-label" for="show_customer_info">{% trans "Customer Info" %}</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">{% trans "Test" %}</div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">{% trans "Send a test email with sample data to your address." %}</p>
+                    <button type="submit" name="action" value="send_test" class="btn btn-outline-info btn-sm w-100">
+                        <i class="bi bi-send me-1"></i>{% trans "Send Test Email" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-2 mb-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{% trans "Save Changes" %}
+        </button>
+    </div>
+</form>
+{% endblock %}

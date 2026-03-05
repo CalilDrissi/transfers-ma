@@ -2518,3 +2518,99 @@ def custom_field_detail(request, pk):
 
     context = {'field': field}
     return render(request, 'dashboard/custom_fields/detail.html', context)
+
+
+# ---------------------------------------------------------------------------
+# Email Templates
+# ---------------------------------------------------------------------------
+
+@login_required
+@user_passes_test(is_admin)
+def email_template_list(request):
+    from apps.notifications.models import EmailTemplate
+    EmailTemplate.ensure_defaults()
+    templates = EmailTemplate.objects.all().order_by('email_type')
+    return render(request, 'dashboard/email_templates/list.html', {'templates': templates})
+
+
+@login_required
+@user_passes_test(is_admin)
+def email_template_edit(request, pk):
+    from apps.notifications.models import EmailTemplate
+    template = get_object_or_404(EmailTemplate, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'send_test':
+            _send_test_email(template, request.user.email)
+            messages.success(request, f'Test email sent to {request.user.email}.')
+            return redirect('dashboard:email_template_edit', pk=pk)
+
+        template.subject = request.POST.get('subject', template.subject).strip()
+        template.heading = request.POST.get('heading', template.heading).strip()
+        template.intro_text = request.POST.get('intro_text', '').strip()
+        template.closing_text = request.POST.get('closing_text', '').strip()
+        template.is_active = request.POST.get('is_active') == 'on'
+
+        if request.FILES.get('logo'):
+            template.logo = request.FILES['logo']
+        if request.POST.get('clear_logo') == 'on':
+            template.logo = ''
+
+        for field_name in [
+            'show_pickup', 'show_dropoff', 'show_datetime', 'show_vehicle',
+            'show_passengers', 'show_trip_type', 'show_flight_number',
+            'show_special_requests', 'show_price', 'show_customer_info',
+        ]:
+            setattr(template, field_name, request.POST.get(field_name) == 'on')
+
+        template.save()
+        messages.success(request, 'Email template updated successfully.')
+        return redirect('dashboard:email_template_edit', pk=pk)
+
+    return render(request, 'dashboard/email_templates/edit.html', {'template': template})
+
+
+def _send_test_email(template, to_email):
+    from apps.notifications.emails import send_templated_email
+
+    template_map = {
+        'booking_customer': 'emails/booking_confirmation.html',
+        'booking_admin': 'emails/admin_new_booking.html',
+        'booking_supplier': 'emails/supplier_new_booking.html',
+    }
+
+    sample_details = {
+        'pickup_address': 'Marrakech Airport (RAK)',
+        'dropoff_address': 'Hotel La Mamounia, Marrakech',
+        'pickup_datetime': '2026-04-15 14:30',
+        'vehicle_category': 'Sedan',
+        'passengers': 2,
+        'is_round_trip': True,
+        'return_datetime': '2026-04-20 10:00',
+        'flight_number': 'AT201',
+        'special_requests': 'Child seat needed',
+        'total_price': '450.00',
+        'currency': 'MAD',
+    }
+
+    context = {
+        'booking_ref': 'TEST-00001',
+        'customer_name': 'John Doe',
+        'customer_email': 'john@example.com',
+        'customer_phone': '+212 600 000000',
+        'supplier_name': 'Test Supplier',
+        'details': sample_details,
+    }
+    context.update(template.template_context())
+
+    subject = template.get_subject(booking_ref='TEST-00001')
+    html_template = template_map.get(template.email_type, 'emails/booking_confirmation.html')
+
+    send_templated_email(
+        subject=f'[TEST] {subject}',
+        template_name=html_template,
+        context=context,
+        to_emails=[to_email],
+    )

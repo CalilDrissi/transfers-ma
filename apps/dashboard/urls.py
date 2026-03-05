@@ -71,6 +71,10 @@ urlpatterns = [
     path('custom-fields/create/', views.custom_field_create, name='custom_field_create'),
     path('custom-fields/<int:pk>/', views.custom_field_detail, name='custom_field_detail'),
 
+    # Email Templates
+    path('email-templates/', views.email_template_list, name='email_template_list'),
+    path('email-templates/<int:pk>/', views.email_template_edit, name='email_template_edit'),
+
     # Extras
     path('extras/', views.extra_list, name='extra_list'),
     path('extras/create/', views.extra_create, name='extra_create'),

@@ -18,7 +18,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>{{ site_name|default:"Transfers.ma" }}</h1>
+        {% if logo_url %}<img src="{{ logo_url }}" alt="{{ site_name|default:'Transfers.ma' }}" style="max-height: 60px; margin-bottom: 8px;">{% else %}<h1>{{ site_name|default:"Transfers.ma" }}</h1>{% endif %}
     </div>
     <div class="content">
         {% block content %}{% endblock %}
