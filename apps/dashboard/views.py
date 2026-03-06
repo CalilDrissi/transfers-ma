@@ -7,6 +7,7 @@ from django.db.models.functions import TruncDate, TruncMonth
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.contrib.contenttypes.models import ContentType
 from datetime import timedelta
 from decimal import Decimal
 
@@ -126,6 +127,8 @@ def transfer_list(request):
     if request.method == 'POST' and request.POST.get('action') == 'delete':
         ids = request.POST.getlist('selected')
         if ids:
+            ct = ContentType.objects.get_for_model(Transfer)
+            Payment.objects.filter(content_type=ct, object_id__in=ids).delete()
             count = Transfer.objects.filter(pk__in=ids).delete()[0]
             messages.success(request, f'{count} transfer(s) deleted.')
         return redirect('dashboard:transfer_list')
@@ -2258,6 +2261,8 @@ def rental_list(request):
     if request.method == 'POST' and request.POST.get('action') == 'delete':
         ids = request.POST.getlist('selected')
         if ids:
+            ct = ContentType.objects.get_for_model(Rental)
+            Payment.objects.filter(content_type=ct, object_id__in=ids).delete()
             count = Rental.objects.filter(pk__in=ids).delete()[0]
             messages.success(request, f'{count} rental booking(s) deleted.')
         return redirect('dashboard:rental_list')
