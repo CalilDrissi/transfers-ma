@@ -1,7 +1,7 @@
 {% extends "emails/base.html" %}
 {% block content %}
 <h2>{{ heading|default:"New Booking Alert" }}</h2>
-<p>{{ intro_text|default:"A new transfer booking has been placed." }}</p>
+{{ intro_text|default:"<p>A new transfer booking has been placed.</p>"|safe }}
 
 {% if show_customer_info|default:True %}
 <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
@@ -74,7 +74,7 @@
 {% endif %}
 
 {% if closing_text %}
-<p>{{ closing_text }}</p>
+{{ closing_text|safe }}
 {% endif %}
 
 <p style="margin-top: 16px;">

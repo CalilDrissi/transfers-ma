@@ -2,7 +2,7 @@
 {% block content %}
 <h2>{{ heading|default:"Booking Confirmed" }}</h2>
 <p>Dear {{ customer_name|default:"Customer" }},</p>
-<p>{{ intro_text|default:"Thank you for your booking! Your reservation has been confirmed." }}</p>
+{{ intro_text|default:"<p>Thank you for your booking! Your reservation has been confirmed.</p>"|safe }}
 
 <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
     <div class="detail-row">
@@ -56,7 +56,5 @@
     {% endif %}
 </div>
 
-{% if closing_text|default:"If you have any questions, please don't hesitate to contact us." %}
-<p>{{ closing_text|default:"If you have any questions, please don't hesitate to contact us." }}</p>
-{% endif %}
+{{ closing_text|default:"<p>If you have any questions, please don't hesitate to contact us.</p>"|safe }}
 {% endblock %}

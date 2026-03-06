@@ -2,7 +2,7 @@
 {% block content %}
 <h2>{{ heading|default:"New Transfer Booking" }}</h2>
 <p>Dear {{ supplier_name|default:"Supplier" }},</p>
-<p>{{ intro_text|default:"A new transfer has been booked that requires your vehicle." }}</p>
+{{ intro_text|default:"<p>A new transfer has been booked that requires your vehicle.</p>"|safe }}
 
 {% if show_customer_info|default:True %}
 <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0;">
@@ -71,5 +71,5 @@
 </div>
 {% endif %}
 
-<p>{{ closing_text|default:"Please ensure the vehicle is ready for this transfer." }}</p>
+{{ closing_text|default:"<p>Please ensure the vehicle is ready for this transfer.</p>"|safe }}
 {% endblock %}
