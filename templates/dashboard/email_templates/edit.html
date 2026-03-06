@@ -124,9 +124,12 @@
             </div>
 
             <div class="card mb-4">
-                <div class="card-header">{% trans "Test" %}</div>
+                <div class="card-header">{% trans "Preview & Test" %}</div>
                 <div class="card-body">
-                    <p class="small text-muted mb-2">{% trans "Send a test email with sample data to your address." %}</p>
+                    <p class="small text-muted mb-2">{% trans "Preview with sample data or send a test email." %}</p>
+                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" data-bs-toggle="modal" data-bs-target="#previewModal">
+                        <i class="bi bi-eye me-1"></i>{% trans "Preview Email" %}
+                    </button>
                     <button type="submit" name="action" value="send_test" class="btn btn-outline-info btn-sm w-100">
                         <i class="bi bi-send me-1"></i>{% trans "Send Test Email" %}
                     </button>
@@ -141,4 +144,27 @@
         </button>
     </div>
 </form>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">{% trans "Email Preview" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="previewFrame" style="width:100%;height:70vh;border:none;" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('previewModal').addEventListener('show.bs.modal', function() {
+    document.getElementById('previewFrame').src = '{% url "dashboard:email_template_preview" pk=template.pk %}';
+});
+</script>
 {% endblock %}

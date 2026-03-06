@@ -74,6 +74,7 @@ urlpatterns = [
     # Email Templates
     path('email-templates/', views.email_template_list, name='email_template_list'),
     path('email-templates/<int:pk>/', views.email_template_edit, name='email_template_edit'),
+    path('email-templates/<int:pk>/preview/', views.email_template_preview, name='email_template_preview'),
 
     # Extras
     path('extras/', views.extra_list, name='extra_list'),

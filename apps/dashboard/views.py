@@ -2588,6 +2588,52 @@ def email_template_edit(request, pk):
     return render(request, 'dashboard/email_templates/edit.html', {'template': template, 'tab': tab})
 
 
+@login_required
+@user_passes_test(is_admin)
+def email_template_preview(request, pk):
+    from apps.notifications.models import EmailTemplate
+    from django.template.loader import render_to_string
+    from django.http import HttpResponse
+
+    template = get_object_or_404(EmailTemplate, pk=pk)
+
+    template_map = {}
+    for prefix in ('booking', 'zone', 'route'):
+        template_map[f'{prefix}_customer'] = 'emails/booking_confirmation.html'
+        template_map[f'{prefix}_admin'] = 'emails/admin_new_booking.html'
+        template_map[f'{prefix}_supplier'] = 'emails/supplier_new_booking.html'
+
+    sample_details = {
+        'pickup_address': 'Marrakech Airport (RAK)',
+        'dropoff_address': 'Hotel La Mamounia, Marrakech',
+        'pickup_datetime': '2026-04-15 14:30',
+        'vehicle_category': 'Sedan',
+        'passengers': 2,
+        'is_round_trip': True,
+        'return_datetime': '2026-04-20 10:00',
+        'flight_number': 'AT201',
+        'special_requests': 'Child seat needed',
+        'total_price': '450.00',
+        'currency': 'MAD',
+    }
+
+    context = {
+        'booking_ref': 'TEST-00001',
+        'customer_name': 'John Doe',
+        'customer_email': 'john@example.com',
+        'customer_phone': '+212 600 000000',
+        'supplier_name': 'Test Supplier',
+        'details': sample_details,
+        'site_name': 'Transfers.ma',
+        'site_url': '',
+    }
+    context.update(template.template_context())
+
+    html_template = template_map.get(template.email_type, 'emails/booking_confirmation.html')
+    html = render_to_string(html_template, context)
+    return HttpResponse(html)
+
+
 def _send_test_email(template, to_email):
     from apps.notifications.emails import send_templated_email
 
