@@ -2529,8 +2529,16 @@ def custom_field_detail(request, pk):
 def email_template_list(request):
     from apps.notifications.models import EmailTemplate
     EmailTemplate.ensure_defaults()
-    templates = EmailTemplate.objects.all().order_by('email_type')
-    return render(request, 'dashboard/email_templates/list.html', {'templates': templates})
+    tab = request.GET.get('tab', 'bookings')
+    if tab not in EmailTemplate.CATEGORY_CHOICES:
+        tab = 'bookings'
+    templates = EmailTemplate.objects.filter(
+        email_type__in=EmailTemplate.CATEGORY_CHOICES[tab]
+    ).order_by('email_type')
+    return render(request, 'dashboard/email_templates/list.html', {
+        'templates': templates,
+        'active_tab': tab,
+    })
 
 
 @login_required
@@ -2569,17 +2577,26 @@ def email_template_edit(request, pk):
         messages.success(request, 'Email template updated successfully.')
         return redirect('dashboard:email_template_edit', pk=pk)
 
-    return render(request, 'dashboard/email_templates/edit.html', {'template': template})
+    # Determine tab for back link
+    et = template.email_type
+    if et.startswith('zone_'):
+        tab = 'zones'
+    elif et.startswith('route_'):
+        tab = 'routes'
+    else:
+        tab = 'bookings'
+    return render(request, 'dashboard/email_templates/edit.html', {'template': template, 'tab': tab})
 
 
 def _send_test_email(template, to_email):
     from apps.notifications.emails import send_templated_email
 
-    template_map = {
-        'booking_customer': 'emails/booking_confirmation.html',
-        'booking_admin': 'emails/admin_new_booking.html',
-        'booking_supplier': 'emails/supplier_new_booking.html',
-    }
+    # All customer/admin/supplier types map to the same HTML templates
+    template_map = {}
+    for prefix in ('booking', 'zone', 'route'):
+        template_map[f'{prefix}_customer'] = 'emails/booking_confirmation.html'
+        template_map[f'{prefix}_admin'] = 'emails/admin_new_booking.html'
+        template_map[f'{prefix}_supplier'] = 'emails/supplier_new_booking.html'
 
     sample_details = {
         'pickup_address': 'Marrakech Airport (RAK)',

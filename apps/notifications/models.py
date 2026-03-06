@@ -6,6 +6,18 @@ class EmailTemplate(models.Model):
         BOOKING_CUSTOMER = 'booking_customer', 'Customer Confirmation'
         BOOKING_ADMIN = 'booking_admin', 'Admin Alert'
         BOOKING_SUPPLIER = 'booking_supplier', 'Supplier Alert'
+        ZONE_CUSTOMER = 'zone_customer', 'Zone - Customer Confirmation'
+        ZONE_ADMIN = 'zone_admin', 'Zone - Admin Alert'
+        ZONE_SUPPLIER = 'zone_supplier', 'Zone - Supplier Alert'
+        ROUTE_CUSTOMER = 'route_customer', 'Route - Customer Confirmation'
+        ROUTE_ADMIN = 'route_admin', 'Route - Admin Alert'
+        ROUTE_SUPPLIER = 'route_supplier', 'Route - Supplier Alert'
+
+    CATEGORY_CHOICES = {
+        'bookings': ['booking_customer', 'booking_admin', 'booking_supplier'],
+        'zones': ['zone_customer', 'zone_admin', 'zone_supplier'],
+        'routes': ['route_customer', 'route_admin', 'route_supplier'],
+    }
 
     email_type = models.CharField(max_length=30, choices=EmailType.choices, unique=True)
     subject = models.CharField(max_length=200)
@@ -54,6 +66,42 @@ class EmailTemplate(models.Model):
             'intro_text': 'A new transfer has been booked that requires your vehicle.',
             'closing_text': 'Please ensure the vehicle is ready for this transfer.',
         },
+        'zone_customer': {
+            'subject': 'Booking Confirmation - {booking_ref}',
+            'heading': 'Booking Confirmed',
+            'intro_text': 'Thank you for your booking! Your zone transfer has been confirmed.',
+            'closing_text': "If you have any questions, please don't hesitate to contact us.",
+        },
+        'zone_admin': {
+            'subject': 'New Zone Booking - {booking_ref}',
+            'heading': 'New Zone Booking',
+            'intro_text': 'A new zone transfer booking has been placed.',
+            'closing_text': '',
+        },
+        'zone_supplier': {
+            'subject': 'New Zone Transfer - {booking_ref}',
+            'heading': 'New Zone Transfer',
+            'intro_text': 'A new zone transfer has been booked that requires your vehicle.',
+            'closing_text': 'Please ensure the vehicle is ready for this transfer.',
+        },
+        'route_customer': {
+            'subject': 'Booking Confirmation - {booking_ref}',
+            'heading': 'Booking Confirmed',
+            'intro_text': 'Thank you for your booking! Your route transfer has been confirmed.',
+            'closing_text': "If you have any questions, please don't hesitate to contact us.",
+        },
+        'route_admin': {
+            'subject': 'New Route Booking - {booking_ref}',
+            'heading': 'New Route Booking',
+            'intro_text': 'A new route transfer booking has been placed.',
+            'closing_text': '',
+        },
+        'route_supplier': {
+            'subject': 'New Route Transfer - {booking_ref}',
+            'heading': 'New Route Transfer',
+            'intro_text': 'A new route transfer has been booked that requires your vehicle.',
+            'closing_text': 'Please ensure the vehicle is ready for this transfer.',
+        },
     }
 
     @classmethod
@@ -84,3 +132,12 @@ class EmailTemplate(models.Model):
             'show_price': self.show_price,
             'show_customer_info': self.show_customer_info,
         }
+
+    @staticmethod
+    def resolve_type(role, pricing_method=''):
+        """Resolve email_type based on role and pricing method, with fallback to booking_*."""
+        if pricing_method == 'zone':
+            return f'zone_{role}'
+        elif pricing_method == 'route':
+            return f'route_{role}'
+        return f'booking_{role}'

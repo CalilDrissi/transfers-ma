@@ -143,6 +143,8 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             p_lat, p_lng = float(pickup_lat), float(pickup_lng)
             d_lat, d_lng = float(dropoff_lat), float(dropoff_lng)
 
+            pricing_method = ''
+
             # 1. Zone pricing: both points in same zone
             pickup_zone = find_matching_zone(p_lat, p_lng)
             dropoff_zone = find_matching_zone(d_lat, d_lng)
@@ -160,6 +162,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                     if zp:
                         base_price = zp.price
                         deposit_percentage_from_pricing = zone.deposit_percentage
+                        pricing_method = 'zone'
 
             # 2. Route pricing with zone adjustments
             if base_price is None:
@@ -192,6 +195,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                                 dropoff_adj = Decimal(str(rp.dropoff_zone_adjustments.get(str(m_dropoff.id), 0))) if m_dropoff else Decimal('0')
                                 base_price = base_price + pickup_adj + dropoff_adj
                                 deposit_percentage_from_pricing = route.deposit_percentage
+                                pricing_method = 'route'
                             break
 
         if base_price is None:
@@ -204,6 +208,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             distance_km=distance_km,
             duration_minutes=duration_minutes,
             base_price=base_price,
+            pricing_method=pricing_method if all([pickup_lat, pickup_lng, dropoff_lat, dropoff_lng]) else '',
             currency=SiteSettings.get_settings().default_currency,
             **validated_data
         )

@@ -23,6 +23,10 @@ class Transfer(models.Model):
         PORT_TRANSFER = 'port_transfer', _('Port Transfer')
         CUSTOM = 'custom', _('Custom Transfer')
 
+    class PricingMethod(models.TextChoices):
+        ZONE = 'zone', _('Zone')
+        ROUTE = 'route', _('Route')
+
     # Booking reference
     booking_ref = models.CharField(
         _('booking reference'),
@@ -50,6 +54,13 @@ class Transfer(models.Model):
         max_length=20,
         choices=TransferType.choices,
         default=TransferType.CUSTOM
+    )
+    pricing_method = models.CharField(
+        _('pricing method'),
+        max_length=10,
+        choices=PricingMethod.choices,
+        blank=True,
+        default='',
     )
     # Pickup location
     pickup_address = models.TextField(

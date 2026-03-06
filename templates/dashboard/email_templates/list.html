@@ -5,6 +5,24 @@
 {% block page_title %}{% trans "Email Templates" %}{% endblock %}
 
 {% block content %}
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'bookings' %}active{% endif %}" href="?tab=bookings">
+            <i class="bi bi-car-front me-1"></i>{% trans "Bookings" %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'zones' %}active{% endif %}" href="?tab=zones">
+            <i class="bi bi-bullseye me-1"></i>{% trans "Zones" %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'routes' %}active{% endif %}" href="?tab=routes">
+            <i class="bi bi-signpost-2 me-1"></i>{% trans "Routes" %}
+        </a>
+    </li>
+</ul>
+
 <div class="row g-4">
     {% for tpl in templates %}
     <div class="col-md-4">

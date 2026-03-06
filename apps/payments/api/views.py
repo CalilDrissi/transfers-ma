@@ -285,6 +285,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     'total_price': str(booking.total_price),
                     'currency': booking.currency,
                     'customer_phone': booking.customer_phone,
+                    'pricing_method': getattr(booking, 'pricing_method', ''),
                 }
                 # Email to customer
                 send_booking_confirmation.delay(

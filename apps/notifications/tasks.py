@@ -16,6 +16,22 @@ def _load_email_template(email_type):
         return None
 
 
+def _resolve_email_template(role, pricing_method=''):
+    """Load the best matching template: zone/route-specific first, then booking_* fallback."""
+    try:
+        from .models import EmailTemplate
+        specific_type = EmailTemplate.resolve_type(role, pricing_method)
+        tpl = EmailTemplate.objects.filter(email_type=specific_type).first()
+        if tpl:
+            return tpl
+        # Fallback to generic booking template
+        if pricing_method:
+            return EmailTemplate.objects.filter(email_type=f'booking_{role}').first()
+        return None
+    except Exception:
+        return None
+
+
 def _build_receipt_pdf(booking_ref, customer_name, customer_email, customer_phone, booking_details):
     """Build a PDF receipt and return (filename, bytes, mime) or None."""
     try:
@@ -51,7 +67,8 @@ def _build_receipt_pdf(booking_ref, customer_name, customer_email, customer_phon
 def send_booking_confirmation(booking_ref, customer_email, customer_name, booking_details):
     """Send booking confirmation email to the customer with PDF receipt attached."""
     try:
-        tpl = _load_email_template('booking_customer')
+        pricing_method = booking_details.get('pricing_method', '')
+        tpl = _resolve_email_template('customer', pricing_method)
         if tpl and not tpl.is_active:
             return
 
@@ -121,7 +138,8 @@ def send_status_update(booking_ref, customer_email, customer_name, new_status):
 def send_admin_new_booking_alert(booking_ref, customer_name, customer_email, customer_phone, booking_details):
     """Send new booking alert to admin with PDF receipt attached."""
     try:
-        tpl = _load_email_template('booking_admin')
+        pricing_method = booking_details.get('pricing_method', '')
+        tpl = _resolve_email_template('admin', pricing_method)
         if tpl and not tpl.is_active:
             return
 
@@ -165,7 +183,8 @@ def send_supplier_new_booking_alert(booking_ref, supplier_email, supplier_name, 
         return
 
     try:
-        tpl = _load_email_template('booking_supplier')
+        pricing_method = booking_details.get('pricing_method', '')
+        tpl = _resolve_email_template('supplier', pricing_method)
         if tpl and not tpl.is_active:
             return
 
