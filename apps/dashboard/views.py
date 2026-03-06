@@ -2125,6 +2125,13 @@ def extra_detail(request, pk):
 @user_passes_test(is_admin)
 def rental_company_list(request):
     """List all rental companies."""
+    if request.method == 'POST' and request.POST.get('action') == 'delete':
+        ids = request.POST.getlist('selected')
+        if ids:
+            count = RentalCompany.objects.filter(pk__in=ids).delete()[0]
+            messages.success(request, f'{count} rental company(ies) deleted.')
+        return redirect('dashboard:rental_company_list')
+
     companies = RentalCompany.objects.order_by('-created_at')
 
     # Filters
@@ -2248,6 +2255,13 @@ def rental_company_detail(request, pk):
 @user_passes_test(is_admin)
 def rental_list(request):
     """List all rental bookings (admin view)."""
+    if request.method == 'POST' and request.POST.get('action') == 'delete':
+        ids = request.POST.getlist('selected')
+        if ids:
+            count = Rental.objects.filter(pk__in=ids).delete()[0]
+            messages.success(request, f'{count} rental booking(s) deleted.')
+        return redirect('dashboard:rental_list')
+
     rentals = Rental.objects.select_related('company').order_by('-created_at')
 
     # Filters
