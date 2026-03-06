@@ -41,12 +41,27 @@
 </div>
 
 <!-- Table -->
+<form method="post" id="bulkForm">
+{% csrf_token %}
+<input type="hidden" name="action" value="delete">
+
 <div class="card">
     <div class="card-body p-0">
+        <!-- Bulk actions bar (hidden until selection) -->
+        <div id="bulkActions" class="d-none px-3 py-2 bg-light border-bottom d-flex align-items-center gap-3">
+            <span class="text-muted small"><span id="selectedCount">0</span> {% trans "selected" %}</span>
+            <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn">
+                <i class="bi bi-trash me-1"></i>{% trans "Delete Selected" %}
+            </button>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
+                        <th style="width:40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAll" title="{% trans 'Select All' %}">
+                        </th>
                         <th>{% trans "Booking Ref" %}</th>
                         <th>{% trans "Customer" %}</th>
                         <th>{% trans "Route" %}</th>
@@ -60,6 +75,9 @@
                 <tbody>
                     {% for transfer in transfers %}
                     <tr>
+                        <td>
+                            <input type="checkbox" class="form-check-input row-checkbox" name="selected" value="{{ transfer.pk }}">
+                        </td>
                         <td><strong>{{ transfer.booking_ref }}</strong></td>
                         <td>
                             {{ transfer.customer_name }}<br>
@@ -76,15 +94,18 @@
                         <td>{{ transfer.vehicle_category.name }}</td>
                         <td>{{ transfer.status|status_badge }}</td>
                         <td>{{ transfer.total_price|currency }}</td>
-                        <td>
+                        <td class="text-nowrap">
                             <a href="{% url 'dashboard:transfer_detail' transfer.pk %}" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-eye"></i>
                             </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger single-delete-btn" data-id="{{ transfer.pk }}" data-ref="{{ transfer.booking_ref }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
+                        <td colspan="9" class="text-center py-4 text-muted">
                             {% trans "No transfers found" %}
                         </td>
                     </tr>
@@ -94,6 +115,7 @@
         </div>
     </div>
 </div>
+</form>
 
 <!-- Pagination -->
 {% if transfers.has_other_pages %}
@@ -121,4 +143,59 @@
     </ul>
 </nav>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var selectAll = document.getElementById('selectAll');
+    var checkboxes = document.querySelectorAll('.row-checkbox');
+    var bulkActions = document.getElementById('bulkActions');
+    var selectedCount = document.getElementById('selectedCount');
+    var bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    var form = document.getElementById('bulkForm');
+
+    function updateUI() {
+        var checked = document.querySelectorAll('.row-checkbox:checked').length;
+        selectedCount.textContent = checked;
+        if (checked > 0) {
+            bulkActions.classList.remove('d-none');
+            bulkActions.classList.add('d-flex');
+        } else {
+            bulkActions.classList.add('d-none');
+            bulkActions.classList.remove('d-flex');
+        }
+        selectAll.checked = checkboxes.length > 0 && checked === checkboxes.length;
+        selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
+    }
+
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(function(cb) { cb.checked = selectAll.checked; });
+        updateUI();
+    });
+
+    checkboxes.forEach(function(cb) {
+        cb.addEventListener('change', updateUI);
+    });
+
+    bulkDeleteBtn.addEventListener('click', function() {
+        var count = document.querySelectorAll('.row-checkbox:checked').length;
+        if (confirm('Delete ' + count + ' transfer(s)? This cannot be undone.')) {
+            form.submit();
+        }
+    });
+
+    document.querySelectorAll('.single-delete-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var ref = btn.dataset.ref;
+            if (confirm('Delete transfer ' + ref + '? This cannot be undone.')) {
+                checkboxes.forEach(function(cb) { cb.checked = false; });
+                var target = document.querySelector('.row-checkbox[value="' + btn.dataset.id + '"]');
+                if (target) target.checked = true;
+                form.submit();
+            }
+        });
+    });
+})();
+</script>
 {% endblock %}

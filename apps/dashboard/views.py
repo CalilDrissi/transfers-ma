@@ -123,6 +123,13 @@ def home(request):
 @user_passes_test(is_admin)
 def transfer_list(request):
     """List all transfers."""
+    if request.method == 'POST' and request.POST.get('action') == 'delete':
+        ids = request.POST.getlist('selected')
+        if ids:
+            count = Transfer.objects.filter(pk__in=ids).delete()[0]
+            messages.success(request, f'{count} transfer(s) deleted.')
+        return redirect('dashboard:transfer_list')
+
     transfers = Transfer.objects.select_related(
         'vehicle_category', 'driver'
     ).order_by('-created_at')
