@@ -14,12 +14,14 @@ class TB_Shortcode {
             'fixed_origin'     => '',
             'fixed_origin_lat' => '',
             'fixed_origin_lng' => '',
+            'title'            => '',
         ], $atts, 'transfers_booking');
 
         $lang             = sanitize_text_field($atts['lang']);
         $fixed_origin     = sanitize_text_field($atts['fixed_origin']);
         $fixed_origin_lat = sanitize_text_field($atts['fixed_origin_lat']);
         $fixed_origin_lng = sanitize_text_field($atts['fixed_origin_lng']);
+        $title            = sanitize_text_field($atts['title']);
 
         // Ensure CSS + JS are loaded (page builders like Elementor bypass wp_enqueue_scripts detection)
         if (!wp_style_is('tb-booking', 'enqueued')) {

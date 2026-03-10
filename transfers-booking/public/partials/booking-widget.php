@@ -4,6 +4,7 @@ $lang = isset($lang) ? $lang : '';
 $fixed_origin = isset($fixed_origin) ? $fixed_origin : '';
 $fixed_origin_lat = isset($fixed_origin_lat) ? $fixed_origin_lat : '';
 $fixed_origin_lng = isset($fixed_origin_lng) ? $fixed_origin_lng : '';
+$title = isset($title) ? $title : '';
 
 $dir = is_rtl() ? 'rtl' : 'ltr';
 $rtl_langs = ['ar', 'he', 'fa', 'ur', 'ps', 'ku'];

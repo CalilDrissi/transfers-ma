@@ -25,9 +25,10 @@
     font-family: var(--tb-font);
     color: var(--tb-text-dark);
     line-height: 1.5;
-    max-width: 1100px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0;
+    background: #fff;
 }
 
 .tb-booking-widget *,
@@ -44,6 +45,17 @@
 .tb-step--active {
     display: block;
 }
+#tb-step-1.tb-step--active {
+    display: flex;
+}
+
+#tb-step-2,
+#tb-step-3,
+#tb-confirmation {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
 
 /* === Progress Bar === */
 .tb-progress {
@@ -51,8 +63,11 @@
     align-items: center;
     justify-content: center;
     gap: 0;
-    padding: 1.5rem 0;
+    padding: 1.5rem 1rem;
     margin-bottom: 1.5rem;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .tb-progress__step {
@@ -2246,10 +2261,14 @@ input[type="date"], input[type="time"], select, textarea {
 
 #tb-step-1 {
     background: #0f172a;
-    border-radius: 20px;
-    padding: 40px 24px 28px;
+    border-radius: 0;
+    padding: 60px 48px 40px;
     position: relative;
     overflow: hidden;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 /* Decorative road graphic (right side) */
@@ -2265,7 +2284,7 @@ input[type="date"], input[type="time"], select, textarea {
     pointer-events: none;
     z-index: 0;
 }
-#tb-step-1 > * { position: relative; z-index: 1; }
+#tb-step-1 > * { position: relative; z-index: 1; max-width: 1100px; margin-left: auto; margin-right: auto; }
 
 /* ── Tabs (left-aligned, icon + text, underline active) ── */
 .tb-mode-tabs {
@@ -2773,7 +2792,8 @@ input[type="date"], input[type="time"], select, textarea {
 @media (max-width: 768px) {
     #tb-step-1 {
         padding: 28px 20px 24px;
-        border-radius: 16px;
+        border-radius: 0;
+        min-height: 400px;
     }
     #tb-step-1::after { display: none; }
     .tb-step1-headline {

@@ -269,9 +269,6 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@transfers.ma'
 SITE_NAME = config('SITE_NAME', default='Transfers.ma')
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
-# Google Maps API
-GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
-
 # Login Settings
 LOGIN_URL = '/dashboard/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'

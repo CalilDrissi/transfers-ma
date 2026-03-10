@@ -17,7 +17,13 @@
 </div>
 
 <!-- Hero headline -->
-<h1 class="tb-step1-headline"><?php esc_html_e('Comfortable car transfers with professional drivers.', 'transfers-booking'); ?></h1>
+<h1 class="tb-step1-headline"><?php
+    if (!empty($title)) {
+        echo esc_html($title);
+    } else {
+        esc_html_e('Comfortable car transfers with professional drivers.', 'transfers-booking');
+    }
+?></h1>
 
 <!-- Single trip pill bar (one-way & round-trip) -->
 <div id="tb-single-bar">
