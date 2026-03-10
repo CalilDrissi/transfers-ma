@@ -37,6 +37,12 @@ class EmailTemplate(models.Model):
     show_price = models.BooleanField(default=True)
     show_customer_info = models.BooleanField(default=True)
 
+    cc_emails = models.TextField(
+        blank=True,
+        default='',
+        help_text='Comma-separated email addresses to CC on every email sent with this template.',
+    )
+
     is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -114,6 +120,12 @@ class EmailTemplate(models.Model):
             return self.subject.format(**kwargs)
         except (KeyError, IndexError):
             return self.subject
+
+    def get_cc_list(self):
+        """Return a list of CC email addresses."""
+        if not self.cc_emails:
+            return []
+        return [e.strip() for e in self.cc_emails.split(',') if e.strip()]
 
     def template_context(self):
         return {

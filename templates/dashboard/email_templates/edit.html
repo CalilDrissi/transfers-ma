@@ -135,6 +135,21 @@
             </div>
 
             <div class="card mb-4">
+                <div class="card-header">{% trans "CC Recipients" %}</div>
+                <div class="card-body">
+                    <div class="form-text mb-2">{% trans "Additional email addresses that will receive a copy of this email." %}</div>
+                    <div id="ccTagsContainer" class="d-flex flex-wrap gap-1 mb-2"></div>
+                    <div class="input-group">
+                        <input type="email" class="form-control form-control-sm" id="ccInput" placeholder="{% trans 'Enter email address' %}">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="ccAddBtn">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" name="cc_emails" id="ccEmails" value="{{ template.cc_emails }}">
+                </div>
+            </div>
+
+            <div class="card mb-4">
                 <div class="card-header">{% trans "Preview & Test" %}</div>
                 <div class="card-body">
                     <p class="small text-muted mb-2">{% trans "Preview with sample data or send a test email." %}</p>
@@ -206,5 +221,61 @@ document.querySelector('form').addEventListener('submit', function() {
 document.getElementById('previewModal').addEventListener('show.bs.modal', function() {
     document.getElementById('previewFrame').src = '{% url "dashboard:email_template_preview" pk=template.pk %}';
 });
+
+// CC Recipients tag management
+(function() {
+    var ccHidden = document.getElementById('ccEmails');
+    var ccContainer = document.getElementById('ccTagsContainer');
+    var ccInput = document.getElementById('ccInput');
+    var ccAddBtn = document.getElementById('ccAddBtn');
+
+    function getEmails() {
+        return ccHidden.value ? ccHidden.value.split(',').map(function(e) { return e.trim(); }).filter(Boolean) : [];
+    }
+
+    function setEmails(list) {
+        ccHidden.value = list.join(', ');
+    }
+
+    function renderTags() {
+        ccContainer.innerHTML = '';
+        getEmails().forEach(function(email) {
+            var tag = document.createElement('span');
+            tag.className = 'badge bg-secondary d-flex align-items-center gap-1';
+            tag.style.fontSize = '0.85em';
+            tag.innerHTML = email + ' <button type="button" class="btn-close btn-close-white" style="font-size:0.6em;" aria-label="Remove"></button>';
+            tag.querySelector('button').addEventListener('click', function() {
+                var list = getEmails().filter(function(e) { return e !== email; });
+                setEmails(list);
+                renderTags();
+            });
+            ccContainer.appendChild(tag);
+        });
+    }
+
+    function addEmail() {
+        var email = ccInput.value.trim();
+        if (!email) return;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            ccInput.classList.add('is-invalid');
+            return;
+        }
+        ccInput.classList.remove('is-invalid');
+        var list = getEmails();
+        if (list.indexOf(email) === -1) {
+            list.push(email);
+            setEmails(list);
+            renderTags();
+        }
+        ccInput.value = '';
+    }
+
+    ccAddBtn.addEventListener('click', addEmail);
+    ccInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); addEmail(); }
+    });
+
+    renderTags();
+})();
 </script>
 {% endblock %}

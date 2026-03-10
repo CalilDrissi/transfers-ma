@@ -34,11 +34,12 @@ def _save_to_sent_folder(msg):
         logger.debug('Failed to save email to Sent folder', exc_info=True)
 
 
-def send_templated_email(subject, template_name, context, to_emails, attachments=None):
+def send_templated_email(subject, template_name, context, to_emails, attachments=None, cc_emails=None):
     """Send an HTML email using a Django template.
 
     Args:
         attachments: optional list of (filename, content_bytes, mime_type) tuples.
+        cc_emails: optional list of CC email addresses.
     """
     context.setdefault('site_name', getattr(settings, 'SITE_NAME', 'Transfers.ma'))
     context.setdefault('site_url', getattr(settings, 'SITE_URL', ''))
@@ -46,7 +47,7 @@ def send_templated_email(subject, template_name, context, to_emails, attachments
     html_body = render_to_string(template_name, context)
     from_email = settings.DEFAULT_FROM_EMAIL
 
-    msg = EmailMultiAlternatives(subject, '', from_email, to_emails)
+    msg = EmailMultiAlternatives(subject, '', from_email, to_emails, cc=cc_emails or [])
     msg.attach_alternative(html_body, 'text/html')
 
     for attachment in (attachments or []):

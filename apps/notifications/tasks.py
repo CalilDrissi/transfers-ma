@@ -93,6 +93,7 @@ def send_booking_confirmation(booking_ref, customer_email, customer_name, bookin
             context=context,
             to_emails=[customer_email],
             attachments=attachments,
+            cc_emails=tpl.get_cc_list() if tpl else [],
         )
     except Exception:
         logger.exception('Failed to send booking confirmation for %s', booking_ref)
@@ -171,6 +172,7 @@ def send_admin_new_booking_alert(booking_ref, customer_name, customer_email, cus
             context=context,
             to_emails=[admin_email],
             attachments=attachments,
+            cc_emails=tpl.get_cc_list() if tpl else [],
         )
     except Exception:
         logger.exception('Failed to send admin alert for %s', booking_ref)
@@ -204,6 +206,7 @@ def send_supplier_new_booking_alert(booking_ref, supplier_email, supplier_name, 
             template_name='emails/supplier_new_booking.html',
             context=context,
             to_emails=[supplier_email],
+            cc_emails=tpl.get_cc_list() if tpl else [],
         )
     except Exception:
         logger.exception('Failed to send supplier alert for %s to %s', booking_ref, supplier_email)

@@ -2586,6 +2586,7 @@ def email_template_edit(request, pk):
         template.intro_text = request.POST.get('intro_text', '').strip()
         template.closing_text = request.POST.get('closing_text', '').strip()
         template.is_active = request.POST.get('is_active') == 'on'
+        template.cc_emails = request.POST.get('cc_emails', '').strip()
 
         if request.FILES.get('logo'):
             template.logo = request.FILES['logo']
