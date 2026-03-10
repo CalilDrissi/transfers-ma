@@ -287,6 +287,22 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     'customer_phone': booking.customer_phone,
                     'pricing_method': getattr(booking, 'pricing_method', ''),
                 }
+                # Include custom field values with display labels
+                if booking.custom_field_values:
+                    from apps.accounts.models import CustomField
+                    field_labels = dict(
+                        CustomField.objects.filter(
+                            name__in=booking.custom_field_values.keys()
+                        ).values_list('name', 'label')
+                    )
+                    booking_details['custom_fields'] = [
+                        {
+                            'label': field_labels.get(k, k.replace('_', ' ').title()),
+                            'value': v,
+                        }
+                        for k, v in booking.custom_field_values.items()
+                        if v
+                    ]
                 # Email to customer
                 send_booking_confirmation.delay(
                     booking_ref=booking.booking_ref,

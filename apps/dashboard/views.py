@@ -2642,6 +2642,10 @@ def email_template_preview(request, pk):
         'special_requests': 'Child seat needed',
         'total_price': '450.00',
         'currency': 'MAD',
+        'custom_fields': [
+            {'label': 'Hotel Name', 'value': 'Riad Fes'},
+            {'label': 'Number of Bags', 'value': '3'},
+        ],
     }
 
     context = {
@@ -2683,6 +2687,10 @@ def _send_test_email(template, to_email):
         'special_requests': 'Child seat needed',
         'total_price': '450.00',
         'currency': 'MAD',
+        'custom_fields': [
+            {'label': 'Hotel Name', 'value': 'Riad Fes'},
+            {'label': 'Number of Bags', 'value': '3'},
+        ],
     }
 
     context = {
