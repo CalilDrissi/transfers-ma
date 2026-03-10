@@ -1,6 +1,37 @@
+import imaplib
+import logging
+from email.utils import formatdate
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+
+logger = logging.getLogger(__name__)
+
+
+def _save_to_sent_folder(msg):
+    """Append a copy of the sent message to the IMAP Sent folder."""
+    try:
+        host = getattr(settings, 'EMAIL_HOST', '')
+        user = getattr(settings, 'EMAIL_HOST_USER', '')
+        password = getattr(settings, 'EMAIL_HOST_PASSWORD', '')
+        if not all([host, user, password]):
+            return
+
+        use_ssl = getattr(settings, 'EMAIL_USE_SSL', False)
+        if use_ssl:
+            imap = imaplib.IMAP4_SSL(host)
+        else:
+            imap = imaplib.IMAP4(host)
+            if getattr(settings, 'EMAIL_USE_TLS', True):
+                imap.starttls()
+
+        imap.login(user, password)
+        raw = msg.message().as_bytes()
+        imap.append('Sent', '\\Seen', None, raw)
+        imap.logout()
+    except Exception:
+        logger.debug('Failed to save email to Sent folder', exc_info=True)
 
 
 def send_templated_email(subject, template_name, context, to_emails, attachments=None):
@@ -22,3 +53,4 @@ def send_templated_email(subject, template_name, context, to_emails, attachments
         msg.attach(*attachment)
 
     msg.send(fail_silently=True)
+    _save_to_sent_folder(msg)
