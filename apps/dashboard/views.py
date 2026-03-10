@@ -1060,7 +1060,10 @@ def route_create(request):
         else:
             messages.error(request, 'Name, origin, and destination are required.')
 
-    return render(request, 'dashboard/routes/create.html')
+    site_settings = SiteSettings.get_settings()
+    return render(request, 'dashboard/routes/create.html', {
+        'GOOGLE_MAPS_API_KEY': site_settings.google_maps_api_key,
+    })
 
 
 @login_required
@@ -1270,6 +1273,7 @@ def route_detail(request, pk):
     pickup_zones = route.pickup_zones.filter(is_active=True).order_by('order', 'name')
     dropoff_zones = route.dropoff_zones.filter(is_active=True).order_by('order', 'name')
 
+    site_settings = SiteSettings.get_settings()
     context = {
         'route': route,
         'pickup_zones': pickup_zones,
@@ -1278,6 +1282,7 @@ def route_detail(request, pk):
             'vehicle__category', 'pickup_zone', 'dropoff_zone'
         ).order_by('vehicle__name', 'pickup_zone__order', 'dropoff_zone__order'),
         'available_vehicles': available_vehicles,
+        'GOOGLE_MAPS_API_KEY': site_settings.google_maps_api_key,
     }
     return render(request, 'dashboard/routes/detail.html', context)
 
