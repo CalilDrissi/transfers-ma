@@ -78,11 +78,19 @@ class TB_Shortcode {
      */
     private static function get_wp_overrides() {
         return '<style id="tb-wp-overrides">
-/* === Widget container: full width === */
+/* === Widget container: full width, break out of theme container === */
 html body #tb-booking-widget {
-    max-width: 100% !important;
-    width: 100% !important;
+    max-width: 100vw !important;
+    width: 100vw !important;
     padding: 0 !important;
+    margin-left: calc(-50vw + 50%) !important;
+    margin-right: calc(-50vw + 50%) !important;
+    overflow-x: hidden !important;
+}
+
+/* === Step 1: full-width hero === */
+html body #tb-booking-widget #tb-step-1 {
+    border-radius: 0 !important;
     margin: 0 !important;
 }
 
