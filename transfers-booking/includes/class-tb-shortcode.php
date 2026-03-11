@@ -98,7 +98,7 @@ html body #tb-booking-widget #tb-step-1 {
     max-width: 100% !important;
 }
 
-/* === Ensure WP theme doesn't constrain step-1 children === */
+/* === Ensure WP theme does not constrain step-1 children === */
 html body #tb-booking-widget #tb-step-1 .tb-mode-tabs,
 html body #tb-booking-widget #tb-step-1 .tb-step1-headline,
 html body #tb-booking-widget #tb-step-1 #tb-single-bar,
