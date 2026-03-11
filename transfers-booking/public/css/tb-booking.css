@@ -45,9 +45,6 @@
 .tb-step--active {
     display: block;
 }
-#tb-step-1.tb-step--active {
-    display: flex;
-}
 
 #tb-step-2,
 #tb-step-3,
@@ -2266,9 +2263,11 @@ input[type="date"], input[type="time"], select, textarea {
     position: relative;
     overflow: hidden;
     min-height: 520px;
-    display: flex;
     flex-direction: column;
     justify-content: center;
+}
+#tb-step-1.tb-step--active {
+    display: flex;
 }
 
 /* Decorative road graphic (right side) */
