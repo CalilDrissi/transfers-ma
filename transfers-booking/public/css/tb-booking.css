@@ -2262,10 +2262,10 @@ input[type="date"], input[type="time"], select, textarea {
 #tb-step-1 {
     background: #0f172a;
     border-radius: 0;
-    padding: 60px 48px 40px;
+    padding: 0;
     position: relative;
     overflow: hidden;
-    min-height: 480px;
+    min-height: 520px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -2275,35 +2275,45 @@ input[type="date"], input[type="time"], select, textarea {
 #tb-step-1::after {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 35%;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 500'%3E%3Cpath d='M100 0 Q200 100 150 200 Q100 300 200 400 Q300 500 350 500' fill='none' stroke='%233b82f6' stroke-width='40' opacity='0.15'/%3E%3Cpath d='M120 0 Q220 100 170 200 Q120 300 220 400 Q320 500 370 500' fill='none' stroke='%233b82f6' stroke-width='6' opacity='0.3' stroke-dasharray='12 8'/%3E%3C/svg%3E") no-repeat right center;
-    background-size: contain;
+    top: -10%;
+    right: -5%;
+    bottom: -10%;
+    width: 45%;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 600'%3E%3Cpath d='M80 0 Q200 80 160 200 Q120 320 240 440 Q360 560 420 600' fill='none' stroke='%233b82f6' stroke-width='60' opacity='0.12'/%3E%3Cpath d='M120 0 Q240 80 200 200 Q160 320 280 440 Q400 560 460 600' fill='none' stroke='%233b82f6' stroke-width='50' opacity='0.08'/%3E%3Cpath d='M100 0 Q220 80 180 200 Q140 320 260 440 Q380 560 440 600' fill='none' stroke='%233b82f6' stroke-width='6' opacity='0.25' stroke-dasharray='12 8'/%3E%3C/svg%3E") no-repeat right center;
+    background-size: cover;
     pointer-events: none;
     z-index: 0;
 }
-#tb-step-1 > * { position: relative; z-index: 1; max-width: 1100px; }
+
+/* Inner content wrapper */
+#tb-step-1 > * {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    width: 100%;
+    padding-left: 64px;
+    padding-right: 64px;
+}
 
 /* ── Tabs (left-aligned, icon + text, underline active) ── */
 .tb-mode-tabs {
     display: flex;
     justify-content: flex-start;
     gap: 0;
-    margin-bottom: 1.25rem;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-top: 32px;
     padding-bottom: 0;
 }
 .tb-mode-tab {
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.45);
     font-size: 0.9rem;
     font-weight: 600;
     font-family: var(--tb-font);
-    padding: 10px 20px 12px;
+    padding: 12px 24px 14px;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
@@ -2317,19 +2327,20 @@ input[type="date"], input[type="time"], select, textarea {
     color: rgba(255,255,255,0.85);
 }
 .tb-mode-tab--active {
-    color: var(--tb-accent);
+    color: #fff;
     border-bottom-color: var(--tb-accent);
     background: transparent;
 }
 
 /* ── Hero headline ── */
 .tb-step1-headline {
-    font-size: 2.5rem;
+    font-size: 2.75rem;
     font-weight: 700;
     color: #fff;
-    line-height: 1.15;
-    margin: 1.25rem 0 2rem;
-    max-width: 600px;
+    line-height: 1.2;
+    margin: 2rem 0 2.5rem;
+    max-width: 650px;
+    letter-spacing: -0.01em;
 }
 
 /* ── Unified search bar ── */
@@ -2340,8 +2351,8 @@ input[type="date"], input[type="time"], select, textarea {
     gap: 0;
     background: #fff;
     border-radius: 50px;
-    padding: 4px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 6px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 .tb-pill-bar__field {
     flex: 0 0 auto;
@@ -2542,14 +2553,14 @@ input[type="date"], input[type="time"], select, textarea {
 /* === Search button — BLUE, inside the bar === */
 .tb-pill-bar__search {
     border-radius: 50px;
-    padding: 12px 24px;
+    padding: 14px 28px;
     background: var(--tb-accent);
     color: #fff;
     border: none;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
     white-space: nowrap;
     font-family: var(--tb-font);
     flex-shrink: 0;
@@ -2557,25 +2568,27 @@ input[type="date"], input[type="time"], select, textarea {
     align-items: center;
     gap: 8px;
     margin: 2px;
+    box-shadow: 0 2px 8px rgba(233, 69, 96, 0.3);
 }
-.tb-pill-bar__search:hover { background: #2563eb; }
+.tb-pill-bar__search:hover { background: var(--tb-accent-hover); transform: scale(1.02); }
 .tb-pill-bar__search:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* === Trust badges === */
 .tb-trust-badges {
     display: flex;
     align-items: center;
-    gap: 24px;
-    margin-top: 20px;
+    gap: 32px;
+    margin-top: 28px;
+    padding-bottom: 40px;
     flex-wrap: wrap;
 }
 .tb-trust-badge {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: rgba(255,255,255,0.75);
-    font-size: 0.85rem;
-    font-weight: 500;
+    gap: 10px;
+    color: rgba(255,255,255,0.9);
+    font-size: 0.9rem;
+    font-weight: 600;
     white-space: nowrap;
 }
 .tb-trust-badge svg { flex-shrink: 0; }
@@ -2791,14 +2804,21 @@ input[type="date"], input[type="time"], select, textarea {
 /* === Responsive === */
 @media (max-width: 768px) {
     #tb-step-1 {
-        padding: 28px 20px 24px;
+        padding: 0;
         border-radius: 0;
-        min-height: 400px;
+        min-height: auto;
+    }
+    #tb-step-1 > * {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
     }
     #tb-step-1::after { display: none; }
     .tb-step1-headline {
-        font-size: 1.6rem;
-        margin: 1rem 0 1.5rem;
+        font-size: 1.75rem;
+        margin: 1.25rem 0 1.5rem;
+    }
+    .tb-mode-tabs {
+        padding-top: 20px;
     }
     .tb-pill-bar__row {
         flex-direction: column;

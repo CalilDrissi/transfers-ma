@@ -86,12 +86,28 @@ html body #tb-booking-widget {
     margin-left: calc(-50vw + 50%) !important;
     margin-right: calc(-50vw + 50%) !important;
     overflow-x: hidden !important;
+    background: transparent !important;
 }
 
-/* === Step 1: full-width hero === */
+/* === Step 1: full-bleed hero === */
 html body #tb-booking-widget #tb-step-1 {
     border-radius: 0 !important;
     margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* === Ensure WP theme doesn't constrain step-1 children === */
+html body #tb-booking-widget #tb-step-1 .tb-mode-tabs,
+html body #tb-booking-widget #tb-step-1 .tb-step1-headline,
+html body #tb-booking-widget #tb-step-1 #tb-single-bar,
+html body #tb-booking-widget #tb-step-1 #tb-multi-bar,
+html body #tb-booking-widget #tb-step-1 #tb-flight-bar,
+html body #tb-booking-widget #tb-step-1 #tb-no-route-container,
+html body #tb-booking-widget #tb-step-1 .tb-trust-badges {
+    max-width: 1200px !important;
+    width: 100% !important;
 }
 
 /* === Hide progress bar on Step 1 === */
