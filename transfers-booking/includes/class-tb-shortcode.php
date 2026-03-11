@@ -190,29 +190,22 @@ html body #tb-booking-widget .tb-btn-back {
 
 /* ═══ Step 1: Theme-proof overrides ═══ */
 html body #tb-booking-widget #tb-step-1 {
-    background: #0f172a !important;
-    border-radius: 20px !important;
-    padding: 40px 24px 28px !important;
+    background: #151d30 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
     position: relative !important;
     overflow: hidden !important;
     border: none !important;
     box-shadow: none !important;
-}
-html body #tb-booking-widget #tb-step-1::after {
-    content: "" !important;
-    position: absolute !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 35% !important;
-    background: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 500\'%3E%3Cpath d=\'M100 0 Q200 100 150 200 Q100 300 200 400 Q300 500 350 500\' fill=\'none\' stroke=\'%233b82f6\' stroke-width=\'40\' opacity=\'0.15\'/%3E%3Cpath d=\'M120 0 Q220 100 170 200 Q120 300 220 400 Q320 500 370 500\' fill=\'none\' stroke=\'%233b82f6\' stroke-width=\'6\' opacity=\'0.3\' stroke-dasharray=\'12 8\'/%3E%3C/svg%3E") no-repeat right center !important;
-    background-size: contain !important;
-    pointer-events: none !important;
-    z-index: 0 !important;
+    min-height: 560px !important;
 }
 html body #tb-booking-widget #tb-step-1 > * {
     position: relative !important;
     z-index: 1 !important;
+    max-width: 1200px !important;
+    width: 100% !important;
+    padding-left: 64px !important;
+    padding-right: 64px !important;
 }
 
 /* Mode Tabs */
@@ -253,26 +246,27 @@ html body #tb-booking-widget .tb-mode-tab:hover {
 }
 html body #tb-booking-widget .tb-mode-tab--active {
     background: transparent !important;
-    color: var(--tb-accent) !important;
-    border-bottom-color: var(--tb-accent) !important;
+    color: #fff !important;
+    border-bottom-color: #3b82f6 !important;
 }
 html body #tb-booking-widget .tb-mode-tab--active:hover {
     background: transparent !important;
-    color: var(--tb-accent) !important;
+    color: #fff !important;
 }
 
 /* Hero headline */
 html body #tb-booking-widget .tb-step1-headline {
-    font-size: 2.5rem !important;
-    font-weight: 700 !important;
+    font-size: 2.75rem !important;
+    font-weight: 600 !important;
     color: #fff !important;
-    line-height: 1.15 !important;
-    margin: 1.25rem 0 2rem !important;
-    max-width: 600px !important;
+    line-height: 1.25 !important;
+    margin: 2.5rem 0 2.5rem !important;
+    max-width: 560px !important;
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
     box-shadow: none !important;
+    letter-spacing: -0.02em !important;
 }
 
 /* Unified search bar row */
@@ -507,22 +501,22 @@ html body #tb-booking-widget .tb-pax-dropdown {
 html body #tb-booking-widget .tb-trust-badges {
     display: flex !important;
     align-items: center !important;
-    gap: 24px !important;
-    margin-top: 20px !important;
+    gap: 40px !important;
+    margin-top: 32px !important;
+    padding-bottom: 48px !important;
     flex-wrap: wrap !important;
     background: transparent !important;
     border: none !important;
-    padding: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important;
 }
 html body #tb-booking-widget .tb-trust-badge {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
-    color: rgba(255,255,255,0.75) !important;
-    font-size: 0.85rem !important;
-    font-weight: 500 !important;
+    gap: 10px !important;
+    color: #fff !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
     white-space: nowrap !important;
     background: none !important;
     border: none !important;
@@ -673,25 +667,25 @@ html body #tb-booking-widget .tb-vehicle-card--selected {
     border-color: var(--tb-accent, #e94560) !important;
 }
 
-/* Search button (blue) — covered by #tb-booking-widget rules above */
+/* Search button */
 html body #tb-booking-widget .tb-pill-bar__search {
-    background: var(--tb-accent) !important;
+    background: #1a1a2e !important;
     color: #fff !important;
     border: none !important;
     border-radius: 50px !important;
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
-    padding: 12px 24px !important;
-    margin: 2px !important;
-    font-size: 0.95rem !important;
+    padding: 14px 32px !important;
+    margin: 3px !important;
+    font-size: 1rem !important;
     font-weight: 700 !important;
     cursor: pointer !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
 }
 html body #tb-booking-widget .tb-pill-bar__search:hover {
-    background: #2563eb !important;
+    background: #2d2d44 !important;
     color: #fff !important;
 }
 
@@ -1287,15 +1281,20 @@ html body #tb-booking-widget .tb-summary-gradient__divider {
 /* ═══ Step 1: Mobile overrides ═══ */
 @media (max-width: 768px) {
     html body #tb-booking-widget #tb-step-1 {
-        padding: 28px 20px 24px !important;
-        border-radius: 16px !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        min-height: auto !important;
+    }
+    html body #tb-booking-widget #tb-step-1 > * {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
     }
     html body #tb-booking-widget #tb-step-1::after {
         display: none !important;
     }
     html body #tb-booking-widget .tb-step1-headline {
-        font-size: 1.6rem !important;
-        margin: 1rem 0 1.5rem !important;
+        font-size: 1.75rem !important;
+        margin: 1.25rem 0 1.5rem !important;
     }
     html body #tb-booking-widget .tb-pill-bar__row {
         flex-direction: column !important;
