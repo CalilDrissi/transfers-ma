@@ -1,5 +1,11 @@
 <?php defined('ABSPATH') || exit; ?>
 
+<!-- Decorative curve (Daytrip-style) -->
+<svg class="tb-hero-curve" viewBox="0 0 300 700" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M250 -40 C230 60 160 120 140 200 C110 320 200 380 180 470 C165 540 100 590 70 700" fill="none" stroke="#3b82f6" stroke-width="80" stroke-linecap="round"/>
+    <path d="M250 -40 C230 60 160 120 140 200 C110 320 200 380 180 470 C175 540 190 610 230 700" fill="none" stroke="#60a5fa" stroke-width="60" stroke-linecap="round"/>
+</svg>
+
 <!-- Mode tabs (left-aligned with icons, underline active) -->
 <div class="tb-mode-tabs">
     <button type="button" class="tb-mode-tab tb-mode-tab--active" data-mode="one-way">
@@ -106,6 +112,28 @@
     </div>
 </div>
 
+<!-- Pax/luggage popup backdrop -->
+<div class="tb-pax-backdrop" id="tb-pax-backdrop"></div>
+<!-- Pax/luggage popup (shared by single & multi-city) -->
+<div class="tb-pax-dropdown" id="tb-pax-dropdown">
+    <div class="tb-pax-stepper">
+        <span class="tb-pax-stepper__label"><?php esc_html_e('Passengers', 'transfers-booking'); ?></span>
+        <div class="tb-pax-stepper__controls">
+            <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="decrease">-</button>
+            <span class="tb-pax-stepper__value" id="tb-pax-count">1</span>
+            <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="increase">+</button>
+        </div>
+    </div>
+    <div class="tb-pax-stepper">
+        <span class="tb-pax-stepper__label"><?php esc_html_e('Luggage', 'transfers-booking'); ?></span>
+        <div class="tb-pax-stepper__controls">
+            <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="decrease">-</button>
+            <span class="tb-pax-stepper__value" id="tb-luggage-count">1</span>
+            <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="increase">+</button>
+        </div>
+    </div>
+</div>
+
 <!-- Flight number (shown below bar when airport detected) -->
 <div id="tb-flight-bar">
     <label class="tb-pill-bar__label"><?php esc_html_e('Flight Number', 'transfers-booking'); ?></label>
@@ -129,24 +157,4 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L3 3.5v3.5c0 3.15 2.14 6.1 5 7 2.86-.9 5-3.85 5-7V3.5L8 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
         <?php esc_html_e('Secure payment', 'transfers-booking'); ?>
     </span>
-</div>
-
-<!-- Pax/luggage dropdown (shared by single & multi-city) -->
-<div class="tb-pax-dropdown" id="tb-pax-dropdown">
-    <div class="tb-pax-stepper">
-        <span class="tb-pax-stepper__label"><?php esc_html_e('Passengers', 'transfers-booking'); ?></span>
-        <div class="tb-pax-stepper__controls">
-            <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="decrease">-</button>
-            <span class="tb-pax-stepper__value" id="tb-pax-count">1</span>
-            <button type="button" class="tb-pax-stepper__btn" data-target="tb-pax-count" data-action="increase">+</button>
-        </div>
-    </div>
-    <div class="tb-pax-stepper">
-        <span class="tb-pax-stepper__label"><?php esc_html_e('Luggage', 'transfers-booking'); ?></span>
-        <div class="tb-pax-stepper__controls">
-            <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="decrease">-</button>
-            <span class="tb-pax-stepper__value" id="tb-luggage-count">1</span>
-            <button type="button" class="tb-pax-stepper__btn" data-target="tb-luggage-count" data-action="increase">+</button>
-        </div>
-    </div>
 </div>

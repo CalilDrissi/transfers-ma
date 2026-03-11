@@ -28,9 +28,9 @@ class TB_Public {
         if (strlen($hex) === 3) {
             $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
         }
-        $r = max(0, hexdec(substr($hex, 0, 2)) * (1 - $percent / 100));
-        $g = max(0, hexdec(substr($hex, 2, 2)) * (1 - $percent / 100));
-        $b = max(0, hexdec(substr($hex, 4, 2)) * (1 - $percent / 100));
+        $r = min(255, max(0, hexdec(substr($hex, 0, 2)) * (1 - $percent / 100)));
+        $g = min(255, max(0, hexdec(substr($hex, 2, 2)) * (1 - $percent / 100)));
+        $b = min(255, max(0, hexdec(substr($hex, 4, 2)) * (1 - $percent / 100)));
         return sprintf('#%02x%02x%02x', (int) $r, (int) $g, (int) $b);
     }
 

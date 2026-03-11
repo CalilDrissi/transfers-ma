@@ -401,6 +401,8 @@
             }
             var paxPillMulti = document.getElementById('tb-pax-pill-multi');
             if (paxPillMulti) paxPillMulti.addEventListener('click', function (e) { e.stopPropagation(); self.togglePaxDropdown(); });
+            var paxDd = document.getElementById('tb-pax-dropdown');
+            if (paxDd) paxDd.addEventListener('click', function (e) { e.stopPropagation(); });
             document.addEventListener('click', function () { if (paxDropdownOpen) self.closePaxDropdown(); });
             var addLegBtn = document.getElementById('tb-add-leg');
             if (addLegBtn) addLegBtn.addEventListener('click', function () { self.addLeg(); self.renderAllLegs(); });
@@ -436,23 +438,19 @@
         togglePaxDropdown: function () { if (paxDropdownOpen) this.closePaxDropdown(); else this.openPaxDropdown(); },
         openPaxDropdown: function () {
             var dd = document.getElementById('tb-pax-dropdown');
+            var backdrop = document.getElementById('tb-pax-backdrop');
             if (!dd) return;
-            // Position dropdown below the active pax pill
-            var mode = TB.State.get('mode');
-            var pill = document.getElementById(mode === 'multi-city' ? 'tb-pax-pill-multi' : 'tb-pax-pill');
-            if (pill && window.innerWidth > 768) {
-                var rect = pill.getBoundingClientRect();
-                var step = document.getElementById('tb-step-1');
-                var stepRect = step ? step.getBoundingClientRect() : { left: 0, top: 0 };
-                dd.style.position = 'absolute';
-                dd.style.top = (rect.bottom - stepRect.top + 8) + 'px';
-                dd.style.right = Math.max(0, stepRect.right - rect.right) + 'px';
-                dd.style.left = 'auto';
-            }
+            if (backdrop) backdrop.classList.add('tb-show');
             dd.classList.add('tb-show');
             paxDropdownOpen = true;
         },
-        closePaxDropdown: function () { var dd = document.getElementById('tb-pax-dropdown'); if (dd) dd.classList.remove('tb-show'); paxDropdownOpen = false; },
+        closePaxDropdown: function () {
+            var dd = document.getElementById('tb-pax-dropdown');
+            var backdrop = document.getElementById('tb-pax-backdrop');
+            if (dd) dd.classList.remove('tb-show');
+            if (backdrop) backdrop.classList.remove('tb-show');
+            paxDropdownOpen = false;
+        },
 
         updateCounter: function (target, action) {
             var el = document.getElementById(target);

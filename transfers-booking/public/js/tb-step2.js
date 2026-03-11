@@ -358,13 +358,13 @@
                     TB.Step2.selectVehicle(catId);
                 });
             }
-            // Bind select button clicks (stop propagation)
+            // Bind select button clicks — select vehicle, auto-continue only if no extras
             var selectBtns = container.querySelectorAll('.tb-vehicle-card__select-btn');
             for (var m = 0; m < selectBtns.length; m++) {
                 selectBtns[m].addEventListener('click', function (e) {
                     e.stopPropagation();
                     var catId = parseInt(this.closest('.tb-vehicle-card').getAttribute('data-category-id'));
-                    TB.Step2.selectVehicle(catId);
+                    TB.Step2.selectVehicle(catId, true);
                 });
             }
 
@@ -377,7 +377,7 @@
             }
         },
 
-        selectVehicle: function (categoryId) {
+        selectVehicle: function (categoryId, autoAdvance) {
             // Deselect all
             var cards = document.querySelectorAll('.tb-vehicle-card');
             for (var i = 0; i < cards.length; i++) {
@@ -404,21 +404,28 @@
             document.getElementById('tb-btn-continue').disabled = false;
 
             // Load extras filtered by selected vehicle category
-            this.loadExtras(categoryId);
+            this.loadExtras(categoryId, autoAdvance);
 
             // Update sidebar
             this.updateSidebar();
             this.updateQuote();
         },
 
-        loadExtras: function (categoryId) {
+        loadExtras: function (categoryId, autoAdvance) {
             TB.API.getExtras(categoryId).then(function (data) {
                 var extras = data.results || data;
                 if (!Array.isArray(extras)) extras = [];
                 TB.State.set('extras', extras);
                 TB.Step2.renderExtras(extras);
+                // Auto-advance only if Select button was clicked AND no extras available
+                if (autoAdvance && extras.length === 0) {
+                    setTimeout(function () { TB.Step2.onNext(); }, 400);
+                }
             }).catch(function () {
                 // Extras are optional, silently fail
+                if (autoAdvance) {
+                    setTimeout(function () { TB.Step2.onNext(); }, 400);
+                }
             });
         },
 

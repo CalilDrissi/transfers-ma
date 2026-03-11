@@ -29,7 +29,8 @@ class TB_Shortcode {
             $primary = esc_attr(TB_Settings::get('tb_primary_color'));
             $accent = esc_attr(TB_Settings::get('tb_accent_color'));
             $accent_hover = TB_Public::darken_hex_static($accent, 12);
-            wp_add_inline_style('tb-booking', ".tb-booking-widget { --tb-primary: {$primary}; --tb-accent: {$accent}; --tb-accent-hover: {$accent_hover}; }");
+            $primary_light = TB_Public::darken_hex_static($primary, -15);
+            wp_add_inline_style('tb-booking', ".tb-booking-widget { --tb-primary: {$primary}; --tb-primary-light: {$primary_light}; --tb-accent: {$accent}; --tb-accent-hover: {$accent_hover}; }");
         }
         $gmaps_key = TB_Settings::get('tb_google_maps_api_key');
         if ($gmaps_key && !wp_script_is('google-maps', 'enqueued')) {
@@ -106,7 +107,7 @@ html body #tb-booking-widget #tb-step-1 #tb-multi-bar,
 html body #tb-booking-widget #tb-step-1 #tb-flight-bar,
 html body #tb-booking-widget #tb-step-1 #tb-no-route-container,
 html body #tb-booking-widget #tb-step-1 .tb-trust-badges {
-    max-width: 1200px !important;
+    max-width: 1400px !important;
     width: 100% !important;
 }
 
@@ -190,7 +191,7 @@ html body #tb-booking-widget .tb-btn-back {
 
 /* ═══ Step 1: Theme-proof overrides ═══ */
 html body #tb-booking-widget #tb-step-1 {
-    background: #151d30 !important;
+    background: var(--tb-primary, #1a1a2e) !important;
     border-radius: 0 !important;
     padding: 0 !important;
     position: relative !important;
@@ -199,13 +200,27 @@ html body #tb-booking-widget #tb-step-1 {
     box-shadow: none !important;
     min-height: 560px !important;
 }
-html body #tb-booking-widget #tb-step-1 > * {
+html body #tb-booking-widget #tb-step-1 > *:not(.tb-hero-curve):not(.tb-pax-dropdown):not(.tb-pax-backdrop) {
     position: relative !important;
     z-index: 1 !important;
-    max-width: 1200px !important;
+    max-width: 1400px !important;
     width: 100% !important;
-    padding-left: 64px !important;
-    padding-right: 64px !important;
+    padding-left: 80px !important;
+    padding-right: 80px !important;
+}
+
+/* Hero decorative curve */
+html body #tb-booking-widget .tb-hero-curve {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 35% !important;
+    height: 100% !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
 }
 
 /* Mode Tabs */
@@ -213,8 +228,9 @@ html body #tb-booking-widget .tb-mode-tabs {
     display: flex !important;
     justify-content: flex-start !important;
     gap: 0 !important;
-    margin-bottom: 1.25rem !important;
-    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    padding-top: 24px !important;
     padding-bottom: 0 !important;
     background: transparent !important;
     border-top: none !important;
@@ -228,9 +244,9 @@ html body #tb-booking-widget .tb-mode-tab {
     border: none !important;
     border-bottom: 2px solid transparent !important;
     border-radius: 0 !important;
-    padding: 10px 20px 12px !important;
-    font-weight: 600 !important;
-    font-size: 0.9rem !important;
+    padding: 12px 16px !important;
+    font-weight: 500 !important;
+    font-size: 1rem !important;
     color: rgba(255,255,255,0.5) !important;
     cursor: pointer !important;
     outline: none !important;
@@ -247,7 +263,7 @@ html body #tb-booking-widget .tb-mode-tab:hover {
 html body #tb-booking-widget .tb-mode-tab--active {
     background: transparent !important;
     color: #fff !important;
-    border-bottom-color: #3b82f6 !important;
+    border-bottom-color: var(--tb-accent, #e94560) !important;
 }
 html body #tb-booking-widget .tb-mode-tab--active:hover {
     background: transparent !important;
@@ -256,12 +272,12 @@ html body #tb-booking-widget .tb-mode-tab--active:hover {
 
 /* Hero headline */
 html body #tb-booking-widget .tb-step1-headline {
-    font-size: 2.75rem !important;
-    font-weight: 600 !important;
+    font-size: 3.5rem !important;
+    font-weight: 500 !important;
     color: #fff !important;
-    line-height: 1.25 !important;
-    margin: 2.5rem 0 2.5rem !important;
-    max-width: 560px !important;
+    line-height: 1.1 !important;
+    margin: 16px 0 32px !important;
+    max-width: 700px !important;
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
@@ -483,17 +499,29 @@ html body #tb-booking-widget .tb-multi-bar__footer .tb-pax-pill svg {
     color: rgba(255,255,255,0.7) !important;
 }
 
-/* Pax dropdown */
+/* Pax backdrop */
+html body #tb-booking-widget .tb-pax-backdrop {
+    display: none !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0,0,0,0.4) !important;
+    z-index: 99998 !important;
+}
+html body #tb-booking-widget .tb-pax-backdrop.tb-show { display: block !important; }
+/* Pax dropdown (centered popup) */
 html body #tb-booking-widget .tb-pax-dropdown {
-    position: absolute !important;
-    top: calc(100% + 10px) !important;
-    right: 0 !important;
+    position: fixed !important;
+    top: 50% !important; left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    right: auto !important; bottom: auto !important;
     background: #fff !important;
-    border-radius: 12px !important;
+    border-radius: 16px !important;
     box-shadow: 0 8px 30px rgba(0,0,0,0.15) !important;
-    padding: 16px !important;
-    z-index: 200 !important;
-    min-width: 220px !important;
+    padding: 24px 28px 20px !important;
+    z-index: 99999 !important;
+    min-width: 280px !important;
+    max-width: 320px !important;
+    width: 90% !important;
     border: none !important;
 }
 
@@ -669,7 +697,7 @@ html body #tb-booking-widget .tb-vehicle-card--selected {
 
 /* Search button */
 html body #tb-booking-widget .tb-pill-bar__search {
-    background: #1a1a2e !important;
+    background: var(--tb-primary, #1a1a2e) !important;
     color: #fff !important;
     border: none !important;
     border-radius: 50px !important;
@@ -685,7 +713,7 @@ html body #tb-booking-widget .tb-pill-bar__search {
     flex-shrink: 0 !important;
 }
 html body #tb-booking-widget .tb-pill-bar__search:hover {
-    background: #2d2d44 !important;
+    background: var(--tb-primary-light, #2d2d44) !important;
     color: #fff !important;
 }
 
@@ -782,7 +810,7 @@ html body #tb-booking-widget .tb-checkout-location__dot--pickup {
     background: var(--tb-accent, #e94560) !important;
 }
 html body #tb-booking-widget .tb-checkout-location__dot--dropoff {
-    background: var(--tb-primary, #0f3460) !important;
+    background: var(--tb-primary, #1a1a2e) !important;
 }
 html body #tb-booking-widget .tb-checkout-row {
     display: grid !important;
@@ -884,6 +912,43 @@ html body #tb-booking-widget .tb-gateway-option {
 html body #tb-booking-widget .tb-gateway-option--active {
     border-color: var(--tb-accent, #e94560) !important;
     background: rgba(233, 69, 96, 0.03) !important;
+}
+
+/* Custom fields (Additional Information) */
+html body #tb-booking-widget .tb-tour-checkout__field {
+    margin-bottom: 1.25rem !important;
+}
+html body #tb-booking-widget .tb-tour-checkout__label {
+    display: block !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    margin-bottom: 6px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+html body #tb-booking-widget .tb-tour-checkout__input,
+html body #tb-booking-widget .tb-tour-checkout__textarea {
+    width: 100% !important;
+    padding: 12px 14px !important;
+    border: 2px solid var(--tb-border, #e0e0e0) !important;
+    border-radius: 8px !important;
+    font-size: 1rem !important;
+    color: var(--tb-text-dark, #1a1a2e) !important;
+    background: #fff !important;
+    box-sizing: border-box !important;
+}
+html body #tb-booking-widget .tb-tour-checkout__input:focus,
+html body #tb-booking-widget .tb-tour-checkout__textarea:focus {
+    border-color: var(--tb-accent, #e94560) !important;
+}
+html body #tb-booking-widget #tb-custom-fields-container {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0 1.5rem !important;
 }
 
 /* Confirm payment button — hidden until Stripe element is shown */
@@ -1281,20 +1346,23 @@ html body #tb-booking-widget .tb-summary-gradient__divider {
 /* ═══ Step 1: Mobile overrides ═══ */
 @media (max-width: 768px) {
     html body #tb-booking-widget #tb-step-1 {
-        padding: 0 !important;
+        padding: 28px 20px 24px !important;
         border-radius: 0 !important;
-        min-height: auto !important;
-    }
-    html body #tb-booking-widget #tb-step-1 > * {
-        padding-left: 20px !important;
-        padding-right: 20px !important;
+        min-height: 400px !important;
     }
     html body #tb-booking-widget #tb-step-1::after {
         display: none !important;
     }
+    html body #tb-booking-widget .tb-hero-curve {
+        display: none !important;
+    }
+    html body #tb-booking-widget #tb-step-1 > *:not(.tb-hero-curve):not(.tb-pax-dropdown):not(.tb-pax-backdrop) {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
     html body #tb-booking-widget .tb-step1-headline {
-        font-size: 1.75rem !important;
-        margin: 1.25rem 0 1.5rem !important;
+        font-size: 1.6rem !important;
+        margin: 1rem 0 1.5rem !important;
     }
     html body #tb-booking-widget .tb-pill-bar__row {
         flex-direction: column !important;
@@ -1364,18 +1432,6 @@ html body #tb-booking-widget .tb-summary-gradient__divider {
         width: 100% !important;
         border-right: none !important;
         border-bottom: 1px solid #f1f5f9 !important;
-    }
-    html body #tb-booking-widget .tb-pax-dropdown {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        top: auto !important;
-        border-radius: 16px 16px 0 0 !important;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.15) !important;
-        min-width: unset !important;
-        padding: 20px !important;
-        z-index: 1000 !important;
     }
     html body #tb-booking-widget .tb-trust-badges {
         gap: 12px !important;
