@@ -547,6 +547,10 @@
                 var place = ac.getPlace();
                 if (place.geometry) {
                     var addr = place.formatted_address || place.name;
+                    // Prepend place name (e.g. "Agadir Al Massira Airport") if not already in the address
+                    if (place.name && place.formatted_address && place.formatted_address.indexOf(place.name) === -1) {
+                        addr = place.name + ', ' + place.formatted_address;
+                    }
                     var lat = place.geometry.location.lat();
                     var lng = place.geometry.location.lng();
                     var clearBtn = input.parentNode.querySelector('.tb-pill-bar__clear');
