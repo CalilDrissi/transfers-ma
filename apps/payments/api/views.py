@@ -236,9 +236,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
             booking = Transfer.objects.select_related('vehicle_category').get(id=payment.object_id)
             booking.status = new_status
             booking.save()
-            # For round trips, update return transfer status too
-            if booking.return_transfer_id:
-                Transfer.objects.filter(id=booking.return_transfer_id).update(status=new_status)
         elif payment.payment_type == Payment.PaymentType.TRIP:
             from apps.trips.models import TripBooking
             booking = TripBooking.objects.get(id=payment.object_id)
