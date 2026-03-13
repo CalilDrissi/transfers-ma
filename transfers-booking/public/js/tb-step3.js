@@ -1000,8 +1000,10 @@
                 rtRow.style.display = (quote.is_round_trip || state.isRoundTrip) ? '' : 'none';
             }
 
-            // Total
-            setEl('tb-receipt-total', TB.Utils.formatPrice(state.totalPrice, currency));
+            // Total — for round trips, display combined price (both legs)
+            var displayTotal = state.totalPrice;
+            if (state.isRoundTrip) displayTotal = displayTotal * 2;
+            setEl('tb-receipt-total', TB.Utils.formatPrice(displayTotal, currency));
 
             // Download receipt handler
             var dlBtn = document.getElementById('tb-download-receipt');
