@@ -230,13 +230,13 @@ class TransferCreateSerializer(serializers.ModelSerializer):
 
         # Update extras price and total
         transfer.extras_price = extras_total
-        single_leg_total = transfer.calculate_total()
-        # For round trips, outbound transfer holds the combined price (both legs)
-        transfer.total_price = single_leg_total * 2 if transfer.is_round_trip else single_leg_total
+        transfer.total_price = transfer.calculate_total()
 
         # Calculate deposit from percentage already captured during pricing lookup
+        # For round trips, deposit is based on combined price (both legs)
+        deposit_base = transfer.total_price * 2 if transfer.is_round_trip else transfer.total_price
         if deposit_percentage_from_pricing > 0:
-            transfer.deposit_amount = (transfer.total_price * deposit_percentage_from_pricing / Decimal('100')).quantize(Decimal('0.01'))
+            transfer.deposit_amount = (deposit_base * deposit_percentage_from_pricing / Decimal('100')).quantize(Decimal('0.01'))
 
         transfer.save()
 

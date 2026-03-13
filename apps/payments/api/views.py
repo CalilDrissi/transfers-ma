@@ -100,7 +100,9 @@ class PaymentViewSet(viewsets.ModelViewSet):
         gateway = get_gateway(gateway_type)
 
         # Determine payment amount
-        payment_amount = booking.total_price
+        # For round trips, charge both legs
+        is_round_trip = hasattr(booking, 'is_round_trip') and booking.is_round_trip
+        payment_amount = booking.total_price * 2 if is_round_trip else booking.total_price
         client_amount = data.get('payment_amount')
         if client_amount is not None and hasattr(booking, 'deposit_amount') and booking.deposit_amount:
             # Allow client to pay deposit or full — validate it matches one of the two
