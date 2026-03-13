@@ -667,7 +667,9 @@ def google_maps_config(request):
 
     Returns the API key needed for Google Places Autocomplete and Maps integration.
     """
-    api_key = getattr(settings, 'GOOGLE_MAPS_API_KEY', '')
+    from apps.accounts.models import SiteSettings
+    site_settings = SiteSettings.objects.first()
+    api_key = site_settings.google_maps_api_key if site_settings else ''
     return Response({
         'api_key': api_key,
         'enabled': bool(api_key),
