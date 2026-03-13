@@ -75,156 +75,73 @@
         { name: 'Finland', code: '+358', flag: '🇫🇮', iso: 'FI' }
     ];
 
-    /* ── Shared phone country popup (one popup, used by both phone + whatsapp) ── */
-    var phonePopup = {
-        dropdown: null,
-        backdrop: null,
-        searchInput: null,
-        listEl: null,
-        closeBtn: null,
-        activeInstance: null, // which prefix triggered the open
-        focusedIndex: -1,
+    /** Set up a country-code phone dropdown */
+    function initPhoneDropdown(prefixId, flagId, codeId, dropdownId, searchId, listId) {
+        var prefix = document.getElementById(prefixId);
+        var flagEl = document.getElementById(flagId);
+        var codeEl = document.getElementById(codeId);
+        var dropdown = document.getElementById(dropdownId);
+        var searchInput = document.getElementById(searchId);
+        var listEl = document.getElementById(listId);
+        if (!prefix || !dropdown || !listEl) return;
 
-        init: function () {
-            this.dropdown = document.getElementById('tb-phone-dropdown');
-            this.backdrop = document.getElementById('tb-phone-backdrop');
-            this.searchInput = document.getElementById('tb-phone-search');
-            this.listEl = document.getElementById('tb-phone-list');
-            this.closeBtn = document.getElementById('tb-phone-close');
-            if (!this.dropdown || !this.listEl) return;
+        var selectedCode = '+212';
 
-            var self = this;
-
-            this.backdrop.addEventListener('click', function () { self.close(); });
-            if (this.closeBtn) this.closeBtn.addEventListener('click', function () { self.close(); });
-
-            if (this.searchInput) {
-                this.searchInput.addEventListener('input', function () {
-                    self.focusedIndex = -1;
-                    self.renderList(this.value);
-                });
-            }
-
-            this.listEl.addEventListener('click', function (e) {
-                var item = e.target.closest('.tb-phone-dropdown__item');
-                if (item && self.activeInstance) {
-                    self.activeInstance.select(item.dataset.code, item.dataset.iso);
-                    self.close();
-                }
-            });
-
-            // Keyboard navigation
-            this.dropdown.addEventListener('keydown', function (e) {
-                var items = self.listEl.querySelectorAll('.tb-phone-dropdown__item');
-                if (!items.length) return;
-
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    self.focusedIndex = Math.min(self.focusedIndex + 1, items.length - 1);
-                    self.updateFocus(items);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    self.focusedIndex = Math.max(self.focusedIndex - 1, 0);
-                    self.updateFocus(items);
-                } else if (e.key === 'Enter' && self.focusedIndex >= 0) {
-                    e.preventDefault();
-                    var item = items[self.focusedIndex];
-                    if (item && self.activeInstance) {
-                        self.activeInstance.select(item.dataset.code, item.dataset.iso);
-                        self.close();
-                    }
-                } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    self.close();
-                }
-            });
-        },
-
-        updateFocus: function (items) {
-            for (var i = 0; i < items.length; i++) {
-                items[i].classList.toggle('tb-phone-dropdown__item--focused', i === this.focusedIndex);
-            }
-            if (this.focusedIndex >= 0 && items[this.focusedIndex]) {
-                items[this.focusedIndex].scrollIntoView({ block: 'nearest' });
-            }
-        },
-
-        renderList: function (filter) {
+        function renderList(filter) {
             var q = (filter || '').toLowerCase();
-            var selectedCode = this.activeInstance ? this.activeInstance.selectedCode : '+212';
             var html = '';
             for (var i = 0; i < COUNTRIES.length; i++) {
                 var c = COUNTRIES[i];
                 if (q && c.name.toLowerCase().indexOf(q) === -1 && c.code.indexOf(q) === -1 && c.iso.toLowerCase().indexOf(q) === -1) continue;
                 var active = c.code === selectedCode ? ' tb-phone-dropdown__item--active' : '';
-                var iso = c.iso.toLowerCase();
-                html += '<div class="tb-phone-dropdown__item' + active + '" data-code="' + c.code + '" data-iso="' + iso + '" data-name="' + c.name + '">'
-                    + '<img class="tb-phone-dropdown__item-flag" src="https://flagcdn.com/w40/' + iso + '.png" alt="' + c.iso + '" width="24" height="18" loading="lazy">'
+                html += '<div class="tb-phone-dropdown__item' + active + '" data-code="' + c.code + '" data-flag="' + c.flag + '" data-name="' + c.name + '">'
+                    + '<span class="tb-phone-dropdown__item-flag">' + c.flag + '</span>'
                     + '<span class="tb-phone-dropdown__item-name">' + c.name + '</span>'
                     + '<span class="tb-phone-dropdown__item-code">' + c.code + '</span>'
                     + '</div>';
             }
-            this.listEl.innerHTML = html || '<div style="padding:12px;color:#999;text-align:center;">No results</div>';
-        },
-
-        open: function (instance) {
-            this.activeInstance = instance;
-            this.focusedIndex = -1;
-            this.renderList('');
-            this.backdrop.classList.add('tb-show');
-            this.dropdown.classList.add('tb-show');
-            if (this.searchInput) { this.searchInput.value = ''; this.searchInput.focus(); }
-            instance.prefix.setAttribute('aria-expanded', 'true');
-        },
-
-        close: function () {
-            this.backdrop.classList.remove('tb-show');
-            this.dropdown.classList.remove('tb-show');
-            if (this.activeInstance) {
-                this.activeInstance.prefix.setAttribute('aria-expanded', 'false');
-                this.activeInstance = null;
-            }
+            listEl.innerHTML = html || '<div style="padding:12px;color:#999;text-align:center;">No results</div>';
         }
-    };
 
-    /** Set up a country-code phone prefix button (uses shared popup) */
-    function initPhonePrefix(prefixId, flagId, codeId) {
-        var prefix = document.getElementById(prefixId);
-        var flagEl = document.getElementById(flagId);
-        var codeEl = document.getElementById(codeId);
-        if (!prefix) return null;
+        function open() {
+            dropdown.style.display = 'flex';
+            prefix.setAttribute('aria-expanded', 'true');
+            renderList('');
+            if (searchInput) { searchInput.value = ''; searchInput.focus(); }
+        }
 
-        var instance = {
-            prefix: prefix,
-            selectedCode: '+212',
-            selectedIso: 'ma',
+        function close() {
+            dropdown.style.display = 'none';
+            prefix.setAttribute('aria-expanded', 'false');
+        }
 
-            select: function (code, iso) {
-                this.selectedCode = code;
-                this.selectedIso = iso;
-                if (flagEl) {
-                    flagEl.src = 'https://flagcdn.com/w40/' + iso + '.png';
-                    flagEl.alt = iso.toUpperCase();
-                }
-                if (codeEl) codeEl.textContent = code;
-            }
-        };
+        function select(code, flag) {
+            selectedCode = code;
+            if (flagEl) flagEl.textContent = flag;
+            if (codeEl) codeEl.textContent = code;
+            close();
+        }
 
-        // Open popup on click/tap/keyboard
-        var handler = function (e) {
-            e.preventDefault();
+        prefix.addEventListener('click', function (e) {
             e.stopPropagation();
-            phonePopup.open(instance);
-        };
-        prefix.addEventListener('click', handler);
-        prefix.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                phonePopup.open(instance);
-            }
+            if (dropdown.style.display === 'none') open(); else close();
         });
 
-        return { getCode: function () { return instance.selectedCode; }, setCode: instance.select.bind(instance) };
+        if (searchInput) {
+            searchInput.addEventListener('input', function () { renderList(this.value); });
+            searchInput.addEventListener('click', function (e) { e.stopPropagation(); });
+        }
+
+        listEl.addEventListener('click', function (e) {
+            var item = e.target.closest('.tb-phone-dropdown__item');
+            if (item) select(item.dataset.code, item.dataset.flag);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!prefix.contains(e.target) && !dropdown.contains(e.target)) close();
+        });
+
+        return { getCode: function () { return selectedCode; }, setCode: select };
     }
 
     var phoneDropdown = null;
@@ -233,9 +150,8 @@
     TB.Step3 = {
 
         init: function () {
-            phonePopup.init();
-            phoneDropdown = initPhonePrefix('tb-phone-prefix', 'tb-phone-flag', 'tb-phone-code');
-            waDropdown = initPhonePrefix('tb-wa-prefix', 'tb-wa-flag', 'tb-wa-code');
+            phoneDropdown = initPhoneDropdown('tb-phone-prefix', 'tb-phone-flag', 'tb-phone-code', 'tb-phone-dropdown', 'tb-phone-search', 'tb-phone-list');
+            waDropdown = initPhoneDropdown('tb-wa-prefix', 'tb-wa-flag', 'tb-wa-code', 'tb-wa-dropdown', 'tb-wa-search', 'tb-wa-list');
             this.populateNationality();
             this.renderOrderSummary();
             this.renderPaymentChoices();

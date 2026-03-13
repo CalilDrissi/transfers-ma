@@ -77,24 +77,32 @@
             <div class="tb-form-group">
                 <label class="tb-label" for="tb-customer-phone"><?php esc_html_e('Phone Number', 'transfers-booking'); ?> *</label>
                 <div class="tb-phone-input">
-                    <div class="tb-phone-input__prefix" id="tb-phone-prefix" tabindex="0" role="button" aria-expanded="false" aria-haspopup="listbox">
-                        <img class="tb-phone-input__flag" id="tb-phone-flag" src="https://flagcdn.com/w40/ma.png" alt="MA" width="20" height="15">
+                    <div class="tb-phone-input__prefix" id="tb-phone-prefix" tabindex="0">
+                        <span class="tb-phone-input__flag" id="tb-phone-flag">&#x1F1F2;&#x1F1E6;</span>
                         <span class="tb-phone-input__code" id="tb-phone-code">+212</span>
                         <svg class="tb-phone-input__arrow" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
                     </div>
                     <input type="tel" id="tb-customer-phone" class="tb-phone-input__field" placeholder="">
+                </div>
+                <div class="tb-phone-dropdown" id="tb-phone-dropdown" style="display:none;">
+                    <input type="text" class="tb-phone-dropdown__search" id="tb-phone-search" placeholder="<?php esc_attr_e('Search country...', 'transfers-booking'); ?>">
+                    <div class="tb-phone-dropdown__list" id="tb-phone-list"></div>
                 </div>
                 <div class="tb-field-error" data-field="phone"></div>
             </div>
             <div class="tb-form-group">
                 <label class="tb-label"><?php esc_html_e('WhatsApp Number', 'transfers-booking'); ?></label>
                 <div class="tb-phone-input">
-                    <div class="tb-phone-input__prefix" id="tb-wa-prefix" tabindex="0" role="button" aria-expanded="false" aria-haspopup="listbox">
-                        <img class="tb-phone-input__flag" id="tb-wa-flag" src="https://flagcdn.com/w40/ma.png" alt="MA" width="20" height="15">
+                    <div class="tb-phone-input__prefix" id="tb-wa-prefix" tabindex="0">
+                        <span class="tb-phone-input__flag" id="tb-wa-flag">&#x1F1F2;&#x1F1E6;</span>
                         <span class="tb-phone-input__code" id="tb-wa-code">+212</span>
                         <svg class="tb-phone-input__arrow" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
                     </div>
                     <input type="tel" id="tb-customer-whatsapp" class="tb-phone-input__field" placeholder="">
+                </div>
+                <div class="tb-phone-dropdown" id="tb-wa-dropdown" style="display:none;">
+                    <input type="text" class="tb-phone-dropdown__search" id="tb-wa-search" placeholder="<?php esc_attr_e('Search country...', 'transfers-booking'); ?>">
+                    <div class="tb-phone-dropdown__list" id="tb-wa-list"></div>
                 </div>
             </div>
         </div>
@@ -227,15 +235,4 @@
             <span id="tb-order-datetime">--</span>
         </div>
     </div>
-</div>
-
-<!-- Phone country code popup (shared by phone + whatsapp) -->
-<div class="tb-phone-backdrop" id="tb-phone-backdrop"></div>
-<div class="tb-phone-dropdown" id="tb-phone-dropdown" role="listbox">
-    <div class="tb-phone-dropdown__header">
-        <span class="tb-phone-dropdown__title"><?php esc_html_e('Select Country', 'transfers-booking'); ?></span>
-        <button type="button" class="tb-phone-dropdown__close" id="tb-phone-close" aria-label="<?php esc_attr_e('Close', 'transfers-booking'); ?>">&times;</button>
-    </div>
-    <input type="text" class="tb-phone-dropdown__search" id="tb-phone-search" placeholder="<?php esc_attr_e('Search country...', 'transfers-booking'); ?>">
-    <div class="tb-phone-dropdown__list" id="tb-phone-list"></div>
 </div>
