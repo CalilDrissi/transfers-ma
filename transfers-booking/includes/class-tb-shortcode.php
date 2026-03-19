@@ -854,42 +854,90 @@ html body #tb-booking-widget .tb-phone-input__field {
     outline: none !important;
     min-width: 0 !important;
 }
-html body #tb-booking-widget .tb-phone-dropdown {
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 100 !important;
-    background: #fff !important;
-    border: 2px solid var(--tb-border, #e0e0e0) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
-    margin-top: 4px !important;
-    max-height: 280px !important;
+html body .tb-phone-backdrop {
+    display: none !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0,0,0,0.4) !important;
+    z-index: 99998 !important;
 }
-html body #tb-booking-widget .tb-phone-dropdown__search {
+html body .tb-phone-backdrop.tb-show { display: block !important; }
+html body .tb-phone-dropdown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 99999 !important;
+    background: #fff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15) !important;
+    padding: 0 !important;
+    min-width: 280px !important;
+    max-width: 360px !important;
+    width: 90% !important;
+    max-height: 70vh !important;
+    display: none !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    touch-action: manipulation !important;
+    margin: 0 !important;
+    border: none !important;
+}
+html body .tb-phone-dropdown.tb-show { display: flex !important; }
+html body .tb-phone-dropdown__header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 16px 20px 12px !important;
+    border-bottom: 1px solid var(--tb-border, #e0e0e0) !important;
+}
+html body .tb-phone-dropdown__close {
+    background: none !important;
+    border: none !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+    padding: 0 4px !important;
+}
+html body .tb-phone-dropdown__search {
     width: 100% !important;
-    padding: 10px 12px !important;
+    padding: 10px 20px !important;
     border: none !important;
     border-bottom: 1px solid var(--tb-border, #e0e0e0) !important;
-    font-size: 0.9rem !important;
+    font-size: 16px !important;
     color: var(--tb-text-dark, #1a1a2e) !important;
     outline: none !important;
     background: #fafafa !important;
-    border-radius: 8px 8px 0 0 !important;
+    border-radius: 0 !important;
 }
-html body #tb-booking-widget .tb-phone-dropdown__item {
+html body .tb-phone-dropdown__list {
+    overflow-y: auto !important;
+    min-height: 120px !important;
+    max-height: calc(70vh - 110px) !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+html body .tb-phone-dropdown__item {
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
-    padding: 10px 12px !important;
+    padding: 10px 20px !important;
     cursor: pointer !important;
     font-size: 0.9rem !important;
     border: none !important;
     background: transparent !important;
+    touch-action: manipulation !important;
 }
-html body #tb-booking-widget .tb-phone-dropdown__item:hover {
+html body .tb-phone-dropdown__item:hover {
     background: var(--tb-bg, #f0f4f8) !important;
+}
+html body .tb-phone-dropdown__item-flag {
+    width: 24px !important;
+    height: 18px !important;
+    object-fit: contain !important;
+}
+html body .tb-phone-input__flag {
+    width: 20px !important;
+    height: 15px !important;
+    object-fit: contain !important;
 }
 
 /* Gateway selector */
