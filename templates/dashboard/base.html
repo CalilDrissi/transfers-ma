@@ -274,6 +274,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{% url 'dashboard:transfer_calendar' %}" class="nav-link {% active_link request '/transfers/calendar/' %}" title="{% trans 'Calendar' %}">
+                    <i class="bi bi-calendar3"></i>
+                    <span class="nav-link-text">{% trans "Calendar" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{% url 'dashboard:transfer_vehicle_list' %}" class="nav-link {% active_link request '/transfer-vehicles/' %}" title="{% trans 'Transfer Vehicles' %}">
                     <i class="bi bi-truck"></i>
                     <span class="nav-link-text">{% trans "Transfer Vehicles" %}</span>

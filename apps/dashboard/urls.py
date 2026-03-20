@@ -13,6 +13,8 @@ urlpatterns = [
 
     # Transfers
     path('transfers/', views.transfer_list, name='transfer_list'),
+    path('transfers/calendar/', views.transfer_calendar, name='transfer_calendar'),
+    path('transfers/calendar/events/', views.transfer_calendar_events, name='transfer_calendar_events'),
     path('transfers/<int:pk>/', views.transfer_detail, name='transfer_detail'),
 
     # Trips/Tours

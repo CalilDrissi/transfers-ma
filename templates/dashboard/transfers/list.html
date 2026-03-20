@@ -5,6 +5,14 @@
 {% block page_title %}{% trans "Transfer Bookings" %}{% endblock %}
 
 {% block content %}
+<div class="mb-3">
+    <a href="{% url 'dashboard:transfer_list' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-list-ul me-1"></i>{% trans "List View" %}
+    </a>
+    <a href="{% url 'dashboard:transfer_calendar' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-calendar3 me-1"></i>{% trans "Calendar View" %}
+    </a>
+</div>
 <!-- Filters -->
 <div class="card mb-4">
     <div class="card-body">

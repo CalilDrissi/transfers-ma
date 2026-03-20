@@ -1,0 +1,123 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Calendar" %}{% endblock %}
+{% block page_title %}{% trans "Booking Calendar" %}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<style>
+    #calendar {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .fc-event {
+        cursor: pointer;
+        font-size: 0.8rem;
+        padding: 2px 4px;
+    }
+    .fc-toolbar-title {
+        font-size: 1.3rem !important;
+    }
+    .fc-popover {
+        z-index: 1050;
+    }
+    .calendar-legend {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .calendar-legend__item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    .calendar-legend__dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .calendar-toggle {
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-toggle">
+    <a href="{% url 'dashboard:transfer_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-list-ul me-1"></i>{% trans "List View" %}
+    </a>
+    <a href="{% url 'dashboard:transfer_calendar' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-calendar3 me-1"></i>{% trans "Calendar View" %}
+    </a>
+</div>
+
+<div class="calendar-legend">
+    <div class="calendar-legend__item">
+        <span class="calendar-legend__dot" style="background:#198754;"></span> {% trans "Confirmed" %}
+    </div>
+    <div class="calendar-legend__item">
+        <span class="calendar-legend__dot" style="background:#ffc107;"></span> {% trans "Pending" %}
+    </div>
+    <div class="calendar-legend__item">
+        <span class="calendar-legend__dot" style="background:#dc3545;"></span> {% trans "Cancelled" %}
+    </div>
+    <div class="calendar-legend__item">
+        <span class="calendar-legend__dot" style="background:#0d6efd;"></span> {% trans "Completed" %}
+    </div>
+</div>
+
+<div id="calendar"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        events: {
+            url: '{% url "dashboard:transfer_calendar_events" %}',
+            failure: function() {
+                alert('Failed to load events.');
+            }
+        },
+        eventClick: function(info) {
+            info.jsEvent.preventDefault();
+            if (info.event.url) {
+                window.location.href = info.event.url;
+            }
+        },
+        eventDidMount: function(info) {
+            var props = info.event.extendedProps;
+            var tooltip = props.ref + '\n' + props.pickup + ' → ' + props.dropoff + '\n' + props.total + ' ' + props.status;
+            info.el.setAttribute('title', tooltip);
+        },
+        dayMaxEvents: 3,
+        height: 'auto',
+        firstDay: 1,
+        locale: document.documentElement.lang || 'en',
+        buttonText: {
+            today: '{% trans "Today" %}',
+            month: '{% trans "Month" %}',
+            week: '{% trans "Week" %}',
+            list: '{% trans "List" %}'
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}

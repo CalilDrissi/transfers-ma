@@ -119,6 +119,55 @@ def home(request):
     return render(request, 'dashboard/home.html', context)
 
 
+# Calendar View
+@login_required
+@user_passes_test(is_admin)
+def transfer_calendar(request):
+    """Calendar view for transfers."""
+    return render(request, 'dashboard/transfers/calendar.html')
+
+
+@login_required
+@user_passes_test(is_admin)
+def transfer_calendar_events(request):
+    """JSON endpoint for calendar events."""
+    start = request.GET.get('start', '')
+    end = request.GET.get('end', '')
+
+    transfers = Transfer.objects.select_related('vehicle_category').all()
+    if start:
+        transfers = transfers.filter(pickup_datetime__date__gte=start[:10])
+    if end:
+        transfers = transfers.filter(pickup_datetime__date__lte=end[:10])
+
+    status_colors = {
+        'confirmed': '#198754',
+        'pending': '#ffc107',
+        'cancelled': '#dc3545',
+        'completed': '#0d6efd',
+    }
+
+    events = []
+    for t in transfers:
+        events.append({
+            'id': t.pk,
+            'title': f'{t.customer_name} - {t.vehicle_category.name if t.vehicle_category else "N/A"}',
+            'start': t.pickup_datetime.isoformat(),
+            'url': f'/dashboard/transfers/{t.pk}/',
+            'backgroundColor': status_colors.get(t.status, '#6c757d'),
+            'borderColor': status_colors.get(t.status, '#6c757d'),
+            'extendedProps': {
+                'ref': t.booking_ref,
+                'status': t.status,
+                'pickup': t.pickup_address[:50] if t.pickup_address else '',
+                'dropoff': t.dropoff_address[:50] if t.dropoff_address else '',
+                'total': str(t.total_price),
+            }
+        })
+
+    return JsonResponse(events, safe=False)
+
+
 # Transfer Views
 @login_required
 @user_passes_test(is_admin)
