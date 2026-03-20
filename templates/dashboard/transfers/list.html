@@ -62,11 +62,11 @@
                         <th style="width:40px;">
                             <input type="checkbox" class="form-check-input" id="selectAll" title="{% trans 'Select All' %}">
                         </th>
+                        <th>{% trans "Booked On" %}</th>
                         <th>{% trans "Booking Ref" %}</th>
                         <th>{% trans "Customer" %}</th>
                         <th>{% trans "Route" %}</th>
                         <th>{% trans "Pickup" %}</th>
-                        <th>{% trans "Booked On" %}</th>
                         <th>{% trans "Vehicle" %}</th>
                         <th>{% trans "Status" %}</th>
                         <th>{% trans "Total" %}</th>
@@ -78,6 +78,10 @@
                     <tr>
                         <td>
                             <input type="checkbox" class="form-check-input row-checkbox" name="selected" value="{{ transfer.pk }}">
+                        </td>
+                        <td>
+                            {{ transfer.created_at|date:"M d, Y" }}<br>
+                            <small class="text-muted">{{ transfer.created_at|time:"H:i" }}</small>
                         </td>
                         <td><strong>{{ transfer.booking_ref }}</strong></td>
                         <td>
@@ -91,10 +95,6 @@
                         <td>
                             {{ transfer.pickup_datetime|date:"M d, Y" }}<br>
                             <small class="text-muted">{{ transfer.pickup_datetime|time:"H:i" }}</small>
-                        </td>
-                        <td>
-                            {{ transfer.created_at|date:"M d, Y" }}<br>
-                            <small class="text-muted">{{ transfer.created_at|time:"H:i" }}</small>
                         </td>
                         <td>{{ transfer.vehicle_category.name }}</td>
                         <td>{{ transfer.status|status_badge }}</td>
