@@ -66,6 +66,7 @@
                         <th>{% trans "Customer" %}</th>
                         <th>{% trans "Route" %}</th>
                         <th>{% trans "Pickup" %}</th>
+                        <th>{% trans "Booked On" %}</th>
                         <th>{% trans "Vehicle" %}</th>
                         <th>{% trans "Status" %}</th>
                         <th>{% trans "Total" %}</th>
@@ -91,6 +92,10 @@
                             {{ transfer.pickup_datetime|date:"M d, Y" }}<br>
                             <small class="text-muted">{{ transfer.pickup_datetime|time:"H:i" }}</small>
                         </td>
+                        <td>
+                            {{ transfer.created_at|date:"M d, Y" }}<br>
+                            <small class="text-muted">{{ transfer.created_at|time:"H:i" }}</small>
+                        </td>
                         <td>{{ transfer.vehicle_category.name }}</td>
                         <td>{{ transfer.status|status_badge }}</td>
                         <td>{{ transfer.total_price|currency }}</td>
@@ -105,7 +110,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="text-center py-4 text-muted">
+                        <td colspan="10" class="text-center py-4 text-muted">
                             {% trans "No transfers found" %}
                         </td>
                     </tr>
