@@ -39,10 +39,13 @@
                 <label class="form-label">{% trans "Search" %}</label>
                 <input type="text" name="search" class="form-control" placeholder="{% trans 'Booking ref, name, email...' %}" value="{{ request.GET.search }}">
             </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100">
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
                     <i class="bi bi-search me-2"></i>{% trans "Filter" %}
                 </button>
+                <a href="{% url 'dashboard:transfer_list' %}" class="btn btn-outline-secondary" title="{% trans 'Clear filters' %}">
+                    <i class="bi bi-x-lg"></i>
+                </a>
             </div>
         </form>
     </div>
