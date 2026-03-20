@@ -27,6 +27,14 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="col-md-2">
+                <label class="form-label">{% trans "From" %}</label>
+                <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">{% trans "To" %}</label>
+                <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+            </div>
             <div class="col-md-4">
                 <label class="form-label">{% trans "Search" %}</label>
                 <input type="text" name="search" class="form-control" placeholder="{% trans 'Booking ref, name, email...' %}" value="{{ request.GET.search }}">

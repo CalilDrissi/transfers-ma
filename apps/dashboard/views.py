@@ -142,10 +142,17 @@ def transfer_list(request):
     transfer_type = request.GET.get('type')
     search = request.GET.get('search')
 
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+
     if status:
         transfers = transfers.filter(status=status)
     if transfer_type:
         transfers = transfers.filter(transfer_type=transfer_type)
+    if date_from:
+        transfers = transfers.filter(pickup_datetime__date__gte=date_from)
+    if date_to:
+        transfers = transfers.filter(pickup_datetime__date__lte=date_to)
     if search:
         transfers = transfers.filter(
             Q(booking_ref__icontains=search) |
