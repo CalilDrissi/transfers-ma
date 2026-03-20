@@ -417,6 +417,15 @@
                 if (!Array.isArray(extras)) extras = [];
                 TB.State.set('extras', extras);
                 TB.Step2.renderExtras(extras);
+                // Scroll to extras so user sees them
+                if (extras.length > 0) {
+                    var section = document.getElementById('tb-extras-section');
+                    if (section) {
+                        setTimeout(function () {
+                            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 200);
+                    }
+                }
                 // Auto-advance only if Select button was clicked AND no extras available
                 if (autoAdvance && extras.length === 0) {
                     setTimeout(function () { TB.Step2.onNext(); }, 400);
