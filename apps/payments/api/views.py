@@ -274,6 +274,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     send_booking_confirmation, send_admin_new_booking_alert,
                     send_supplier_new_booking_alert,
                 )
+                # For round trips, calculate combined total
+                combined_total = booking.total_price * 2 if booking.is_round_trip else booking.total_price
                 booking_details = {
                     'pickup_address': booking.pickup_address,
                     'dropoff_address': booking.dropoff_address,
@@ -287,11 +289,18 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     'base_price': str(booking.base_price),
                     'extras_price': str(booking.extras_price),
                     'deposit_amount': str(booking.deposit_amount),
-                    'total_price': str(booking.total_price),
+                    'total_price': str(combined_total),
+                    'single_leg_price': str(booking.total_price),
                     'currency': booking.currency,
                     'customer_phone': booking.customer_phone,
                     'pricing_method': getattr(booking, 'pricing_method', ''),
                 }
+                # Add return leg details for round trips
+                if booking.is_round_trip and booking.return_transfer:
+                    rt = booking.return_transfer
+                    booking_details['return_pickup_address'] = rt.pickup_address
+                    booking_details['return_dropoff_address'] = rt.dropoff_address
+                    booking_details['return_booking_ref'] = rt.booking_ref
                 # Include custom field values with display labels
                 if booking.custom_field_values:
                     from apps.accounts.models import CustomField

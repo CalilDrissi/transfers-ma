@@ -51,6 +51,24 @@
     <div class="detail-row">
         <span class="detail-label">Trip Type:</span> Round Trip
     </div>
+    {% if details.return_datetime %}
+    <div class="detail-row">
+        <span class="detail-label">Return Date:</span> {{ details.return_datetime }}
+    </div>
+    {% endif %}
+    {% if details.return_pickup_address %}
+    <div class="detail-row">
+        <span class="detail-label">Return Pickup:</span> {{ details.return_pickup_address }}
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">Return Drop-off:</span> {{ details.return_dropoff_address }}
+    </div>
+    {% endif %}
+    {% if details.return_booking_ref %}
+    <div class="detail-row">
+        <span class="detail-label">Return Ref:</span> {{ details.return_booking_ref }}
+    </div>
+    {% endif %}
     {% endif %}
     {% if show_flight_number|default:True and details.flight_number %}
     <div class="detail-row">
