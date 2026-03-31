@@ -271,7 +271,7 @@
 
             <!-- Inclusions / Exclusions -->
             <div class="card">
-                <div class="card-header"><h6 class="mb-0">{% trans "Inclusions & Exclusions" %} <span class="opt">({% trans "optional" %})</span></h6></div>
+                <div class="card-header"><h6 class="mb-0">{% trans "Inclusions & Exclusions" %} <span class="opt">({% trans "optional" %})</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'List what is and is not included in the tour price (transport, meals, tickets, etc.)' %}"></i></h6></div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -289,7 +289,7 @@
             <!-- Highlights -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">{% trans "Highlights" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.highlights.count }}</span></h6>
+                    <h6 class="mb-0">{% trans "Highlights" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.highlights.count }}</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Key selling points shown as icons on the tour page (e.g. Free cancellation, Hotel pickup)' %}"></i></h6>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addHighlight()"><i class="bi bi-plus me-1"></i>{% trans "Add" %}</button>
                 </div>
                 <div class="card-body">
@@ -310,7 +310,7 @@
             <!-- Itinerary -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">{% trans "Itinerary" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.itinerary_stops.count }}</span></h6>
+                    <h6 class="mb-0">{% trans "Itinerary" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.itinerary_stops.count }}</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Step-by-step tour route with stop names, durations, and descriptions' %}"></i></h6>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addItineraryStop()"><i class="bi bi-plus me-1"></i>{% trans "Add Stop" %}</button>
                 </div>
                 <div class="card-body">
@@ -346,7 +346,7 @@
             <!-- FAQs -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">{% trans "FAQs" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.faqs.count }}</span></h6>
+                    <h6 class="mb-0">{% trans "FAQs" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.faqs.count }}</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Frequently asked questions displayed as an accordion on the tour page' %}"></i></h6>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFAQ()"><i class="bi bi-plus me-1"></i>{% trans "Add FAQ" %}</button>
                 </div>
                 <div class="card-body">
@@ -367,7 +367,7 @@
             <!-- What to Expect -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">{% trans "What to Expect" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.content_blocks.count }}</span></h6>
+                    <h6 class="mb-0">{% trans "What to Expect" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.content_blocks.count }}</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Rich content sections like What to Bring, Good to Know, etc.' %}"></i></h6>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addContentBlock()"><i class="bi bi-plus me-1"></i>{% trans "Add Block" %}</button>
                 </div>
                 <div class="card-body">
@@ -388,19 +388,28 @@
             <!-- Custom Fields -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">{% trans "Custom Fields" %} <span class="opt">({% trans "optional" %})</span></h6>
+                    <h6 class="mb-0">{% trans "Custom Fields" %} <span class="opt">({% trans "optional" %})</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Add extra fields customers fill in during booking (e.g. Hotel name, Flight number). Choose the input type for each.' %}"></i></h6>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomField()"><i class="bi bi-plus me-1"></i>{% trans "Add Field" %}</button>
                 </div>
                 <div class="card-body">
-                    <small class="text-muted d-block mb-2">{% trans "Add any extra information not covered by the standard fields above." %}</small>
                     <div id="customFieldsList">
                         {% if trip.custom_data %}
                         {% for key, value in trip.custom_data.items %}
                         <div class="repeatable-item">
                             <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-                            <div class="row g-2">
-                                <div class="col-md-4"><input type="text" name="custom_field_key[]" class="form-control" value="{{ key }}" placeholder="{% trans 'Field name' %}"></div>
-                                <div class="col-md-8"><input type="text" name="custom_field_value[]" class="form-control" value="{{ value }}" placeholder="{% trans 'Value' %}"></div>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-3"><input type="text" name="custom_field_key[]" class="form-control" value="{{ key }}" placeholder="{% trans 'Field name' %}"></div>
+                                <div class="col-md-2">
+                                    <select name="custom_field_type[]" class="form-select form-select-sm" onchange="updateCustomFieldInput(this)">
+                                        <option value="text">{% trans "Text" %}</option>
+                                        <option value="textarea">{% trans "Textarea" %}</option>
+                                        <option value="number">{% trans "Number" %}</option>
+                                        <option value="date">{% trans "Date" %}</option>
+                                        <option value="select">{% trans "Dropdown" %}</option>
+                                        <option value="checkbox">{% trans "Checkbox" %}</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-7 custom-field-input"><input type="text" name="custom_field_value[]" class="form-control" value="{{ value }}" placeholder="{% trans 'Default value or options (comma-separated for dropdown)' %}"></div>
                             </div>
                         </div>
                         {% endfor %}
@@ -459,14 +468,23 @@
 
                     <!-- Related Tours -->
                     <div class="card">
-                        <div class="card-header"><h6 class="mb-0">{% trans "Related Tours" %} <span class="opt">({% trans "optional" %})</span></h6></div>
+                        <div class="card-header"><h6 class="mb-0">{% trans "Related Tours" %} <span class="opt">({% trans "optional" %})</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Tours shown as suggestions on this tour page' %}"></i></h6></div>
                         <div class="card-body">
-                            <select name="related_trips" class="form-select" multiple size="5">
-                                {% for t in all_trips %}
-                                <option value="{{ t.pk }}" {% if t in trip.related_trips.all %}selected{% endif %}>{{ t.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <small class="text-muted">{% trans "Hold Ctrl/Cmd to select multiple." %}</small>
+                            <div class="dropdown w-100">
+                                <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="relatedToursDropdown">
+                                    <span id="relatedToursLabel">{% trans "Select tours..." %}</span>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="dropdown-menu w-100 p-2" style="max-height:250px;overflow-y:auto;">
+                                    <input type="text" class="form-control form-control-sm mb-2" placeholder="{% trans 'Search...' %}" onkeyup="filterRelatedTours(this.value)">
+                                    {% for t in all_trips %}
+                                    <div class="form-check related-tour-item">
+                                        <input type="checkbox" name="related_trips" value="{{ t.pk }}" class="form-check-input related-tour-cb" id="relTour{{ t.pk }}" {% if t in trip.related_trips.all %}checked{% endif %} onchange="updateRelatedLabel()">
+                                        <label class="form-check-label" for="relTour{{ t.pk }}">{{ t.name }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -587,12 +605,65 @@ function addCustomField() {
     document.getElementById('customFieldsList').insertAdjacentHTML('beforeend', `
         <div class="repeatable-item">
             <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-            <div class="row g-2">
-                <div class="col-md-4"><input type="text" name="custom_field_key[]" class="form-control" placeholder="Field name"></div>
-                <div class="col-md-8"><input type="text" name="custom_field_value[]" class="form-control" placeholder="Value"></div>
+            <div class="row g-2 align-items-center">
+                <div class="col-md-3"><input type="text" name="custom_field_key[]" class="form-control" placeholder="Field name"></div>
+                <div class="col-md-2">
+                    <select name="custom_field_type[]" class="form-select form-select-sm" onchange="updateCustomFieldInput(this)">
+                        <option value="text">Text</option>
+                        <option value="textarea">Textarea</option>
+                        <option value="number">Number</option>
+                        <option value="date">Date</option>
+                        <option value="select">Dropdown</option>
+                        <option value="checkbox">Checkbox</option>
+                    </select>
+                </div>
+                <div class="col-md-7 custom-field-input"><input type="text" name="custom_field_value[]" class="form-control" placeholder="Default value or options (comma-separated for dropdown)"></div>
             </div>
         </div>`);
 }
+
+function updateCustomFieldInput(sel) {
+    var container = sel.closest('.repeatable-item').querySelector('.custom-field-input');
+    var name = 'custom_field_value[]';
+    var val = container.querySelector('[name="' + name + '"]');
+    var oldVal = val ? val.value : '';
+    var type = sel.value;
+    if (type === 'textarea') {
+        container.innerHTML = '<textarea name="' + name + '" class="form-control" rows="2" placeholder="Default value">' + oldVal + '</textarea>';
+    } else if (type === 'number') {
+        container.innerHTML = '<input type="number" name="' + name + '" class="form-control" value="' + oldVal + '" placeholder="Default value">';
+    } else if (type === 'date') {
+        container.innerHTML = '<input type="date" name="' + name + '" class="form-control" value="' + oldVal + '">';
+    } else if (type === 'select') {
+        container.innerHTML = '<input type="text" name="' + name + '" class="form-control" value="' + oldVal + '" placeholder="Option 1, Option 2, Option 3">';
+    } else if (type === 'checkbox') {
+        container.innerHTML = '<input type="text" name="' + name + '" class="form-control" value="' + (oldVal || 'true') + '" placeholder="Checked value (e.g. Yes)">';
+    } else {
+        container.innerHTML = '<input type="text" name="' + name + '" class="form-control" value="' + oldVal + '" placeholder="Default value">';
+    }
+}
+
+function filterRelatedTours(query) {
+    var items = document.querySelectorAll('.related-tour-item');
+    var q = query.toLowerCase();
+    items.forEach(function(item) {
+        var label = item.querySelector('label').textContent.toLowerCase();
+        item.style.display = label.includes(q) ? '' : 'none';
+    });
+}
+
+function updateRelatedLabel() {
+    var checked = document.querySelectorAll('.related-tour-cb:checked');
+    var label = document.getElementById('relatedToursLabel');
+    if (checked.length === 0) {
+        label.textContent = '{% trans "Select tours..." %}';
+    } else {
+        var names = [];
+        checked.forEach(function(cb) { names.push(cb.nextElementSibling.textContent.trim()); });
+        label.textContent = names.join(', ');
+    }
+}
+updateRelatedLabel();
 
 // Thumbnail visual feedback
 document.querySelectorAll('input[name="thumbnail_image"]').forEach(r => {
