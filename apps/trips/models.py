@@ -225,6 +225,9 @@ class Trip(models.Model):
     is_featured = models.BooleanField(_('featured'), default=False)
     order = models.PositiveSmallIntegerField(_('display order'), default=0)
 
+    # Custom data (user-defined key/value pairs)
+    custom_data = models.JSONField(_('custom data'), default=dict, blank=True)
+
     # Timestamps
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)

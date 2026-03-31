@@ -15,27 +15,21 @@
 
 {% block extra_css %}
 <style>
-    .section-card { margin-bottom: 1rem; }
-    .section-card .card-header { cursor: pointer; user-select: none; }
-    .section-card .card-header:hover { background-color: #f8f9fa; }
-    .section-card .collapse-icon { transition: transform 0.2s; }
-    .section-card .collapsed .collapse-icon { transform: rotate(-90deg); }
     .repeatable-item {
         position: relative; padding: 1rem; border: 1px solid #dee2e6;
         border-radius: 0.375rem; margin-bottom: 0.5rem; background: #fff;
     }
     .repeatable-item .remove-item { position: absolute; top: 0.5rem; right: 0.5rem; }
-    .drag-handle { cursor: grab; color: #6c757d; }
     .image-preview { width: 100px; height: 75px; object-fit: cover; border-radius: 0.25rem; }
     .existing-image { display: inline-block; position: relative; margin: 0.25rem; }
-    .existing-image .remove-image {
-        position: absolute; top: -8px; right: -8px; width: 22px; height: 22px;
-        background: #dc3545; color: #fff; border: none; border-radius: 50%;
-        font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
     .featured-image-preview { max-width: 300px; max-height: 200px; border-radius: 0.5rem; }
     .thumbnail-selected { outline: 3px solid #0d6efd; outline-offset: 2px; border-radius: 0.25rem; }
     .tt { cursor: help; border-bottom: 1px dotted #6c757d; }
+    .req { color: #dc3545; font-weight: 600; }
+    .opt { color: #6c757d; font-size: 0.8em; font-weight: normal; }
+    .nav-tabs .nav-link { font-weight: 500; }
+    .nav-tabs .nav-link.active { border-bottom: 3px solid #0d6efd; }
+    .tab-pane .card { margin-bottom: 1rem; }
 </style>
 {% endblock %}
 
@@ -44,536 +38,514 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="update_trip">
 
-    <div class="row">
-        <div class="col-lg-8">
+    <!-- Status bar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-3">
+            {% if trip.status == 'draft' %}
+            <span class="badge bg-warning text-dark fs-6">{% trans "Draft" %}</span>
+            {% elif trip.status == 'published' %}
+            <span class="badge bg-success fs-6">{% trans "Published" %}</span>
+            {% else %}
+            <span class="badge bg-secondary fs-6">{% trans "Archived" %}</span>
+            {% endif %}
+            <small class="text-muted">{% trans "Created" %} {{ trip.created_at|date:"M d, Y" }} &middot; {% trans "Updated" %} {{ trip.updated_at|date:"M d, Y H:i" }}</small>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{% trans "Save Changes" %}
+        </button>
+    </div>
 
-            <!-- Basic Info -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#basicInfo">
-                    <h5 class="mb-0">{% trans "Basic Info" %}</h5>
-                    <div class="d-flex align-items-center gap-2">
-                        {% if trip.status == 'draft' %}
-                        <span class="badge bg-warning text-dark">{% trans "Draft" %}</span>
-                        {% elif trip.status == 'published' %}
-                        <span class="badge bg-success">{% trans "Published" %}</span>
-                        {% else %}
-                        <span class="badge bg-secondary">{% trans "Archived" %}</span>
-                        {% endif %}
-                        <i class="bi bi-chevron-down collapse-icon"></i>
-                    </div>
-                </div>
-                <div class="collapse show" id="basicInfo">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-8">
-                                <label class="form-label">{% trans "Title" %} * <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'The main name of the tour displayed to customers' %}"></i></label>
-                                <input type="text" name="name" class="form-control" value="{{ trip.name }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">{% trans "Status" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Draft: not visible. Published: live on site. Archived: hidden.' %}"></i></label>
-                                <select name="status" class="form-select">
-                                    {% for value, label in statuses %}
-                                    <option value="{{ value }}" {% if value == trip.status %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">{% trans "Trip Type" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Category of the tour (day trip, multi-day, excursion, etc.)' %}"></i></label>
-                                <select name="trip_type" class="form-select">
-                                    {% for value, label in trip_types %}
-                                    <option value="{{ value }}" {% if value == trip.trip_type %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">{% trans "Service Type" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Private: exclusive vehicle. Shared: join other travelers. Self-guided: no driver.' %}"></i></label>
-                                <select name="service_type" class="form-select">
-                                    {% for value, label in service_types %}
-                                    <option value="{{ value }}" {% if value == trip.service_type %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">{% trans "Driver Languages" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Comma-separated language codes (e.g. en,fr,ar)' %}"></i></label>
-                                <input type="text" name="driver_languages" class="form-control" value="{{ trip.driver_languages }}" placeholder="en,fr,ar">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">{% trans "Origin City" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Where the tour departs from' %}"></i></label>
-                                <input type="text" name="departure_location" class="form-control" value="{{ trip.departure_location }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">{% trans "Destinations" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Places visited during the trip, comma-separated' %}"></i></label>
-                                <input type="text" name="destinations" class="form-control" value="{{ trip.destinations }}">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">{% trans "Short Description" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Brief summary shown in tour listings (1-2 sentences)' %}"></i></label>
-                                <textarea name="short_description" class="form-control" rows="2">{{ trip.short_description }}</textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">{% trans "Full Description" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Detailed description shown on the tour detail page' %}"></i></label>
-                                <textarea name="description" class="form-control" rows="5">{{ trip.description }}</textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#tabMain" role="tab">
+                <i class="bi bi-pencil me-1"></i>{% trans "Main" %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#tabContent" role="tab">
+                <i class="bi bi-card-text me-1"></i>{% trans "Content" %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#tabSettings" role="tab">
+                <i class="bi bi-gear me-1"></i>{% trans "Settings" %}
+            </a>
+        </li>
+    </ul>
 
-            <!-- Duration & Capacity -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#durationCapacity">
-                    <h5 class="mb-0">{% trans "Duration & Capacity" %}</h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
-                </div>
-                <div class="collapse show" id="durationCapacity">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label">{% trans "Duration (hours)" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Total tour duration in hours (for day trips)' %}"></i></label>
-                                <input type="number" name="duration_hours" class="form-control" min="0" value="{{ trip.duration_hours|default:'' }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">{% trans "Duration (days)" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Number of days (for multi-day tours)' %}"></i></label>
-                                <input type="number" name="duration_days" class="form-control" min="0" value="{{ trip.duration_days }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">{% trans "Min Travelers" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Minimum number of travelers required to run the tour' %}"></i></label>
-                                <input type="number" name="min_participants" class="form-control" min="1" value="{{ trip.min_participants }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">{% trans "Max Travelers" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Maximum group size. Must be greater than or equal to min.' %}"></i></label>
-                                <input type="number" name="max_participants" class="form-control" min="1" value="{{ trip.max_participants }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="tab-content">
 
-            <!-- Pricing -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#pricingSection">
-                    <h5 class="mb-0">{% trans "Pricing" %}</h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
-                </div>
-                <div class="collapse show" id="pricingSection">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">{% trans "Pricing Model" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Per Person: individual price. Per Group: flat rate. Tiered: price varies by group size.' %}"></i></label>
-                                <select name="pricing_model" class="form-select" id="pricingModelSelect">
-                                    {% for value, label in pricing_models %}
-                                    <option value="{{ value }}" {% if value == trip.pricing_model %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">{% trans "Currency" %}</label>
-                                <select name="currency" class="form-select">
-                                    <option value="MAD" {% if trip.currency == 'MAD' %}selected{% endif %}>MAD</option>
-                                    <option value="EUR" {% if trip.currency == 'EUR' %}selected{% endif %}>EUR</option>
-                                    <option value="USD" {% if trip.currency == 'USD' %}selected{% endif %}>USD</option>
-                                    <option value="GBP" {% if trip.currency == 'GBP' %}selected{% endif %}>GBP</option>
-                                </select>
-                            </div>
-                            <div id="perPersonPricing">
-                                <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <label class="form-label">{% trans "Price per Person" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Base adult price per person' %}"></i></label>
-                                        <input type="number" name="price_per_person" class="form-control" step="0.01" min="0" value="{{ trip.price_per_person|default:'' }}">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">{% trans "Child Price" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Discounted price for children (typically under 12)' %}"></i></label>
-                                        <input type="number" name="child_price" class="form-control" step="0.01" min="0" value="{{ trip.child_price|default:'' }}">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">{% trans "Private Tour Price" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Fixed price for booking as a private tour' %}"></i></label>
-                                        <input type="number" name="private_tour_price" class="form-control" step="0.01" min="0" value="{{ trip.private_tour_price|default:'' }}">
-                                    </div>
+        <!-- ==================== TAB 1: MAIN ==================== -->
+        <div class="tab-pane fade show active" id="tabMain" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-8">
+
+                    <!-- Title & Type -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">{% trans "Title" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'The main name displayed to customers' %}"></i></label>
+                                    <input type="text" name="name" class="form-control" value="{{ trip.name }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{% trans "Status" %} <span class="req">*</span></label>
+                                    <select name="status" class="form-select">
+                                        {% for value, label in statuses %}
+                                        <option value="{{ value }}" {% if value == trip.status %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Trip Type" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Day trip, multi-day, excursion, etc.' %}"></i></label>
+                                    <select name="trip_type" class="form-select">
+                                        {% for value, label in trip_types %}
+                                        <option value="{{ value }}" {% if value == trip.trip_type %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Service Type" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Private: exclusive. Shared: join others. Self-guided: no driver.' %}"></i></label>
+                                    <select name="service_type" class="form-select">
+                                        {% for value, label in service_types %}
+                                        <option value="{{ value }}" {% if value == trip.service_type %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Origin City" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Where the tour departs from' %}"></i></label>
+                                    <input type="text" name="departure_location" class="form-control" value="{{ trip.departure_location }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">{% trans "Short Description" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Brief summary shown in tour listings (1-2 sentences)' %}"></i></label>
+                                    <textarea name="short_description" class="form-control" rows="2" required>{{ trip.short_description }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">{% trans "Full Description" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Detailed description on the tour detail page' %}"></i></label>
+                                    <textarea name="description" class="form-control" rows="5">{{ trip.description }}</textarea>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Price Tiers (for tiered pricing) -->
-                        <div id="tieredPricing" class="mt-3" {% if trip.pricing_model != 'tiered' %}style="display:none"{% endif %}>
-                            <label class="form-label fw-bold">{% trans "Price Tiers" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Define different prices based on group size ranges' %}"></i></label>
-                            <div id="tiersList">
-                                {% for tier in trip.price_tiers.all %}
-                                <div class="repeatable-item">
-                                    <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-                                    <div class="row g-2">
-                                        <div class="col-md-3">
-                                            <input type="text" name="tier_name[]" class="form-control" value="{{ tier.name }}" placeholder="{% trans 'Tier name' %}">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="input-group">
-                                                <input type="number" name="tier_min[]" class="form-control" min="1" value="{{ tier.min_travelers }}" placeholder="{% trans 'Min' %}">
-                                                <span class="input-group-text">-</span>
-                                                <input type="number" name="tier_max[]" class="form-control" min="1" value="{{ tier.max_travelers }}" placeholder="{% trans 'Max' %}">
+                    <!-- Duration & Capacity -->
+                    <div class="card">
+                        <div class="card-header"><h6 class="mb-0">{% trans "Duration & Capacity" %}</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">{% trans "Hours" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Total tour duration in hours' %}"></i></label>
+                                    <input type="number" name="duration_hours" class="form-control" min="0" value="{{ trip.duration_hours|default:'' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">{% trans "Days" %} <span class="opt">({% trans "optional" %})</span></label>
+                                    <input type="number" name="duration_days" class="form-control" min="0" value="{{ trip.duration_days }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">{% trans "Min Travelers" %} <span class="req">*</span></label>
+                                    <input type="number" name="min_participants" class="form-control" min="1" value="{{ trip.min_participants }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">{% trans "Max Travelers" %} <span class="req">*</span></label>
+                                    <input type="number" name="max_participants" class="form-control" min="1" value="{{ trip.max_participants }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing -->
+                    <div class="card">
+                        <div class="card-header"><h6 class="mb-0">{% trans "Pricing" %}</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">{% trans "Pricing Model" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Per Person: individual price. Per Group: flat rate. Tiered: varies by group size.' %}"></i></label>
+                                    <select name="pricing_model" class="form-select" id="pricingModelSelect">
+                                        {% for value, label in pricing_models %}
+                                        <option value="{{ value }}" {% if value == trip.pricing_model %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{% trans "Currency" %} <span class="req">*</span></label>
+                                    <select name="currency" class="form-select">
+                                        <option value="MAD" {% if trip.currency == 'MAD' %}selected{% endif %}>MAD</option>
+                                        <option value="EUR" {% if trip.currency == 'EUR' %}selected{% endif %}>EUR</option>
+                                        <option value="USD" {% if trip.currency == 'USD' %}selected{% endif %}>USD</option>
+                                        <option value="GBP" {% if trip.currency == 'GBP' %}selected{% endif %}>GBP</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="perPersonPricing" class="row g-3 mt-1">
+                                <div class="col-md-4">
+                                    <label class="form-label">{% trans "Price per Person" %} <span class="req">*</span></label>
+                                    <input type="number" name="price_per_person" class="form-control" step="0.01" min="0" value="{{ trip.price_per_person|default:'' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{% trans "Child Price" %} <span class="opt">({% trans "optional" %})</span></label>
+                                    <input type="number" name="child_price" class="form-control" step="0.01" min="0" value="{{ trip.child_price|default:'' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{% trans "Private Tour Price" %} <span class="opt">({% trans "optional" %})</span></label>
+                                    <input type="number" name="private_tour_price" class="form-control" step="0.01" min="0" value="{{ trip.private_tour_price|default:'' }}">
+                                </div>
+                            </div>
+
+                            <!-- Price Tiers -->
+                            <div id="tieredPricing" class="mt-3" {% if trip.pricing_model != 'tiered' %}style="display:none"{% endif %}>
+                                <label class="form-label fw-bold">{% trans "Price Tiers" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Different prices based on group size' %}"></i></label>
+                                <div id="tiersList">
+                                    {% for tier in trip.price_tiers.all %}
+                                    <div class="repeatable-item">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+                                        <div class="row g-2">
+                                            <div class="col-md-3">
+                                                <input type="text" name="tier_name[]" class="form-control" value="{{ tier.name }}" placeholder="{% trans 'Tier name' %}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="input-group">
+                                                    <input type="number" name="tier_min[]" class="form-control" min="1" value="{{ tier.min_travelers }}">
+                                                    <span class="input-group-text">-</span>
+                                                    <input type="number" name="tier_max[]" class="form-control" min="1" value="{{ tier.max_travelers }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <input type="number" name="tier_price[]" class="form-control" step="0.01" min="0" value="{{ tier.price_per_person }}" placeholder="{% trans 'Price' %}">
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
-                                            <input type="number" name="tier_price[]" class="form-control" step="0.01" min="0" value="{{ tier.price_per_person }}" placeholder="{% trans 'Price/person' %}">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addPriceTier()">
+                                    <i class="bi bi-plus me-1"></i>{% trans "Add Tier" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Featured Image -->
+                    <div class="card">
+                        <div class="card-header"><h6 class="mb-0">{% trans "Featured Image" %} <span class="req">*</span></h6></div>
+                        <div class="card-body">
+                            {% if trip.featured_image %}
+                            <div class="mb-2">
+                                <img src="{{ trip.featured_image.url }}" class="featured-image-preview" alt="{{ trip.name }}">
+                            </div>
+                            {% endif %}
+                            <input type="file" name="featured_image" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+
+                    <!-- Gallery -->
+                    <div class="card">
+                        <div class="card-header"><h6 class="mb-0">{% trans "Gallery" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.images.count }}</span></h6></div>
+                        <div class="card-body">
+                            {% if trip.images.all %}
+                            <div class="mb-3">
+                                {% for img in trip.images.all %}
+                                <div class="existing-image">
+                                    <img src="{{ img.image.url }}" class="image-preview {% if img.is_thumbnail %}thumbnail-selected{% endif %}" alt="{{ img.alt_text }}">
+                                    <div class="d-flex gap-2 mt-1">
+                                        <div class="form-check">
+                                            <input type="radio" name="thumbnail_image" value="{{ img.id }}" class="form-check-input" {% if img.is_thumbnail %}checked{% endif %}>
+                                            <label class="form-check-label small">{% trans "Thumb" %}</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" name="delete_image_{{ img.id }}" class="form-check-input">
+                                            <label class="form-check-label small text-danger">{% trans "Del" %}</label>
                                         </div>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addPriceTier()">
-                                <i class="bi bi-plus me-1"></i>{% trans "Add Price Tier" %}
-                            </button>
+                            {% endif %}
+                            <input type="file" name="gallery_images" class="form-control" accept="image/*" multiple>
+                        </div>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="mb-1"><small class="text-muted">{% trans "Slug" %}:</small> <code>{{ trip.slug }}</code></p>
+                            <p class="mb-0"><small class="text-muted">{% trans "ID" %}:</small> {{ trip.pk }}</p>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- ==================== TAB 2: CONTENT ==================== -->
+        <div class="tab-pane fade" id="tabContent" role="tabpanel">
 
             <!-- Inclusions / Exclusions -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#inclExcl">
-                    <h5 class="mb-0">{% trans "Inclusions & Exclusions" %}</h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
-                </div>
-                <div class="collapse show" id="inclExcl">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">{% trans "Inclusions" %} <small class="text-muted">({% trans "one per line" %})</small> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'What is included in the tour price (meals, transport, tickets, etc.)' %}"></i></label>
-                                <textarea name="inclusions" class="form-control" rows="5">{{ trip.inclusions }}</textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">{% trans "Exclusions" %} <small class="text-muted">({% trans "one per line" %})</small> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'What is NOT included (personal expenses, tips, optional activities, etc.)' %}"></i></label>
-                                <textarea name="exclusions" class="form-control" rows="5">{{ trip.exclusions }}</textarea>
-                            </div>
+            <div class="card">
+                <div class="card-header"><h6 class="mb-0">{% trans "Inclusions & Exclusions" %} <span class="opt">({% trans "optional" %})</span></h6></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Inclusions" %} <small class="text-muted">({% trans "one per line" %})</small> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'What is included: meals, transport, tickets, etc.' %}"></i></label>
+                            <textarea name="inclusions" class="form-control" rows="4">{{ trip.inclusions }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Exclusions" %} <small class="text-muted">({% trans "one per line" %})</small> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'What is NOT included: personal expenses, tips, etc.' %}"></i></label>
+                            <textarea name="exclusions" class="form-control" rows="4">{{ trip.exclusions }}</textarea>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Highlights -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#highlightsSection">
-                    <h5 class="mb-0">{% trans "Highlights" %} <span class="badge bg-primary ms-2">{{ trip.highlights.count }}</span></h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{% trans "Highlights" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.highlights.count }}</span></h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addHighlight()"><i class="bi bi-plus me-1"></i>{% trans "Add" %}</button>
                 </div>
-                <div class="collapse show" id="highlightsSection">
-                    <div class="card-body">
-                        <div id="highlightsList">
-                            {% for hl in trip.highlights.all %}
-                            <div class="repeatable-item">
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-                                <div class="row g-2">
-                                    <div class="col-md-2">
-                                        <input type="text" name="highlight_icon[]" class="form-control" value="{{ hl.icon }}" placeholder="bi-check-circle">
-                                    </div>
-                                    <div class="col-md-10">
-                                        <input type="text" name="highlight_text[]" class="form-control" value="{{ hl.text }}" placeholder="{% trans 'Highlight text' %}">
-                                    </div>
+                <div class="card-body">
+                    <div id="highlightsList">
+                        {% for hl in trip.highlights.all %}
+                        <div class="repeatable-item">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+                            <div class="row g-2">
+                                <div class="col-md-2">
+                                    <input type="text" name="highlight_icon[]" class="form-control form-control-sm" value="{{ hl.icon }}" placeholder="bi-check-circle">
+                                </div>
+                                <div class="col-md-10">
+                                    <input type="text" name="highlight_text[]" class="form-control" value="{{ hl.text }}">
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addHighlight()">
-                            <i class="bi bi-plus me-1"></i>{% trans "Add Highlight" %}
-                        </button>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <!-- Itinerary Stops -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#itinerarySection">
-                    <h5 class="mb-0">{% trans "Itinerary" %} <span class="badge bg-primary ms-2">{{ trip.itinerary_stops.count }}</span></h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
+            <!-- Itinerary -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{% trans "Itinerary" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.itinerary_stops.count }}</span></h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addItineraryStop()"><i class="bi bi-plus me-1"></i>{% trans "Add Stop" %}</button>
                 </div>
-                <div class="collapse show" id="itinerarySection">
-                    <div class="card-body">
-                        <div id="itineraryList">
-                            {% for stop in trip.itinerary_stops.all %}
-                            <div class="repeatable-item">
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-                                <div class="row g-2">
-                                    <div class="col-md-5">
-                                        <input type="text" name="stop_name[]" class="form-control" value="{{ stop.name }}" placeholder="{% trans 'Stop name' %}">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <select name="stop_type[]" class="form-select">
-                                            <option value="start" {% if stop.stop_type == 'start' %}selected{% endif %}>{% trans "Start" %}</option>
-                                            <option value="stop" {% if stop.stop_type == 'stop' %}selected{% endif %}>{% trans "Stop" %}</option>
-                                            <option value="end" {% if stop.stop_type == 'end' %}selected{% endif %}>{% trans "End" %}</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <input type="number" name="stop_duration[]" class="form-control" min="0" value="{{ stop.duration_minutes|default:'' }}" placeholder="{% trans 'Min' %}">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <input type="text" name="stop_location[]" class="form-control" value="{{ stop.location }}" placeholder="{% trans 'Location' %}">
-                                    </div>
-                                    <div class="col-12">
-                                        <textarea name="stop_description[]" class="form-control" rows="2" placeholder="{% trans 'Description' %}">{{ stop.description }}</textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="d-flex gap-3">
-                                            <div class="form-check">
-                                                <input type="checkbox" name="stop_admission_{{ forloop.counter0 }}" class="form-check-input" id="stopAdm{{ forloop.counter0 }}" {% if stop.has_admission %}checked{% endif %}>
-                                                <label class="form-check-label" for="stopAdm{{ forloop.counter0 }}">{% trans "Admission included" %}</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input type="checkbox" name="stop_flexibility_{{ forloop.counter0 }}" class="form-check-input" id="stopFlex{{ forloop.counter0 }}" {% if stop.pickup_flexibility %}checked{% endif %}>
-                                                <label class="form-check-label" for="stopFlex{{ forloop.counter0 }}">{% trans "Flexible pickup" %}</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input type="checkbox" name="stop_same_as_start_{{ forloop.counter0 }}" class="form-check-input" id="stopSame{{ forloop.counter0 }}" {% if stop.same_as_start %}checked{% endif %}>
-                                                <label class="form-check-label" for="stopSame{{ forloop.counter0 }}">{% trans "Same as start" %}</label>
-                                            </div>
+                <div class="card-body">
+                    <div id="itineraryList">
+                        {% for stop in trip.itinerary_stops.all %}
+                        <div class="repeatable-item">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+                            <div class="row g-2">
+                                <div class="col-md-5">
+                                    <input type="text" name="stop_name[]" class="form-control" value="{{ stop.name }}" placeholder="{% trans 'Stop name' %}">
+                                </div>
+                                <div class="col-md-3">
+                                    <select name="stop_type[]" class="form-select">
+                                        <option value="start" {% if stop.stop_type == 'start' %}selected{% endif %}>{% trans "Start" %}</option>
+                                        <option value="stop" {% if stop.stop_type == 'stop' %}selected{% endif %}>{% trans "Stop" %}</option>
+                                        <option value="end" {% if stop.stop_type == 'end' %}selected{% endif %}>{% trans "End" %}</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" name="stop_duration[]" class="form-control" min="0" value="{{ stop.duration_minutes|default:'' }}" placeholder="{% trans 'Min' %}">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" name="stop_location[]" class="form-control" value="{{ stop.location }}" placeholder="{% trans 'Location' %}">
+                                </div>
+                                <div class="col-12">
+                                    <textarea name="stop_description[]" class="form-control" rows="2" placeholder="{% trans 'Description' %}">{{ stop.description }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex gap-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="stop_admission_{{ forloop.counter0 }}" class="form-check-input" {% if stop.has_admission %}checked{% endif %}>
+                                            <label class="form-check-label small">{% trans "Admission incl." %}</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" name="stop_flexibility_{{ forloop.counter0 }}" class="form-check-input" {% if stop.pickup_flexibility %}checked{% endif %}>
+                                            <label class="form-check-label small">{% trans "Flexible pickup" %}</label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addItineraryStop()">
-                            <i class="bi bi-plus me-1"></i>{% trans "Add Stop" %}
-                        </button>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
 
             <!-- FAQs -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#faqSection">
-                    <h5 class="mb-0">{% trans "FAQs" %} <span class="badge bg-primary ms-2">{{ trip.faqs.count }}</span></h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{% trans "FAQs" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.faqs.count }}</span></h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFAQ()"><i class="bi bi-plus me-1"></i>{% trans "Add FAQ" %}</button>
                 </div>
-                <div class="collapse show" id="faqSection">
-                    <div class="card-body">
-                        <div id="faqList">
-                            {% for faq in trip.faqs.all %}
-                            <div class="repeatable-item">
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-                                <div class="row g-2">
-                                    <div class="col-12">
-                                        <input type="text" name="faq_question[]" class="form-control" value="{{ faq.question }}" placeholder="{% trans 'Question' %}">
-                                    </div>
-                                    <div class="col-12">
-                                        <textarea name="faq_answer[]" class="form-control" rows="2" placeholder="{% trans 'Answer' %}">{{ faq.answer }}</textarea>
-                                    </div>
+                <div class="card-body">
+                    <div id="faqList">
+                        {% for faq in trip.faqs.all %}
+                        <div class="repeatable-item">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <input type="text" name="faq_question[]" class="form-control" value="{{ faq.question }}" placeholder="{% trans 'Question' %}">
+                                </div>
+                                <div class="col-12">
+                                    <textarea name="faq_answer[]" class="form-control" rows="2" placeholder="{% trans 'Answer' %}">{{ faq.answer }}</textarea>
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addFAQ()">
-                            <i class="bi bi-plus me-1"></i>{% trans "Add FAQ" %}
-                        </button>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <!-- Content Blocks (What to Expect) -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#contentBlocksSection">
-                    <h5 class="mb-0">{% trans "What to Expect" %} <span class="badge bg-primary ms-2">{{ trip.content_blocks.count }}</span></h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
+            <!-- What to Expect (Content Blocks) -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{% trans "What to Expect" %} <span class="opt">({% trans "optional" %})</span> <span class="badge bg-primary ms-1">{{ trip.content_blocks.count }}</span></h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addContentBlock()"><i class="bi bi-plus me-1"></i>{% trans "Add Block" %}</button>
                 </div>
-                <div class="collapse show" id="contentBlocksSection">
-                    <div class="card-body">
-                        <div id="contentBlocksList">
-                            {% for block in trip.content_blocks.all %}
-                            <div class="repeatable-item">
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-                                <div class="row g-2">
-                                    <div class="col-12">
-                                        <input type="text" name="block_title[]" class="form-control" value="{{ block.title }}" placeholder="{% trans 'Block title' %}">
-                                    </div>
-                                    <div class="col-12">
-                                        <textarea name="block_content[]" class="form-control" rows="3" placeholder="{% trans 'Content' %}">{{ block.content }}</textarea>
-                                    </div>
+                <div class="card-body">
+                    <div id="contentBlocksList">
+                        {% for block in trip.content_blocks.all %}
+                        <div class="repeatable-item">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <input type="text" name="block_title[]" class="form-control" value="{{ block.title }}" placeholder="{% trans 'Title' %}">
+                                </div>
+                                <div class="col-12">
+                                    <textarea name="block_content[]" class="form-control" rows="3" placeholder="{% trans 'Content' %}">{{ block.content }}</textarea>
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addContentBlock()">
-                            <i class="bi bi-plus me-1"></i>{% trans "Add Content Block" %}
-                        </button>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <!-- Policies -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#policiesSection">
-                    <h5 class="mb-0">{% trans "Policies" %}</h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
+            <!-- Custom Fields -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{% trans "Custom Fields" %} <span class="opt">({% trans "optional" %})</span></h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomField()"><i class="bi bi-plus me-1"></i>{% trans "Add Field" %}</button>
                 </div>
-                <div class="collapse" id="policiesSection">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">{% trans "Cancellation Policy" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Determines the refund rules when a customer cancels' %}"></i></label>
-                                <select name="cancellation_policy" class="form-select">
-                                    {% for value, label in cancellation_policies %}
-                                    <option value="{{ value }}" {% if value == trip.cancellation_policy %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">{% trans "Booking Notice (hours)" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Minimum hours before departure that bookings are accepted' %}"></i></label>
-                                <input type="number" name="booking_notice_hours" class="form-control" min="0" value="{{ trip.booking_notice_hours }}">
-                            </div>
-                            <div class="col-md-4 d-flex align-items-end">
-                                <div class="form-check">
-                                    <input type="checkbox" name="instant_confirmation" class="form-check-input" id="instantConfirm" {% if trip.instant_confirmation %}checked{% endif %}>
-                                    <label class="form-check-label" for="instantConfirm">{% trans "Instant Confirmation" %}</label>
+                <div class="card-body">
+                    <small class="text-muted d-block mb-2">{% trans "Add any extra information not covered by the standard fields above." %}</small>
+                    <div id="customFieldsList">
+                        {% if trip.custom_data %}
+                        {% for key, value in trip.custom_data.items %}
+                        <div class="repeatable-item">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <input type="text" name="custom_field_key[]" class="form-control" value="{{ key }}" placeholder="{% trans 'Field name' %}">
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" name="custom_field_value[]" class="form-control" value="{{ value }}" placeholder="{% trans 'Value' %}">
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">{% trans "Child Policy" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Age limits and rules for children on this tour' %}"></i></label>
-                                <textarea name="child_policy" class="form-control" rows="2">{{ trip.child_policy }}</textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">{% trans "Accessibility Info" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Wheelchair access, mobility requirements, fitness level needed' %}"></i></label>
-                                <textarea name="accessibility_info" class="form-control" rows="2">{{ trip.accessibility_info }}</textarea>
-                            </div>
                         </div>
+                        {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
-            </div>
-
-            <!-- SEO -->
-            <div class="card section-card">
-                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#seoSection">
-                    <h5 class="mb-0">{% trans "SEO" %}</h5>
-                    <i class="bi bi-chevron-down collapse-icon"></i>
-                </div>
-                <div class="collapse" id="seoSection">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label">{% trans "Meta Title" %} <small class="text-muted">({% trans "max 70 chars" %})</small> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Title shown in search engine results. Leave blank to use tour name.' %}"></i></label>
-                                <input type="text" name="meta_title" class="form-control" maxlength="70" value="{{ trip.meta_title }}">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">{% trans "Meta Description" %} <small class="text-muted">({% trans "max 160 chars" %})</small> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Description shown in search engine results below the title' %}"></i></label>
-                                <textarea name="meta_description" class="form-control" rows="2" maxlength="160">{{ trip.meta_description }}</textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">{% trans "Meta Keywords" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Comma-separated keywords for SEO (e.g. morocco tour, agadir excursion)' %}"></i></label>
-                                <input type="text" name="meta_keywords" class="form-control" value="{{ trip.meta_keywords }}" placeholder="{% trans 'Comma-separated keywords' %}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-3 mb-4">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="bi bi-check-lg me-2"></i>{% trans "Save Changes" %}
-                </button>
             </div>
         </div>
 
-        <!-- Sidebar -->
-        <div class="col-lg-4">
+        <!-- ==================== TAB 3: SETTINGS ==================== -->
+        <div class="tab-pane fade" id="tabSettings" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-8">
 
-            <!-- Quick Info -->
-            <div class="card mb-3">
-                <div class="card-header"><h6 class="mb-0">{% trans "Quick Info" %}</h6></div>
-                <div class="card-body">
-                    <p class="mb-2"><strong>{% trans "Slug" %}:</strong> {{ trip.slug }}</p>
-                    <p class="mb-2"><strong>{% trans "Type" %}:</strong> {{ trip.get_trip_type_display }}</p>
-                    <p class="mb-2"><strong>{% trans "Service" %}:</strong> {{ trip.get_service_type_display }}</p>
-                    <p class="mb-2"><strong>{% trans "Cancellation" %}:</strong> {{ trip.get_cancellation_policy_display }}</p>
-                    <p class="mb-2"><strong>{% trans "Created" %}:</strong> {{ trip.created_at|date:"M d, Y" }}</p>
-                    <p class="mb-0"><strong>{% trans "Updated" %}:</strong> {{ trip.updated_at|date:"M d, Y H:i" }}</p>
-                </div>
-            </div>
-
-            <!-- Featured / Active -->
-            <div class="card mb-3">
-                <div class="card-header"><h6 class="mb-0">{% trans "Visibility" %}</h6></div>
-                <div class="card-body">
-                    <div class="form-check mb-2">
-                        <input type="checkbox" name="is_featured" class="form-check-input" id="isFeatured" {% if trip.is_featured %}checked{% endif %}>
-                        <label class="form-check-label" for="isFeatured">{% trans "Featured Tour" %}</label>
-                    </div>
-                    <div>
-                        <label class="form-label">{% trans "Display Order" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Lower numbers appear first in listings' %}"></i></label>
-                        <input type="number" name="order" class="form-control" value="{{ trip.order }}">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Related Tours -->
-            <div class="card mb-3">
-                <div class="card-header"><h6 class="mb-0">{% trans "Related Tours" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Tours shown as suggestions on this tour detail page' %}"></i></h6></div>
-                <div class="card-body">
-                    <select name="related_trips" class="form-select" multiple size="5">
-                        {% for t in all_trips %}
-                        <option value="{{ t.pk }}" {% if t in trip.related_trips.all %}selected{% endif %}>{{ t.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="text-muted">{% trans "Hold Ctrl/Cmd to select multiple" %}</small>
-                </div>
-            </div>
-
-            <!-- Featured Image -->
-            <div class="card mb-3">
-                <div class="card-header"><h6 class="mb-0">{% trans "Featured Image" %}</h6></div>
-                <div class="card-body">
-                    {% if trip.featured_image %}
-                    <div class="mb-2">
-                        <img src="{{ trip.featured_image.url }}" class="featured-image-preview" alt="{{ trip.name }}">
-                    </div>
-                    {% endif %}
-                    <input type="file" name="featured_image" class="form-control" accept="image/*">
-                </div>
-            </div>
-
-            <!-- Gallery Images -->
-            <div class="card mb-3">
-                <div class="card-header"><h6 class="mb-0">{% trans "Gallery" %} <span class="badge bg-primary ms-2">{{ trip.images.count }}</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Select one image as thumbnail. Check Delete to remove images.' %}"></i></h6></div>
-                <div class="card-body">
-                    {% if trip.images.all %}
-                    <div class="mb-3">
-                        {% for img in trip.images.all %}
-                        <div class="existing-image">
-                            <img src="{{ img.image.url }}" class="image-preview {% if img.is_thumbnail %}thumbnail-selected{% endif %}" alt="{{ img.alt_text }}">
-                            <div class="d-flex gap-2 mt-1">
-                                <div class="form-check">
-                                    <input type="radio" name="thumbnail_image" value="{{ img.id }}" class="form-check-input" id="thumb{{ img.id }}" {% if img.is_thumbnail %}checked{% endif %}>
-                                    <label class="form-check-label small" for="thumb{{ img.id }}">{% trans "Thumb" %}</label>
+                    <!-- Cancellation Policy -->
+                    <div class="card">
+                        <div class="card-header"><h6 class="mb-0">{% trans "Cancellation Policy" %}</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Policy" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Determines the refund rules when a customer cancels' %}"></i></label>
+                                    <select name="cancellation_policy" class="form-select">
+                                        {% for value, label in cancellation_policies %}
+                                        <option value="{{ value }}" {% if value == trip.cancellation_policy %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
-                                <div class="form-check">
-                                    <input type="checkbox" name="delete_image_{{ img.id }}" class="form-check-input" id="delImg{{ img.id }}">
-                                    <label class="form-check-label small text-danger" for="delImg{{ img.id }}">{% trans "Delete" %}</label>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="instant_confirmation" class="form-check-input" id="instantConfirm" {% if trip.instant_confirmation %}checked{% endif %}>
+                                        <label class="form-check-label" for="instantConfirm">{% trans "Instant Confirmation" %}</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% endif %}
-                    <label class="form-label">{% trans "Add Images" %}</label>
-                    <input type="file" name="gallery_images" class="form-control" accept="image/*" multiple>
-                </div>
-            </div>
 
-            <!-- Danger Zone -->
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white"><h6 class="mb-0">{% trans "Danger Zone" %}</h6></div>
-                <div class="card-body">
-                    <p class="text-muted mb-3">{% trans "Delete this tour permanently." %}</p>
+                    <!-- Visibility & Display -->
+                    <div class="card">
+                        <div class="card-header"><h6 class="mb-0">{% trans "Visibility" %}</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="is_featured" class="form-check-input" id="isFeatured" {% if trip.is_featured %}checked{% endif %}>
+                                        <label class="form-check-label" for="isFeatured">{% trans "Featured Tour" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Shows a Featured badge and appears first in listings' %}"></i></label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{% trans "Display Order" %} <span class="opt">({% trans "optional" %})</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Lower numbers appear first' %}"></i></label>
+                                    <input type="number" name="order" class="form-control" value="{{ trip.order }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Tours -->
+                    <div class="card">
+                        <div class="card-header"><h6 class="mb-0">{% trans "Related Tours" %} <span class="opt">({% trans "optional" %})</span></h6></div>
+                        <div class="card-body">
+                            <select name="related_trips" class="form-select" multiple size="5">
+                                {% for t in all_trips %}
+                                <option value="{{ t.pk }}" {% if t in trip.related_trips.all %}selected{% endif %}>{{ t.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">{% trans "Hold Ctrl/Cmd to select multiple. These appear as suggestions on the tour page." %}</small>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Danger Zone -->
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white"><h6 class="mb-0">{% trans "Danger Zone" %}</h6></div>
+                        <div class="card-body">
+                            <p class="text-muted mb-2 small">{% trans "Permanently delete this tour and all its data." %}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+
+    </div><!-- /tab-content -->
+
+    <!-- Sticky save bar -->
+    <div class="sticky-bottom bg-white border-top py-3 mt-3" style="z-index:10;">
+        <div class="container-fluid d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-lg me-1"></i>{% trans "Save Changes" %}
+            </button>
         </div>
     </div>
 </form>
 
 <!-- Delete form (separate) -->
-<form method="post" id="deleteForm" onsubmit="return confirm('{% trans "Are you sure you want to delete this tour?" %}');">
+<form method="post" id="deleteForm" onsubmit="return confirm('{% trans "Are you sure?" %}');">
     {% csrf_token %}
     <input type="hidden" name="action" value="delete_trip">
-    <div class="col-lg-4 offset-lg-8">
-        <button type="submit" class="btn btn-danger btn-sm mt-2">
-            <i class="bi bi-trash me-2"></i>{% trans "Delete Tour" %}
-        </button>
-    </div>
+    <button type="submit" class="btn btn-danger btn-sm mt-2">
+        <i class="bi bi-trash me-1"></i>{% trans "Delete Tour" %}
+    </button>
 </form>
 {% endblock %}
 
@@ -582,163 +554,104 @@
 let stopIndex = {{ trip.itinerary_stops.count }};
 
 function addHighlight() {
-    const list = document.getElementById('highlightsList');
-    const item = document.createElement('div');
-    item.className = 'repeatable-item';
-    item.innerHTML = `
-        <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-        <div class="row g-2">
-            <div class="col-md-2">
-                <input type="text" name="highlight_icon[]" class="form-control" value="bi-check-circle" placeholder="Icon">
+    document.getElementById('highlightsList').insertAdjacentHTML('beforeend', `
+        <div class="repeatable-item">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+            <div class="row g-2">
+                <div class="col-md-2"><input type="text" name="highlight_icon[]" class="form-control form-control-sm" value="bi-check-circle"></div>
+                <div class="col-md-10"><input type="text" name="highlight_text[]" class="form-control" placeholder="Highlight text"></div>
             </div>
-            <div class="col-md-10">
-                <input type="text" name="highlight_text[]" class="form-control" placeholder="Highlight text">
-            </div>
-        </div>`;
-    list.appendChild(item);
+        </div>`);
 }
 
 function addItineraryStop() {
-    const list = document.getElementById('itineraryList');
-    const item = document.createElement('div');
     const idx = stopIndex++;
-    item.className = 'repeatable-item';
-    item.innerHTML = `
-        <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-        <div class="row g-2">
-            <div class="col-md-5">
-                <input type="text" name="stop_name[]" class="form-control" placeholder="Stop name">
-            </div>
-            <div class="col-md-3">
-                <select name="stop_type[]" class="form-select">
-                    <option value="start">Start</option>
-                    <option value="stop" selected>Stop</option>
-                    <option value="end">End</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <input type="number" name="stop_duration[]" class="form-control" min="0" placeholder="Min">
-            </div>
-            <div class="col-md-2">
-                <input type="text" name="stop_location[]" class="form-control" placeholder="Location">
-            </div>
-            <div class="col-12">
-                <textarea name="stop_description[]" class="form-control" rows="2" placeholder="Description"></textarea>
-            </div>
-            <div class="col-12">
-                <div class="d-flex gap-3">
-                    <div class="form-check">
-                        <input type="checkbox" name="stop_admission_${idx}" class="form-check-input" id="stopAdm${idx}">
-                        <label class="form-check-label" for="stopAdm${idx}">Admission included</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="stop_flexibility_${idx}" class="form-check-input" id="stopFlex${idx}">
-                        <label class="form-check-label" for="stopFlex${idx}">Flexible pickup</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="stop_same_as_start_${idx}" class="form-check-input" id="stopSame${idx}">
-                        <label class="form-check-label" for="stopSame${idx}">Same as start</label>
+    document.getElementById('itineraryList').insertAdjacentHTML('beforeend', `
+        <div class="repeatable-item">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+            <div class="row g-2">
+                <div class="col-md-5"><input type="text" name="stop_name[]" class="form-control" placeholder="Stop name"></div>
+                <div class="col-md-3">
+                    <select name="stop_type[]" class="form-select">
+                        <option value="start">Start</option><option value="stop" selected>Stop</option><option value="end">End</option>
+                    </select>
+                </div>
+                <div class="col-md-2"><input type="number" name="stop_duration[]" class="form-control" min="0" placeholder="Min"></div>
+                <div class="col-md-2"><input type="text" name="stop_location[]" class="form-control" placeholder="Location"></div>
+                <div class="col-12"><textarea name="stop_description[]" class="form-control" rows="2" placeholder="Description"></textarea></div>
+                <div class="col-12">
+                    <div class="d-flex gap-3">
+                        <div class="form-check"><input type="checkbox" name="stop_admission_${idx}" class="form-check-input"><label class="form-check-label small">Admission incl.</label></div>
+                        <div class="form-check"><input type="checkbox" name="stop_flexibility_${idx}" class="form-check-input"><label class="form-check-label small">Flexible pickup</label></div>
                     </div>
                 </div>
             </div>
-        </div>`;
-    list.appendChild(item);
+        </div>`);
 }
 
 function addFAQ() {
-    const list = document.getElementById('faqList');
-    const item = document.createElement('div');
-    item.className = 'repeatable-item';
-    item.innerHTML = `
-        <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-        <div class="row g-2">
-            <div class="col-12">
-                <input type="text" name="faq_question[]" class="form-control" placeholder="Question">
+    document.getElementById('faqList').insertAdjacentHTML('beforeend', `
+        <div class="repeatable-item">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+            <div class="row g-2">
+                <div class="col-12"><input type="text" name="faq_question[]" class="form-control" placeholder="Question"></div>
+                <div class="col-12"><textarea name="faq_answer[]" class="form-control" rows="2" placeholder="Answer"></textarea></div>
             </div>
-            <div class="col-12">
-                <textarea name="faq_answer[]" class="form-control" rows="2" placeholder="Answer"></textarea>
-            </div>
-        </div>`;
-    list.appendChild(item);
+        </div>`);
 }
 
 function addPriceTier() {
-    const list = document.getElementById('tiersList');
-    const item = document.createElement('div');
-    item.className = 'repeatable-item';
-    item.innerHTML = `
-        <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-        <div class="row g-2">
-            <div class="col-md-3">
-                <input type="text" name="tier_name[]" class="form-control" placeholder="Tier name">
-            </div>
-            <div class="col-md-3">
-                <div class="input-group">
-                    <input type="number" name="tier_min[]" class="form-control" min="1" placeholder="Min">
-                    <span class="input-group-text">-</span>
-                    <input type="number" name="tier_max[]" class="form-control" min="1" placeholder="Max">
+    document.getElementById('tiersList').insertAdjacentHTML('beforeend', `
+        <div class="repeatable-item">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+            <div class="row g-2">
+                <div class="col-md-3"><input type="text" name="tier_name[]" class="form-control" placeholder="Tier name"></div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="number" name="tier_min[]" class="form-control" min="1" placeholder="Min">
+                        <span class="input-group-text">-</span>
+                        <input type="number" name="tier_max[]" class="form-control" min="1" placeholder="Max">
+                    </div>
                 </div>
+                <div class="col-md-3"><input type="number" name="tier_price[]" class="form-control" step="0.01" min="0" placeholder="Price"></div>
             </div>
-            <div class="col-md-3">
-                <input type="number" name="tier_price[]" class="form-control" step="0.01" min="0" placeholder="Price/person">
-            </div>
-        </div>`;
-    list.appendChild(item);
+        </div>`);
 }
 
 function addContentBlock() {
-    const list = document.getElementById('contentBlocksList');
-    const item = document.createElement('div');
-    item.className = 'repeatable-item';
-    item.innerHTML = `
-        <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-        <div class="row g-2">
-            <div class="col-12">
-                <input type="text" name="block_title[]" class="form-control" placeholder="Block title">
+    document.getElementById('contentBlocksList').insertAdjacentHTML('beforeend', `
+        <div class="repeatable-item">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+            <div class="row g-2">
+                <div class="col-12"><input type="text" name="block_title[]" class="form-control" placeholder="Title"></div>
+                <div class="col-12"><textarea name="block_content[]" class="form-control" rows="3" placeholder="Content"></textarea></div>
             </div>
-            <div class="col-12">
-                <textarea name="block_content[]" class="form-control" rows="3" placeholder="Content"></textarea>
+        </div>`);
+}
+
+function addCustomField() {
+    document.getElementById('customFieldsList').insertAdjacentHTML('beforeend', `
+        <div class="repeatable-item">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
+            <div class="row g-2">
+                <div class="col-md-4"><input type="text" name="custom_field_key[]" class="form-control" placeholder="Field name"></div>
+                <div class="col-md-8"><input type="text" name="custom_field_value[]" class="form-control" placeholder="Value"></div>
             </div>
-        </div>`;
-    list.appendChild(item);
+        </div>`);
 }
 
 // Pricing model toggle
-const pricingSelect = document.getElementById('pricingModelSelect');
-const perPersonDiv = document.getElementById('perPersonPricing');
-const tieredDiv = document.getElementById('tieredPricing');
-
-function togglePricing() {
-    const val = pricingSelect.value;
-    tieredDiv.style.display = val === 'tiered' ? '' : 'none';
-}
-pricingSelect.addEventListener('change', togglePricing);
-
-// Toggle collapse icons
-document.querySelectorAll('.section-card .card-header').forEach(header => {
-    const target = header.getAttribute('data-bs-target');
-    if (target) {
-        const el = document.querySelector(target);
-        if (el) {
-            el.addEventListener('hide.bs.collapse', () => header.classList.add('collapsed'));
-            el.addEventListener('show.bs.collapse', () => header.classList.remove('collapsed'));
-        }
-    }
+document.getElementById('pricingModelSelect').addEventListener('change', function() {
+    document.getElementById('tieredPricing').style.display = this.value === 'tiered' ? '' : 'none';
 });
 
-// Thumbnail selection visual feedback
-document.querySelectorAll('input[name="thumbnail_image"]').forEach(radio => {
-    radio.addEventListener('change', function() {
+// Thumbnail visual feedback
+document.querySelectorAll('input[name="thumbnail_image"]').forEach(r => {
+    r.addEventListener('change', function() {
         document.querySelectorAll('.existing-image .image-preview').forEach(img => img.classList.remove('thumbnail-selected'));
-        if (this.checked) {
-            this.closest('.existing-image').querySelector('.image-preview').classList.add('thumbnail-selected');
-        }
+        if (this.checked) this.closest('.existing-image').querySelector('.image-preview').classList.add('thumbnail-selected');
     });
 });
-
-// Init tooltips
-var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-tooltipTriggerList.map(function(el) { return new bootstrap.Tooltip(el); });
 
 // Form validation
 document.getElementById('tourEditForm').addEventListener('submit', function(e) {
@@ -746,9 +659,11 @@ document.getElementById('tourEditForm').addEventListener('submit', function(e) {
     var maxP = parseInt(document.querySelector('[name="max_participants"]').value) || 0;
     if (minP > 0 && maxP > 0 && minP > maxP) {
         e.preventDefault();
-        alert('Min travelers cannot be greater than max travelers.');
-        return;
+        alert('Min travelers cannot exceed max travelers.');
     }
 });
+
+// Init tooltips
+[].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 </script>
 {% endblock %}

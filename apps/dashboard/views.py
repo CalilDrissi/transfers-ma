@@ -1961,6 +1961,16 @@ def trip_detail(request, pk):
                 trip.images.all().update(is_thumbnail=False)
                 trip.images.filter(id=thumbnail_id).update(is_thumbnail=True)
 
+            # Handle custom fields
+            custom_keys = request.POST.getlist('custom_field_key[]')
+            custom_values = request.POST.getlist('custom_field_value[]')
+            custom_data = {}
+            for idx, key in enumerate(custom_keys):
+                if key.strip() and idx < len(custom_values):
+                    custom_data[key.strip()] = custom_values[idx].strip()
+            trip.custom_data = custom_data
+            trip.save()
+
             messages.success(request, 'Tour updated successfully.')
 
         elif action == 'delete_trip':
