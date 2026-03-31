@@ -1707,19 +1707,18 @@ def trip_create(request):
                     )
 
             # Handle price tiers
-            tier_names = request.POST.getlist('tier_name[]')
-            tier_min = request.POST.getlist('tier_min[]')
-            tier_max = request.POST.getlist('tier_max[]')
-            tier_prices = request.POST.getlist('tier_price[]')
-
-            for idx, tier_name in enumerate(tier_names):
-                if tier_name.strip() and idx < len(tier_prices) and tier_prices[idx]:
+            tier_mins = request.POST.getlist('tier_min[]')
+            tier_maxs = request.POST.getlist('tier_max[]')
+            tier_private = request.POST.getlist('tier_private[]')
+            tier_shared = request.POST.getlist('tier_shared[]')
+            for idx in range(len(tier_mins)):
+                if tier_mins[idx] and tier_maxs[idx]:
                     TripPriceTier.objects.create(
                         trip=trip,
-                        name=tier_name,
-                        min_travelers=int(tier_min[idx]) if idx < len(tier_min) and tier_min[idx] else 1,
-                        max_travelers=int(tier_max[idx]) if idx < len(tier_max) and tier_max[idx] else 2,
-                        price_per_person=Decimal(tier_prices[idx]),
+                        min_persons=int(tier_mins[idx]),
+                        max_persons=int(tier_maxs[idx]),
+                        private_price=Decimal(tier_private[idx]) if idx < len(tier_private) and tier_private[idx] else 0,
+                        shared_price=Decimal(tier_shared[idx]) if idx < len(tier_shared) and tier_shared[idx] else 0,
                         order=idx
                     )
 

@@ -399,76 +399,45 @@
         <div class="collapse show" id="pricingSection">
             <div class="card-body">
                 <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <label class="form-label">{% trans "Currency" %}</label>
+                    <div class="col-md-3">
+                        <label class="form-label">{% trans "Currency" %} <span class="text-danger">*</span></label>
                         <select name="currency" class="form-select">
-                            <option value="MAD">MAD - Moroccan Dirham</option>
-                            <option value="EUR">EUR - Euro</option>
-                            <option value="USD">USD - US Dollar</option>
-                            <option value="GBP">GBP - British Pound</option>
+                            <option value="MAD">MAD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="USD">USD</option>
+                            <option value="GBP">GBP</option>
                         </select>
                     </div>
-                    <div class="col-md-8">
-                        <label class="form-label">{% trans "Pricing Model" %}</label>
-                        <div class="d-flex flex-wrap gap-3">
-                            {% for value, label in pricing_models %}
-                            <div class="form-check">
-                                <input class="form-check-input pricing-model-radio" type="radio" name="pricing_model" value="{{ value }}" id="pricingModel{{ value }}" {% if forloop.first %}checked{% endif %}>
-                                <label class="form-check-label" for="pricingModel{{ value }}">{{ label }}</label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-3 mb-4">
                     <div class="col-md-3">
-                        <label class="form-label">{% trans "Min Travelers" %}</label>
+                        <label class="form-label">{% trans "Min Travelers" %} <span class="text-danger">*</span></label>
                         <input type="number" name="min_participants" class="form-control" value="1" min="1">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">{% trans "Max Travelers" %}</label>
+                        <label class="form-label">{% trans "Max Travelers" %} <span class="text-danger">*</span></label>
                         <input type="number" name="max_participants" class="form-control" value="20" min="1">
                     </div>
                 </div>
 
-                <!-- Per Person Pricing -->
-                <div id="perPersonPricing">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Price per Person" %} *</label>
-                            <div class="input-group">
-                                <input type="number" name="price_per_person" class="form-control" step="0.01" min="0">
-                                <span class="input-group-text currency-label">MAD</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Child Price" %}</label>
-                            <div class="input-group">
-                                <input type="number" name="child_price" class="form-control" step="0.01" min="0">
-                                <span class="input-group-text currency-label">MAD</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Private Tour Price" %}</label>
-                            <div class="input-group">
-                                <input type="number" name="private_tour_price" class="form-control" step="0.01" min="0">
-                                <span class="input-group-text currency-label">MAD</span>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Pricing Tiers -->
+                <label class="form-label fw-bold">{% trans "Pricing Tiers" %} <span class="text-danger">*</span></label>
+                <small class="text-muted d-block mb-2">{% trans "Set private and shared price per person for each group size range." %}</small>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-2">
+                        <thead>
+                            <tr>
+                                <th style="width:25%">{% trans "Group Size" %}</th>
+                                <th style="width:30%">{% trans "Private (per person)" %}</th>
+                                <th style="width:30%">{% trans "Shared (per person)" %}</th>
+                                <th style="width:15%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="priceTiersContainer">
+                        </tbody>
+                    </table>
                 </div>
-
-                <!-- Tiered Pricing -->
-                <div id="tieredPricing" style="display: none;">
-                    <label class="form-label">{% trans "Price Tiers" %}</label>
-                    <div id="priceTiersContainer">
-                        <!-- Tiers will be added here -->
-                    </div>
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addPriceTier">
-                        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Price Tier" %}
-                    </button>
-                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="addPriceTier">
+                    <i class="bi bi-plus-lg me-1"></i>{% trans "Add Tier" %}
+                </button>
             </div>
         </div>
     </div>
@@ -723,21 +692,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currencyLabels.forEach(label => label.textContent = this.value);
     });
 
-    // Pricing model toggle
-    const pricingRadios = document.querySelectorAll('.pricing-model-radio');
-    const perPersonPricing = document.getElementById('perPersonPricing');
-    const tieredPricing = document.getElementById('tieredPricing');
-    pricingRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'tiered') {
-                perPersonPricing.style.display = 'none';
-                tieredPricing.style.display = 'block';
-            } else {
-                perPersonPricing.style.display = 'block';
-                tieredPricing.style.display = 'none';
-            }
-        });
-    });
 
     // Featured image preview
     const featuredInput = document.getElementById('featuredImageInput');
@@ -894,50 +848,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Price tiers
     const priceTiersContainer = document.getElementById('priceTiersContainer');
     document.getElementById('addPriceTier').addEventListener('click', function() {
-        const idx = priceTiersContainer.children.length;
-        const div = document.createElement('div');
-        div.className = 'repeatable-item';
-        div.innerHTML = `
-            <div class="row g-2 align-items-center">
-                <div class="col-md-3">
-                    <input type="text" name="tier_name[]" class="form-control" placeholder="{% trans 'Tier name (e.g., 1-2 persons)' %}">
-                </div>
-                <div class="col-md-2">
-                    <input type="number" name="tier_min[]" class="form-control" placeholder="{% trans 'Min' %}" min="1" value="1">
-                </div>
-                <div class="col-md-2">
-                    <input type="number" name="tier_max[]" class="form-control" placeholder="{% trans 'Max' %}" min="1" value="2">
-                </div>
-                <div class="col-md-3">
-                    <div class="input-group">
-                        <input type="number" name="tier_price[]" class="form-control tier-price" step="0.01" min="0" placeholder="{% trans 'Price/person' %}">
-                        <span class="input-group-text currency-label">${currencySelect.value}</span>
+        priceTiersContainer.insertAdjacentHTML('beforeend', `
+            <tr>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <input type="number" name="tier_min[]" class="form-control" min="1" placeholder="Min">
+                        <span class="input-group-text">-</span>
+                        <input type="number" name="tier_max[]" class="form-control" min="1" placeholder="Max">
                     </div>
-                </div>
-                <div class="col-md-2 text-end">
-                    <span class="tier-total text-muted">-</span>
-                    <button type="button" class="btn btn-outline-danger btn-sm ms-2 remove-item-btn"><i class="bi bi-trash"></i></button>
-                </div>
-            </div>
-        `;
-        priceTiersContainer.appendChild(div);
-
-        // Auto-calculate total
-        const priceInput = div.querySelector('.tier-price');
-        const minInput = div.querySelector('input[name="tier_min[]"]');
-        const maxInput = div.querySelector('input[name="tier_max[]"]');
-        const totalSpan = div.querySelector('.tier-total');
-
-        function updateTotal() {
-            const price = parseFloat(priceInput.value) || 0;
-            const min = parseInt(minInput.value) || 1;
-            const max = parseInt(maxInput.value) || 1;
-            const avg = (min + max) / 2;
-            totalSpan.textContent = (price * avg).toFixed(2) + ' ' + currencySelect.value;
-        }
-        [priceInput, minInput, maxInput].forEach(input => input.addEventListener('input', updateTotal));
-
-        div.querySelector('.remove-item-btn').addEventListener('click', () => div.remove());
+                </td>
+                <td><input type="number" name="tier_private[]" class="form-control form-control-sm" step="0.01" min="0" placeholder="0.00"></td>
+                <td><input type="number" name="tier_shared[]" class="form-control form-control-sm" step="0.01" min="0" placeholder="0.00"></td>
+                <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">&times;</button></td>
+            </tr>`);
     });
 
     // Content blocks
@@ -1068,8 +991,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const departure = form.querySelector('input[name="departure_location"]').value;
         const destinations = form.querySelector('input[name="destinations"]').value;
         const currency = form.querySelector('select[name="currency"]').value;
-        const pricePerPerson = form.querySelector('input[name="price_per_person"]').value;
-        const childPrice = form.querySelector('input[name="child_price"]').value;
+        // Get starting price from first tier's shared price
+        const firstSharedPrice = form.querySelector('input[name="tier_shared[]"]');
+        const pricePerPerson = firstSharedPrice ? firstSharedPrice.value : '';
         const minTravelers = form.querySelector('input[name="min_participants"]').value;
         const maxTravelers = form.querySelector('input[name="max_participants"]').value;
 
