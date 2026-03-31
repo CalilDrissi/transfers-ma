@@ -23,7 +23,6 @@
 {% block content %}
 <form method="post" enctype="multipart/form-data" id="tourForm" novalidate>
     {% csrf_token %}
-    <input type="hidden" name="status" id="hiddenStatus" value="draft">
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -78,9 +77,17 @@
                                     <label class="form-label">{% trans "Title" %} <span class="req">*</span></label>
                                     <input type="text" name="name" class="form-control" required id="tourTitle">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-2">
+                                    <label class="form-label">{% trans "Status" %} <span class="req">*</span></label>
+                                    <select name="status" class="form-select">
+                                        {% for value, label in statuses %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
                                     <label class="form-label">{% trans "Slug" %} <span class="opt">({% trans "auto" %})</span></label>
-                                    <input type="text" name="slug" class="form-control" id="tourSlug" placeholder="{% trans 'Auto-generated' %}">
+                                    <input type="text" name="slug" class="form-control" id="tourSlug" placeholder="{% trans 'Auto' %}">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">{% trans "Trip Type" %} <span class="req">*</span></label>
@@ -447,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Save Draft buttons
     function saveDraft() {
-        document.getElementById('hiddenStatus').value = 'draft';
+        form.querySelector('select[name="status"]').value = 'draft';
         form.submit();
     }
     document.getElementById('saveDraftBtn').addEventListener('click', saveDraft);
