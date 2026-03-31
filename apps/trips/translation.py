@@ -1,6 +1,6 @@
 from modeltranslation.translator import translator, TranslationOptions
 from .models import (
-    Trip, TripHighlight, TripItineraryStop, TripPriceTier,
+    Trip, TripHighlight, TripItineraryStop,
     TripContentBlock, TripFAQ, TripImage,
 )
 
@@ -23,10 +23,6 @@ class TripItineraryStopTranslationOptions(TranslationOptions):
     fields = ('name', 'location', 'description')
 
 
-class TripPriceTierTranslationOptions(TranslationOptions):
-    fields = ('name',)
-
-
 class TripContentBlockTranslationOptions(TranslationOptions):
     fields = ('title', 'content')
 
@@ -42,7 +38,6 @@ class TripImageTranslationOptions(TranslationOptions):
 translator.register(Trip, TripTranslationOptions)
 translator.register(TripHighlight, TripHighlightTranslationOptions)
 translator.register(TripItineraryStop, TripItineraryStopTranslationOptions)
-translator.register(TripPriceTier, TripPriceTierTranslationOptions)
 translator.register(TripContentBlock, TripContentBlockTranslationOptions)
 translator.register(TripFAQ, TripFAQTranslationOptions)
 translator.register(TripImage, TripImageTranslationOptions)
