@@ -800,6 +800,33 @@
     transform: translateX(20px);
 }
 
+/* Tour type toggle (Private/Shared) */
+.tb-tour-detail__type-toggle {
+    display: flex;
+    gap: 0;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.tb-tour-detail__type-btn {
+    flex: 1;
+    padding: 8px 16px;
+    border: none;
+    background: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.tb-tour-detail__type-btn--active {
+    background: var(--tb-primary, #1a365d);
+    color: #fff;
+}
+.tb-tour-detail__type-btn:hover:not(.tb-tour-detail__type-btn--active) {
+    background: #f1f5f9;
+}
+
 /* Total */
 
 .tb-tour-detail__total {

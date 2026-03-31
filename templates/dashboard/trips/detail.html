@@ -154,73 +154,52 @@
                         </div>
                     </div>
 
-                    <!-- Pricing -->
+                    <!-- Pricing Tiers -->
                     <div class="card">
-                        <div class="card-header"><h6 class="mb-0">{% trans "Pricing" %}</h6></div>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">{% trans "Pricing Tiers" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Set Private and Shared price per person for each group size range' %}"></i></h6>
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="form-label mb-0 me-1">{% trans "Currency" %}</label>
+                                <select name="currency" class="form-select form-select-sm" style="width:auto;">
+                                    <option value="MAD" {% if trip.currency == 'MAD' %}selected{% endif %}>MAD</option>
+                                    <option value="EUR" {% if trip.currency == 'EUR' %}selected{% endif %}>EUR</option>
+                                    <option value="USD" {% if trip.currency == 'USD' %}selected{% endif %}>USD</option>
+                                    <option value="GBP" {% if trip.currency == 'GBP' %}selected{% endif %}>GBP</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">{% trans "Pricing Model" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Per Person: individual price. Per Group: flat rate. Tiered: varies by group size.' %}"></i></label>
-                                    <select name="pricing_model" class="form-select" id="pricingModelSelect">
-                                        {% for value, label in pricing_models %}
-                                        <option value="{{ value }}" {% if value == trip.pricing_model %}selected{% endif %}>{{ label }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">{% trans "Currency" %} <span class="req">*</span></label>
-                                    <select name="currency" class="form-select">
-                                        <option value="MAD" {% if trip.currency == 'MAD' %}selected{% endif %}>MAD</option>
-                                        <option value="EUR" {% if trip.currency == 'EUR' %}selected{% endif %}>EUR</option>
-                                        <option value="USD" {% if trip.currency == 'USD' %}selected{% endif %}>USD</option>
-                                        <option value="GBP" {% if trip.currency == 'GBP' %}selected{% endif %}>GBP</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div id="perPersonPricing" class="row g-3 mt-1">
-                                <div class="col-md-4">
-                                    <label class="form-label">{% trans "Price per Person" %} <span class="req">*</span></label>
-                                    <input type="number" name="price_per_person" class="form-control" step="0.01" min="0" value="{{ trip.price_per_person|default:'' }}">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">{% trans "Child Price" %} <span class="opt">({% trans "optional" %})</span></label>
-                                    <input type="number" name="child_price" class="form-control" step="0.01" min="0" value="{{ trip.child_price|default:'' }}">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">{% trans "Private Tour Price" %} <span class="opt">({% trans "optional" %})</span></label>
-                                    <input type="number" name="private_tour_price" class="form-control" step="0.01" min="0" value="{{ trip.private_tour_price|default:'' }}">
-                                </div>
-                            </div>
-
-                            <!-- Price Tiers -->
-                            <div id="tieredPricing" class="mt-3" {% if trip.pricing_model != 'tiered' %}style="display:none"{% endif %}>
-                                <label class="form-label fw-bold">{% trans "Price Tiers" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Different prices based on group size' %}"></i></label>
-                                <div id="tiersList">
-                                    {% for tier in trip.price_tiers.all %}
-                                    <div class="repeatable-item">
-                                        <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-                                        <div class="row g-2">
-                                            <div class="col-md-3">
-                                                <input type="text" name="tier_name[]" class="form-control" value="{{ tier.name }}" placeholder="{% trans 'Tier name' %}">
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="input-group">
-                                                    <input type="number" name="tier_min[]" class="form-control" min="1" value="{{ tier.min_travelers }}">
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-2">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:25%">{% trans "Group Size" %}</th>
+                                            <th style="width:30%">{% trans "Private (per person)" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Price per person when tour is booked as private' %}"></i></th>
+                                            <th style="width:30%">{% trans "Shared (per person)" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Price per person when joining a shared tour' %}"></i></th>
+                                            <th style="width:15%"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tiersList">
+                                        {% for tier in trip.price_tiers.all %}
+                                        <tr>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" name="tier_min[]" class="form-control" min="1" value="{{ tier.min_persons }}" placeholder="{% trans 'Min' %}">
                                                     <span class="input-group-text">-</span>
-                                                    <input type="number" name="tier_max[]" class="form-control" min="1" value="{{ tier.max_travelers }}">
+                                                    <input type="number" name="tier_max[]" class="form-control" min="1" value="{{ tier.max_persons }}" placeholder="{% trans 'Max' %}">
                                                 </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <input type="number" name="tier_price[]" class="form-control" step="0.01" min="0" value="{{ tier.price_per_person }}" placeholder="{% trans 'Price' %}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addPriceTier()">
-                                    <i class="bi bi-plus me-1"></i>{% trans "Add Tier" %}
-                                </button>
+                                            </td>
+                                            <td><input type="number" name="tier_private[]" class="form-control form-control-sm" step="0.01" min="0" value="{{ tier.private_price }}" placeholder="0.00"></td>
+                                            <td><input type="number" name="tier_shared[]" class="form-control form-control-sm" step="0.01" min="0" value="{{ tier.shared_price }}" placeholder="0.00"></td>
+                                            <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">&times;</button></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addPriceTier()">
+                                <i class="bi bi-plus me-1"></i>{% trans "Add Tier" %}
+                            </button>
                         </div>
                     </div>
 
@@ -602,20 +581,18 @@ function addFAQ() {
 
 function addPriceTier() {
     document.getElementById('tiersList').insertAdjacentHTML('beforeend', `
-        <div class="repeatable-item">
-            <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="this.closest('.repeatable-item').remove()">&times;</button>
-            <div class="row g-2">
-                <div class="col-md-3"><input type="text" name="tier_name[]" class="form-control" placeholder="Tier name"></div>
-                <div class="col-md-3">
-                    <div class="input-group">
-                        <input type="number" name="tier_min[]" class="form-control" min="1" placeholder="Min">
-                        <span class="input-group-text">-</span>
-                        <input type="number" name="tier_max[]" class="form-control" min="1" placeholder="Max">
-                    </div>
+        <tr>
+            <td>
+                <div class="input-group input-group-sm">
+                    <input type="number" name="tier_min[]" class="form-control" min="1" placeholder="Min">
+                    <span class="input-group-text">-</span>
+                    <input type="number" name="tier_max[]" class="form-control" min="1" placeholder="Max">
                 </div>
-                <div class="col-md-3"><input type="number" name="tier_price[]" class="form-control" step="0.01" min="0" placeholder="Price"></div>
-            </div>
-        </div>`);
+            </td>
+            <td><input type="number" name="tier_private[]" class="form-control form-control-sm" step="0.01" min="0" placeholder="0.00"></td>
+            <td><input type="number" name="tier_shared[]" class="form-control form-control-sm" step="0.01" min="0" placeholder="0.00"></td>
+            <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">&times;</button></td>
+        </tr>`);
 }
 
 function addContentBlock() {
@@ -640,10 +617,6 @@ function addCustomField() {
         </div>`);
 }
 
-// Pricing model toggle
-document.getElementById('pricingModelSelect').addEventListener('change', function() {
-    document.getElementById('tieredPricing').style.display = this.value === 'tiered' ? '' : 'none';
-});
 
 // Thumbnail visual feedback
 document.querySelectorAll('input[name="thumbnail_image"]').forEach(r => {

@@ -371,7 +371,7 @@ class TripItineraryStop(models.Model):
 
 
 class TripPriceTier(models.Model):
-    """Price tiers for tiered pricing model."""
+    """Price tiers with private and shared pricing per group size range."""
 
     trip = models.ForeignKey(
         Trip,
@@ -379,42 +379,29 @@ class TripPriceTier(models.Model):
         related_name='price_tiers',
         verbose_name=_('trip')
     )
-    name = models.CharField(
-        _('tier name'),
-        max_length=100,
-        help_text=_('e.g., "1-2 persons", "3-5 persons"')
-    )
-    min_travelers = models.PositiveSmallIntegerField(_('minimum travelers'), default=1)
-    max_travelers = models.PositiveSmallIntegerField(_('maximum travelers'), default=2)
-    price_per_person = models.DecimalField(
-        _('price per person'),
-        max_digits=10,
-        decimal_places=2
-    )
-    total_price = models.DecimalField(
-        _('total price'),
+    min_persons = models.PositiveSmallIntegerField(_('minimum persons'), default=1)
+    max_persons = models.PositiveSmallIntegerField(_('maximum persons'), default=3)
+    private_price = models.DecimalField(
+        _('private price per person'),
         max_digits=10,
         decimal_places=2,
-        null=True,
-        blank=True,
-        help_text=_('Auto-calculated or override')
+        default=0
+    )
+    shared_price = models.DecimalField(
+        _('shared price per person'),
+        max_digits=10,
+        decimal_places=2,
+        default=0
     )
     order = models.PositiveSmallIntegerField(_('display order'), default=0)
 
     class Meta:
         verbose_name = _('price tier')
         verbose_name_plural = _('price tiers')
-        ordering = ['order', 'min_travelers']
+        ordering = ['order', 'min_persons']
 
     def __str__(self):
-        return f"{self.trip.name}: {self.name}"
-
-    def save(self, *args, **kwargs):
-        # Auto-calculate total if not set
-        if self.total_price is None:
-            avg_travelers = (self.min_travelers + self.max_travelers) / 2
-            self.total_price = self.price_per_person * avg_travelers
-        super().save(*args, **kwargs)
+        return f"{self.trip.name}: {self.min_persons}-{self.max_persons} persons"
 
 
 class TripContentBlock(models.Model):

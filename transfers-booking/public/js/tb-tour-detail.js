@@ -279,8 +279,16 @@
             var children = document.getElementById('tb-tour-children');
             var privateToggle = document.getElementById('tb-tour-private');
 
-            if (privateToggle) {
-                privateToggle.addEventListener('change', function () { self.updateTotal(); });
+            // Private/Shared toggle buttons
+            var typeBtns = document.querySelectorAll('.tb-tour-detail__type-btn');
+            for (var b = 0; b < typeBtns.length; b++) {
+                typeBtns[b].addEventListener('click', function () {
+                    typeBtns.forEach(function (btn) { btn.classList.remove('tb-tour-detail__type-btn--active'); });
+                    this.classList.add('tb-tour-detail__type-btn--active');
+                    var privateInput = document.getElementById('tb-tour-private');
+                    if (privateInput) privateInput.value = this.dataset.type === 'private' ? '1' : '0';
+                    self.updateTotal();
+                });
             }
 
             // Book button
@@ -298,20 +306,37 @@
             var currency = trip.currency || cfg.currencySymbol || 'MAD';
             var adults = parseInt(document.getElementById('tb-tour-adults').textContent, 10) || 1;
             var children = parseInt(document.getElementById('tb-tour-children').textContent, 10) || 0;
-            var isPrivate = document.getElementById('tb-tour-private') ? document.getElementById('tb-tour-private').checked : false;
+            var privateInput = document.getElementById('tb-tour-private');
+            var isPrivate = privateInput ? privateInput.value === '1' : false;
+            var totalPersons = adults + children;
 
-            var total;
-            if (isPrivate && parseFloat(trip.private_tour_price) > 0) {
-                total = parseFloat(trip.private_tour_price);
-            } else if (trip.pricing_model === 'per_group') {
-                total = parseFloat(trip.price_per_person) || 0;
-            } else {
-                var adultPrice = parseFloat(trip.price_per_person) || 0;
-                var childPriceVal = parseFloat(trip.child_price) || adultPrice;
-                total = (adults * adultPrice) + (children * childPriceVal);
+            var pricePerPerson = 0;
+            var tiers = trip.price_tiers || [];
+
+            // Find matching tier
+            for (var i = 0; i < tiers.length; i++) {
+                if (totalPersons >= tiers[i].min_persons && totalPersons <= tiers[i].max_persons) {
+                    pricePerPerson = isPrivate ? parseFloat(tiers[i].private_price) : parseFloat(tiers[i].shared_price);
+                    break;
+                }
+            }
+            // Fallback: use largest tier if no match
+            if (pricePerPerson === 0 && tiers.length > 0) {
+                var last = tiers[tiers.length - 1];
+                pricePerPerson = isPrivate ? parseFloat(last.private_price) : parseFloat(last.shared_price);
+            }
+            // Legacy fallback
+            if (pricePerPerson === 0) {
+                pricePerPerson = parseFloat(trip.price_per_person) || 0;
             }
 
+            var total = totalPersons * pricePerPerson;
+
             setText('tb-tour-total', formatPrice(total, currency));
+
+            // Update per-person display
+            var ppEl = document.getElementById('tb-tour-price-value');
+            if (ppEl) ppEl.textContent = formatPrice(pricePerPerson, currency);
         },
 
         handleBook: function () {
@@ -325,7 +350,8 @@
 
             var adults = parseInt(document.getElementById('tb-tour-adults').textContent, 10) || 1;
             var children = parseInt(document.getElementById('tb-tour-children').textContent, 10) || 0;
-            var isPrivate = document.getElementById('tb-tour-private') ? document.getElementById('tb-tour-private').checked : false;
+            var privateInput = document.getElementById('tb-tour-private');
+            var isPrivate = privateInput ? privateInput.value === '1' : false;
 
             var checkoutUrl = cfg.tourCheckoutPageUrl || cfg.checkoutPageUrl || '/tour-checkout/';
             var sp = new URLSearchParams();

@@ -152,13 +152,18 @@ defined('ABSPATH') || exit;
                         </div>
                     </div>
 
-                    <!-- Private tour toggle -->
-                    <div class="tb-tour-detail__book-field" id="tb-tour-private-field" style="display:none;">
-                        <label class="tb-tour-detail__toggle">
-                            <input type="checkbox" id="tb-tour-private" class="tb-tour-detail__toggle-input">
-                            <span class="tb-tour-detail__toggle-slider"></span>
-                            <span class="tb-tour-detail__toggle-label"><?php esc_html_e('Private Tour', 'transfers-booking'); ?></span>
-                        </label>
+                    <!-- Tour type: Private / Shared -->
+                    <div class="tb-tour-detail__book-field" id="tb-tour-type-field">
+                        <label class="tb-tour-detail__book-label"><?php esc_html_e('Tour Type', 'transfers-booking'); ?></label>
+                        <div class="tb-tour-detail__type-toggle">
+                            <button type="button" class="tb-tour-detail__type-btn tb-tour-detail__type-btn--active" data-type="shared" id="tb-type-shared">
+                                <?php esc_html_e('Shared', 'transfers-booking'); ?>
+                            </button>
+                            <button type="button" class="tb-tour-detail__type-btn" data-type="private" id="tb-type-private">
+                                <?php esc_html_e('Private', 'transfers-booking'); ?>
+                            </button>
+                        </div>
+                        <input type="hidden" id="tb-tour-private" value="0">
                     </div>
 
                     <!-- Calculated total -->

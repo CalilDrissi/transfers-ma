@@ -53,7 +53,7 @@ class TripContentBlockSerializer(serializers.ModelSerializer):
 class TripPriceTierSerializer(serializers.ModelSerializer):
     class Meta:
         model = TripPriceTier
-        fields = ['id', 'name', 'min_travelers', 'max_travelers', 'price_per_person', 'total_price', 'order']
+        fields = ['id', 'min_persons', 'max_persons', 'private_price', 'shared_price', 'order']
 
 
 class TripSerializer(serializers.ModelSerializer):
@@ -89,14 +89,21 @@ class TripSerializer(serializers.ModelSerializer):
 
 class TripListSerializer(serializers.ModelSerializer):
     """Simplified serializer for list views."""
+    starting_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Trip
         fields = [
             'id', 'name', 'slug', 'short_description', 'trip_type',
             'departure_location', 'duration_days', 'duration_hours',
-            'price_per_person', 'currency', 'featured_image', 'is_featured'
+            'price_per_person', 'starting_price', 'currency', 'featured_image', 'is_featured'
         ]
+
+    def get_starting_price(self, obj):
+        tier = obj.price_tiers.order_by('shared_price').first()
+        if tier:
+            return str(min(tier.shared_price, tier.private_price))
+        return str(obj.price_per_person or 0)
 
 
 class TripBookingSerializer(serializers.ModelSerializer):
@@ -152,17 +159,28 @@ class TripBookingCreateSerializer(serializers.ModelSerializer):
         trip = Trip.objects.get(id=trip_id)
         schedule = TripSchedule.objects.get(id=schedule_id) if schedule_id else None
 
-        # Calculate pricing
+        # Calculate pricing from tiers
         is_private = validated_data.get('is_private', False)
         adults = validated_data.get('adults', 1)
         children = validated_data.get('children', 0)
+        total_persons = adults + children
 
-        if is_private and trip.private_tour_price:
-            price_per_adult = trip.private_tour_price
-            price_per_child = 0
+        # Find matching price tier
+        tier = trip.price_tiers.filter(
+            min_persons__lte=total_persons,
+            max_persons__gte=total_persons
+        ).first()
+
+        if tier:
+            price_per_adult = tier.private_price if is_private else tier.shared_price
+        elif trip.price_tiers.exists():
+            # Use the largest tier if group exceeds all tiers
+            largest_tier = trip.price_tiers.order_by('-max_persons').first()
+            price_per_adult = largest_tier.private_price if is_private else largest_tier.shared_price
         else:
-            price_per_adult = trip.price_per_person
-            price_per_child = trip.child_price or 0
+            # Fallback to legacy fields
+            price_per_adult = trip.private_tour_price if (is_private and trip.private_tour_price) else (trip.price_per_person or 0)
+        price_per_child = price_per_adult  # Children same price as adults
 
         booking = TripBooking.objects.create(
             trip=trip,
