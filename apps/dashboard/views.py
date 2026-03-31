@@ -1902,6 +1902,9 @@ def trip_detail(request, pk):
                         location=stop_locations[idx] if idx < len(stop_locations) else '',
                         description=stop_descriptions[idx] if idx < len(stop_descriptions) else '',
                         duration_minutes=int(stop_durations[idx]) if idx < len(stop_durations) and stop_durations[idx] else None,
+                        has_admission=request.POST.get(f'stop_admission_{idx}') == 'on',
+                        pickup_flexibility=request.POST.get(f'stop_flexibility_{idx}') == 'on',
+                        same_as_start=request.POST.get(f'stop_same_as_start_{idx}') == 'on',
                         order=idx
                     )
 
@@ -1917,6 +1920,46 @@ def trip_detail(request, pk):
                         answer=faq_answers[idx].strip(),
                         order=idx
                     )
+
+            # Handle price tiers: clear and re-create
+            trip.price_tiers.all().delete()
+            tier_names = request.POST.getlist('tier_name[]')
+            tier_mins = request.POST.getlist('tier_min[]')
+            tier_maxs = request.POST.getlist('tier_max[]')
+            tier_prices = request.POST.getlist('tier_price[]')
+            for idx, tname in enumerate(tier_names):
+                if tname.strip() and idx < len(tier_prices) and tier_prices[idx]:
+                    TripPriceTier.objects.create(
+                        trip=trip,
+                        name=tname.strip(),
+                        min_travelers=int(tier_mins[idx]) if idx < len(tier_mins) and tier_mins[idx] else 1,
+                        max_travelers=int(tier_maxs[idx]) if idx < len(tier_maxs) and tier_maxs[idx] else 1,
+                        price_per_person=Decimal(tier_prices[idx]),
+                        order=idx
+                    )
+
+            # Handle content blocks: clear and re-create
+            trip.content_blocks.all().delete()
+            block_titles = request.POST.getlist('block_title[]')
+            block_contents = request.POST.getlist('block_content[]')
+            for idx, btitle in enumerate(block_titles):
+                if btitle.strip() and idx < len(block_contents) and block_contents[idx].strip():
+                    TripContentBlock.objects.create(
+                        trip=trip,
+                        title=btitle.strip(),
+                        content=block_contents[idx].strip(),
+                        order=idx
+                    )
+
+            # Handle related trips
+            related_ids = request.POST.getlist('related_trips')
+            trip.related_trips.set(related_ids)
+
+            # Handle gallery thumbnail
+            thumbnail_id = request.POST.get('thumbnail_image')
+            if thumbnail_id:
+                trip.images.all().update(is_thumbnail=False)
+                trip.images.filter(id=thumbnail_id).update(is_thumbnail=True)
 
             messages.success(request, 'Tour updated successfully.')
 
