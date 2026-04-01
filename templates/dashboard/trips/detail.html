@@ -99,7 +99,7 @@
                                     <input type="text" name="name" class="form-control" value="{{ trip.name }}" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">{% trans "Status" %} <span class="req">*</span></label>
+                                    <label class="form-label">{% trans "Status" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Draft: not visible. Published: live on site. Archived: hidden.' %}"></i></label>
                                     <select name="status" class="form-select">
                                         {% for value, label in statuses %}
                                         <option value="{{ value }}" {% if value == trip.status %}selected{% endif %}>{{ label }}</option>
@@ -144,19 +144,19 @@
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-3">
-                                    <label class="form-label">{% trans "Hours" %} <span class="req">*</span></label>
+                                    <label class="form-label">{% trans "Hours" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Total tour duration in hours' %}"></i></label>
                                     <input type="number" name="duration_hours" class="form-control" min="0" value="{{ trip.duration_hours|default:'' }}">
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label">{% trans "Days" %} <span class="opt">({% trans "optional" %})</span></label>
+                                    <label class="form-label">{% trans "Days" %} <span class="opt">({% trans "optional" %})</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Number of days for multi-day tours' %}"></i></label>
                                     <input type="number" name="duration_days" class="form-control" min="0" value="{{ trip.duration_days }}">
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label">{% trans "Min Travelers" %} <span class="req">*</span></label>
+                                    <label class="form-label">{% trans "Min Travelers" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Minimum group size required to run the tour' %}"></i></label>
                                     <input type="number" name="min_participants" class="form-control" min="1" value="{{ trip.min_participants }}">
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label">{% trans "Max Travelers" %} <span class="req">*</span></label>
+                                    <label class="form-label">{% trans "Max Travelers" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Maximum group size allowed' %}"></i></label>
                                     <input type="number" name="max_participants" class="form-control" min="1" value="{{ trip.max_participants }}">
                                 </div>
                             </div>
@@ -224,7 +224,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0">{% trans "Pricing Tiers" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Set Private and Shared price per person for each group size range' %}"></i></h6>
                     <div class="d-flex align-items-center gap-2">
-                        <label class="form-label mb-0 me-1">{% trans "Currency" %}</label>
+                        <label class="form-label mb-0 me-1">{% trans "Currency" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Currency shown to customers' %}"></i></label>
                         <select name="currency" class="form-select form-select-sm" style="width:auto;">
                             <option value="MAD" {% if trip.currency == 'MAD' %}selected{% endif %}>MAD</option>
                             <option value="EUR" {% if trip.currency == 'EUR' %}selected{% endif %}>EUR</option>
@@ -234,13 +234,13 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted small mb-3">{% trans "Define price per person for each group size range. Customers choose Private or Shared when booking." %}</p>
+                    <p class="text-muted small mb-3">{% trans "Private = flat rate per vehicle. Shared = price per person. Set prices for each group size range." %}</p>
                     <div class="table-responsive">
                         <table class="table table-sm align-middle mb-2">
                             <thead>
                                 <tr>
                                     <th style="width:25%">{% trans "Group Size" %}</th>
-                                    <th style="width:30%">{% trans "Private (per person)" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Price when booked as private tour' %}"></i></th>
+                                    <th style="width:30%">{% trans "Private (per vehicle)" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Flat rate for the whole vehicle when booked as private' %}"></i></th>
                                     <th style="width:30%">{% trans "Shared (per person)" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Price when joining a shared tour' %}"></i></th>
                                     <th style="width:15%"></th>
                                 </tr>
@@ -436,7 +436,7 @@
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">{% trans "Policy" %} <span class="req">*</span></label>
+                                    <label class="form-label">{% trans "Policy" %} <span class="req">*</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Refund rules when a customer cancels their booking' %}"></i></label>
                                     <select name="cancellation_policy" class="form-select">
                                         {% for value, label in cancellation_policies %}
                                         <option value="{{ value }}" {% if value == trip.cancellation_policy %}selected{% endif %}>{{ label }}</option>
@@ -446,7 +446,7 @@
                                 <div class="col-md-3 d-flex align-items-end">
                                     <div class="form-check">
                                         <input type="checkbox" name="instant_confirmation" class="form-check-input" id="instantConfirm" {% if trip.instant_confirmation %}checked{% endif %}>
-                                        <label class="form-check-label" for="instantConfirm">{% trans "Instant Confirmation" %}</label>
+                                        <label class="form-check-label" for="instantConfirm">{% trans "Instant Confirmation" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Booking is confirmed immediately without manual review' %}"></i></label>
                                     </div>
                                 </div>
                             </div>
@@ -461,11 +461,11 @@
                                 <div class="col-md-4">
                                     <div class="form-check">
                                         <input type="checkbox" name="is_featured" class="form-check-input" id="isFeatured" {% if trip.is_featured %}checked{% endif %}>
-                                        <label class="form-check-label" for="isFeatured">{% trans "Featured Tour" %}</label>
+                                        <label class="form-check-label" for="isFeatured">{% trans "Featured Tour" %} <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Shows a Featured badge and appears first in listings' %}"></i></label>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">{% trans "Display Order" %} <span class="opt">({% trans "optional" %})</span></label>
+                                    <label class="form-label">{% trans "Display Order" %} <span class="opt">({% trans "optional" %})</span> <i class="bi bi-info-circle tt" data-bs-toggle="tooltip" title="{% trans 'Lower numbers appear first in listings' %}"></i></label>
                                     <input type="number" name="order" class="form-control" value="{{ trip.order }}">
                                 </div>
                             </div>

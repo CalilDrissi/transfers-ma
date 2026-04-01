@@ -310,33 +310,43 @@
             var isPrivate = privateInput ? privateInput.value === '1' : false;
             var totalPersons = adults + children;
 
-            var pricePerPerson = 0;
             var tiers = trip.price_tiers || [];
+            var matchedTier = null;
 
             // Find matching tier
             for (var i = 0; i < tiers.length; i++) {
                 if (totalPersons >= tiers[i].min_persons && totalPersons <= tiers[i].max_persons) {
-                    pricePerPerson = isPrivate ? parseFloat(tiers[i].private_price) : parseFloat(tiers[i].shared_price);
+                    matchedTier = tiers[i];
                     break;
                 }
             }
             // Fallback: use largest tier if no match
-            if (pricePerPerson === 0 && tiers.length > 0) {
-                var last = tiers[tiers.length - 1];
-                pricePerPerson = isPrivate ? parseFloat(last.private_price) : parseFloat(last.shared_price);
-            }
-            // Legacy fallback
-            if (pricePerPerson === 0) {
-                pricePerPerson = parseFloat(trip.price_per_person) || 0;
+            if (!matchedTier && tiers.length > 0) {
+                matchedTier = tiers[tiers.length - 1];
             }
 
-            var total = totalPersons * pricePerPerson;
+            var total, displayPrice, unitText;
+            if (isPrivate) {
+                // Private = flat rate per vehicle
+                var vehiclePrice = matchedTier ? parseFloat(matchedTier.private_price) : 0;
+                total = vehiclePrice;
+                displayPrice = vehiclePrice;
+                unitText = '/ vehicle';
+            } else {
+                // Shared = per person
+                var perPerson = matchedTier ? parseFloat(matchedTier.shared_price) : (parseFloat(trip.price_per_person) || 0);
+                total = totalPersons * perPerson;
+                displayPrice = perPerson;
+                unitText = '/ person';
+            }
 
             setText('tb-tour-total', formatPrice(total, currency));
 
-            // Update per-person display
+            // Update per-person/vehicle display
             var ppEl = document.getElementById('tb-tour-price-value');
-            if (ppEl) ppEl.textContent = formatPrice(pricePerPerson, currency);
+            if (ppEl) ppEl.textContent = formatPrice(displayPrice, currency);
+            var unitEl = document.getElementById('tb-tour-price-unit');
+            if (unitEl) unitEl.textContent = unitText;
         },
 
         handleBook: function () {

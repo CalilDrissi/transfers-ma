@@ -382,7 +382,7 @@ class TripPriceTier(models.Model):
     min_persons = models.PositiveSmallIntegerField(_('minimum persons'), default=1)
     max_persons = models.PositiveSmallIntegerField(_('maximum persons'), default=3)
     private_price = models.DecimalField(
-        _('private price per person'),
+        _('private price per vehicle'),
         max_digits=10,
         decimal_places=2,
         default=0

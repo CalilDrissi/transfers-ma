@@ -102,7 +102,7 @@ class TripListSerializer(serializers.ModelSerializer):
     def get_starting_price(self, obj):
         tier = obj.price_tiers.order_by('shared_price').first()
         if tier:
-            return str(min(tier.shared_price, tier.private_price))
+            return str(tier.shared_price)
         return str(obj.price_per_person or 0)
 
 
@@ -172,15 +172,24 @@ class TripBookingCreateSerializer(serializers.ModelSerializer):
         ).first()
 
         if tier:
-            price_per_adult = tier.private_price if is_private else tier.shared_price
+            private_vehicle_price = tier.private_price
+            shared_per_person = tier.shared_price
         elif trip.price_tiers.exists():
-            # Use the largest tier if group exceeds all tiers
             largest_tier = trip.price_tiers.order_by('-max_persons').first()
-            price_per_adult = largest_tier.private_price if is_private else largest_tier.shared_price
+            private_vehicle_price = largest_tier.private_price
+            shared_per_person = largest_tier.shared_price
         else:
-            # Fallback to legacy fields
-            price_per_adult = trip.private_tour_price if (is_private and trip.private_tour_price) else (trip.price_per_person or 0)
-        price_per_child = price_per_adult  # Children same price as adults
+            private_vehicle_price = trip.private_tour_price or 0
+            shared_per_person = trip.price_per_person or 0
+
+        if is_private:
+            # Private = flat rate per vehicle
+            price_per_adult = private_vehicle_price
+            price_per_child = 0
+        else:
+            # Shared = per person
+            price_per_adult = shared_per_person
+            price_per_child = shared_per_person
 
         booking = TripBooking.objects.create(
             trip=trip,
@@ -190,8 +199,11 @@ class TripBookingCreateSerializer(serializers.ModelSerializer):
             **validated_data
         )
 
-        # Calculate and save total
-        booking.total_price = booking.calculate_total()
+        if is_private:
+            # Private: total is the flat vehicle rate
+            booking.total_price = private_vehicle_price
+        else:
+            booking.total_price = booking.calculate_total()
         booking.save()
 
         return booking
