@@ -438,6 +438,12 @@
     background: #fff;
 }
 
+.tb-phone-input__code-input::placeholder {
+    color: #c4c7cc;
+    font-weight: 400;
+    opacity: 1;
+}
+
 /* Country code popup backdrop */
 .tb-phone-backdrop {
     display: none;
