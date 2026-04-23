@@ -419,6 +419,25 @@
     min-width: 0;
 }
 
+.tb-phone-input__code-input {
+    width: 75px;
+    border: none;
+    border-right: 2px solid var(--tb-border);
+    padding: 12px 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--tb-font);
+    color: var(--tb-text-dark);
+    background: var(--tb-bg);
+    outline: none;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.tb-phone-input__code-input:focus {
+    background: #fff;
+}
+
 /* Country code popup backdrop */
 .tb-phone-backdrop {
     display: none;

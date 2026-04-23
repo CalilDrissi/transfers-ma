@@ -75,153 +75,24 @@
         { name: 'Finland', code: '+358', flag: '🇫🇮', iso: 'FI' }
     ];
 
-    /* ── Shared phone country popup (one popup, used by both phone + whatsapp) ── */
-    var phonePopup = {
-        dropdown: null,
-        backdrop: null,
-        searchInput: null,
-        listEl: null,
-        closeBtn: null,
-        activeInstance: null,
-        focusedIndex: -1,
-
-        init: function () {
-            this.dropdown = document.getElementById('tb-phone-dropdown');
-            this.backdrop = document.getElementById('tb-phone-backdrop');
-            this.searchInput = document.getElementById('tb-phone-search');
-            this.listEl = document.getElementById('tb-phone-list');
-            this.closeBtn = document.getElementById('tb-phone-close');
-            if (!this.dropdown || !this.listEl) return;
-
-            var self = this;
-
-            this.backdrop.addEventListener('click', function () { self.close(); });
-            if (this.closeBtn) this.closeBtn.addEventListener('click', function () { self.close(); });
-
-            if (this.searchInput) {
-                this.searchInput.addEventListener('input', function () {
-                    self.focusedIndex = -1;
-                    self.renderList(this.value);
-                });
-            }
-
-            this.listEl.addEventListener('click', function (e) {
-                var item = e.target.closest('.tb-phone-dropdown__item');
-                if (item && self.activeInstance) {
-                    self.activeInstance.select(item.dataset.code, item.dataset.iso);
-                    self.close();
-                }
-            });
-
-            this.dropdown.addEventListener('keydown', function (e) {
-                var items = self.listEl.querySelectorAll('.tb-phone-dropdown__item');
-                if (!items.length) return;
-
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    self.focusedIndex = Math.min(self.focusedIndex + 1, items.length - 1);
-                    self.updateFocus(items);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    self.focusedIndex = Math.max(self.focusedIndex - 1, 0);
-                    self.updateFocus(items);
-                } else if (e.key === 'Enter' && self.focusedIndex >= 0) {
-                    e.preventDefault();
-                    var item = items[self.focusedIndex];
-                    if (item && self.activeInstance) {
-                        self.activeInstance.select(item.dataset.code, item.dataset.iso);
-                        self.close();
-                    }
-                } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    self.close();
-                }
-            });
-        },
-
-        updateFocus: function (items) {
-            for (var i = 0; i < items.length; i++) {
-                items[i].classList.toggle('tb-phone-dropdown__item--focused', i === this.focusedIndex);
-            }
-            if (this.focusedIndex >= 0 && items[this.focusedIndex]) {
-                items[this.focusedIndex].scrollIntoView({ block: 'nearest' });
-            }
-        },
-
-        renderList: function (filter) {
-            var q = (filter || '').toLowerCase();
-            var selectedCode = this.activeInstance ? this.activeInstance.selectedCode : '+212';
-            var html = '';
-            for (var i = 0; i < COUNTRIES.length; i++) {
-                var c = COUNTRIES[i];
-                if (q && c.name.toLowerCase().indexOf(q) === -1 && c.code.indexOf(q) === -1 && c.iso.toLowerCase().indexOf(q) === -1) continue;
-                var active = c.code === selectedCode ? ' tb-phone-dropdown__item--active' : '';
-                var iso = c.iso.toLowerCase();
-                html += '<div class="tb-phone-dropdown__item' + active + '" data-code="' + c.code + '" data-iso="' + iso + '" data-name="' + c.name + '">'
-                    + '<img class="tb-phone-dropdown__item-flag" src="https://flagcdn.com/w40/' + iso + '.png" alt="' + c.iso + '" width="24" height="18" loading="lazy">'
-                    + '<span class="tb-phone-dropdown__item-name">' + c.name + '</span>'
-                    + '<span class="tb-phone-dropdown__item-code">' + c.code + '</span>'
-                    + '</div>';
-            }
-            this.listEl.innerHTML = html || '<div style="padding:12px;color:#999;text-align:center;">No results</div>';
-        },
-
-        open: function (instance) {
-            this.activeInstance = instance;
-            this.focusedIndex = -1;
-            this.renderList('');
-            this.backdrop.classList.add('tb-show');
-            this.dropdown.classList.add('tb-show');
-            if (this.searchInput) { this.searchInput.value = ''; this.searchInput.focus(); }
-            instance.prefix.setAttribute('aria-expanded', 'true');
-        },
-
-        close: function () {
-            this.backdrop.classList.remove('tb-show');
-            this.dropdown.classList.remove('tb-show');
-            if (this.activeInstance) {
-                this.activeInstance.prefix.setAttribute('aria-expanded', 'false');
-                this.activeInstance = null;
-            }
-        }
-    };
-
-    /** Set up a country-code phone prefix button (uses shared popup) */
-    function initPhonePrefix(prefixId, flagId, codeId) {
-        var prefix = document.getElementById(prefixId);
-        var flagEl = document.getElementById(flagId);
+    /** Get/set the free-text country code from an input field */
+    function initPhoneCode(codeId) {
         var codeEl = document.getElementById(codeId);
-        if (!prefix) return null;
-
-        var instance = {
-            prefix: prefix,
-            selectedCode: '+212',
-            selectedIso: 'ma',
-
-            select: function (code, iso) {
-                this.selectedCode = code;
-                this.selectedIso = iso;
-                if (flagEl) {
-                    flagEl.src = 'https://flagcdn.com/w40/' + iso + '.png';
-                    flagEl.alt = iso.toUpperCase();
-                }
-                if (codeEl) codeEl.textContent = code;
-            }
+        if (!codeEl) return null;
+        // Auto-prepend "+" if user forgets it
+        codeEl.addEventListener('blur', function () {
+            var v = this.value.trim();
+            if (v && v.charAt(0) !== '+') this.value = '+' + v.replace(/[^0-9]/g, '');
+            else this.value = '+' + v.replace(/[^0-9]/g, '');
+        });
+        return {
+            getCode: function () {
+                var v = (codeEl.value || '').trim();
+                if (!v) return '+212';
+                return v.charAt(0) === '+' ? v : '+' + v.replace(/[^0-9]/g, '');
+            },
+            setCode: function (code) { codeEl.value = code; }
         };
-
-        prefix.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            phonePopup.open(instance);
-        });
-        prefix.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                phonePopup.open(instance);
-            }
-        });
-
-        return { getCode: function () { return instance.selectedCode; }, setCode: instance.select.bind(instance) };
     }
 
     var phoneDropdown = null;
@@ -230,9 +101,8 @@
     TB.Step3 = {
 
         init: function () {
-            phonePopup.init();
-            phoneDropdown = initPhonePrefix('tb-phone-prefix', 'tb-phone-flag', 'tb-phone-code');
-            waDropdown = initPhonePrefix('tb-wa-prefix', 'tb-wa-flag', 'tb-wa-code');
+            phoneDropdown = initPhoneCode('tb-phone-code');
+            waDropdown = initPhoneCode('tb-wa-code');
             this.populateNationality();
             this.renderOrderSummary();
             this.renderPaymentChoices();
@@ -652,8 +522,26 @@
                 if (lastName) lastName.value = parts.slice(1).join(' ') || '';
             }
             if (email && s.customerEmail) email.value = s.customerEmail;
-            if (phone && s.customerPhone) phone.value = s.customerPhone;
-            if (whatsapp && s.customerWhatsapp) whatsapp.value = s.customerWhatsapp;
+            if (phone && s.customerPhone) {
+                var m = s.customerPhone.match(/^(\+\d{1,4})(.*)$/);
+                if (m) {
+                    var codeEl = document.getElementById('tb-phone-code');
+                    if (codeEl) codeEl.value = m[1];
+                    phone.value = m[2].trim();
+                } else {
+                    phone.value = s.customerPhone;
+                }
+            }
+            if (whatsapp && s.customerWhatsapp) {
+                var mw = s.customerWhatsapp.match(/^(\+\d{1,4})(.*)$/);
+                if (mw) {
+                    var waCodeEl = document.getElementById('tb-wa-code');
+                    if (waCodeEl) waCodeEl.value = mw[1];
+                    whatsapp.value = mw[2].trim();
+                } else {
+                    whatsapp.value = s.customerWhatsapp;
+                }
+            }
             if (requests && s.specialRequests) requests.value = s.specialRequests;
         },
 
