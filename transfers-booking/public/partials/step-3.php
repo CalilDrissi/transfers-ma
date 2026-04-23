@@ -77,7 +77,7 @@
             <div class="tb-form-group">
                 <label class="tb-label" for="tb-customer-phone"><?php esc_html_e('Phone Number', 'transfers-booking'); ?> *</label>
                 <div class="tb-phone-input">
-                    <input type="text" id="tb-phone-code" class="tb-phone-input__code-input" placeholder="+212" maxlength="5" aria-label="<?php esc_attr_e('Country code', 'transfers-booking'); ?>">
+                    <input type="text" id="tb-phone-code" class="tb-phone-input__code-input" placeholder="+212" maxlength="4" aria-label="<?php esc_attr_e('Country code', 'transfers-booking'); ?>">
                     <input type="tel" id="tb-customer-phone" class="tb-phone-input__field" placeholder="">
                 </div>
                 <div class="tb-field-error" data-field="phone"></div>
@@ -85,7 +85,7 @@
             <div class="tb-form-group">
                 <label class="tb-label"><?php esc_html_e('WhatsApp Number', 'transfers-booking'); ?></label>
                 <div class="tb-phone-input">
-                    <input type="text" id="tb-wa-code" class="tb-phone-input__code-input" placeholder="+212" maxlength="5" aria-label="<?php esc_attr_e('Country code', 'transfers-booking'); ?>">
+                    <input type="text" id="tb-wa-code" class="tb-phone-input__code-input" placeholder="+212" maxlength="4" aria-label="<?php esc_attr_e('Country code', 'transfers-booking'); ?>">
                     <input type="tel" id="tb-customer-whatsapp" class="tb-phone-input__field" placeholder="">
                 </div>
             </div>
