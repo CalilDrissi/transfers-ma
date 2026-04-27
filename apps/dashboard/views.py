@@ -1488,7 +1488,145 @@ def payment_list(request):
     return render(request, 'dashboard/payments/list.html', context)
 
 
-# Reports
+# Accounting
+@login_required
+@user_passes_test(is_admin)
+def accounting(request):
+    """Accounting export — filterable list of transfers with .xlsx download."""
+    today = timezone.now().date()
+    month_start = today.replace(day=1)
+
+    date_from_str = request.GET.get('date_from') or month_start.isoformat()
+    date_to_str = request.GET.get('date_to') or today.isoformat()
+    driver_id = request.GET.get('driver') or ''
+    status = request.GET.get('status') or ''
+
+    qs = Transfer.objects.select_related('driver', 'vehicle', 'vehicle_category').order_by('-pickup_datetime')
+    if date_from_str:
+        qs = qs.filter(pickup_datetime__date__gte=date_from_str)
+    if date_to_str:
+        qs = qs.filter(pickup_datetime__date__lte=date_to_str)
+    if driver_id:
+        qs = qs.filter(driver_id=driver_id)
+    if status:
+        qs = qs.filter(status=status)
+
+    if request.GET.get('format') == 'xlsx':
+        return _accounting_xlsx(qs, date_from_str, date_to_str)
+
+    paginator = Paginator(qs, 25)
+    page = paginator.get_page(request.GET.get('page'))
+
+    drivers = User.objects.filter(role=User.Role.DRIVER, is_active=True).order_by('first_name', 'last_name')
+
+    context = {
+        'page_obj': page,
+        'transfers': page.object_list,
+        'total_count': qs.count(),
+        'total_revenue': qs.aggregate(s=Sum('total_price'))['s'] or Decimal('0'),
+        'date_from': date_from_str,
+        'date_to': date_to_str,
+        'driver_id': driver_id,
+        'status': status,
+        'drivers': drivers,
+        'statuses': Transfer.Status.choices,
+    }
+    return render(request, 'dashboard/accounting/index.html', context)
+
+
+def _accounting_xlsx(qs, date_from_str, date_to_str):
+    """Build .xlsx response from a Transfer queryset."""
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.http import HttpResponse
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Transfers'
+
+    headers = [
+        'Booking Ref', 'Status', 'Pickup Date', 'Pickup Time',
+        'Customer Name', 'Email', 'Phone',
+        'Pickup Address', 'Dropoff Address', 'Distance (km)', 'Passengers',
+        'Vehicle Category', 'Assigned Driver', 'Vehicle',
+        'Base Price', 'Extras', 'Discount', 'Total', 'Currency', 'Deposit',
+        'Round Trip', 'Created At',
+    ]
+    ws.append(headers)
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill('solid', fgColor='0d6efd')
+    for col_idx in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    for t in qs:
+        pd = timezone.localtime(t.pickup_datetime) if t.pickup_datetime else None
+        ca = timezone.localtime(t.created_at) if t.created_at else None
+        driver_name = t.driver.get_full_name() if t.driver else ''
+        if t.driver and not driver_name:
+            driver_name = t.driver.email or ''
+        vehicle_label = ''
+        if t.vehicle:
+            vehicle_label = getattr(t.vehicle, 'plate_number', '') or getattr(t.vehicle, 'name', '') or str(t.vehicle)
+        ws.append([
+            t.booking_ref,
+            t.get_status_display(),
+            pd.date() if pd else None,
+            pd.strftime('%H:%M') if pd else '',
+            t.customer_name,
+            t.customer_email,
+            t.customer_phone,
+            t.pickup_address,
+            t.dropoff_address,
+            float(t.distance_km) if t.distance_km is not None else None,
+            t.passengers,
+            t.vehicle_category.name if t.vehicle_category_id else '',
+            driver_name,
+            vehicle_label,
+            float(t.base_price or 0),
+            float(t.extras_price or 0),
+            float(t.discount or 0),
+            float(t.total_price or 0),
+            t.currency,
+            float(t.deposit_amount or 0),
+            'Yes' if t.is_round_trip else 'No',
+            ca.replace(tzinfo=None) if ca else None,
+        ])
+
+    # Number formatting on monetary + distance columns
+    money_cols = [10, 15, 16, 17, 18, 20]  # 1-indexed
+    for row_idx in range(2, ws.max_row + 1):
+        for col_idx in money_cols:
+            ws.cell(row=row_idx, column=col_idx).number_format = '#,##0.00'
+
+    # Auto-ish width
+    widths = {
+        1: 14, 2: 12, 3: 11, 4: 8, 5: 22, 6: 26, 7: 16,
+        8: 32, 9: 32, 10: 11, 11: 6, 12: 16, 13: 22, 14: 14,
+        15: 12, 16: 10, 17: 10, 18: 12, 19: 8, 20: 10, 21: 10, 22: 18,
+    }
+    for col_idx, w in widths.items():
+        ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = w
+    ws.freeze_panes = 'A2'
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    df = (date_from_str or '').replace('-', '')
+    dt = (date_to_str or '').replace('-', '')
+    filename = f'transfers_{df}_{dt}.xlsx'
+    response = HttpResponse(
+        buf.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
 @login_required
 @user_passes_test(is_admin)
 def reports(request):

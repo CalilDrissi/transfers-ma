@@ -365,6 +365,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{% url 'dashboard:accounting' %}" class="nav-link {% active_link request '/accounting/' %}" title="{% trans 'Accounting' %}">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                    <span class="nav-link-text">{% trans "Accounting" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{% url 'dashboard:rental_company_list' %}" class="nav-link {% active_link request '/rental-companies/' %}" title="{% trans 'Rental Companies' %}">
                     <i class="bi bi-building"></i>
                     <span class="nav-link-text">{% trans "Rental Companies" %}

@@ -56,6 +56,9 @@ urlpatterns = [
     # Reports
     path('reports/', views.reports, name='reports'),
 
+    # Accounting
+    path('accounting/', views.accounting, name='accounting'),
+
     # Settings
     path('settings/', views.settings_view, name='settings'),
 
