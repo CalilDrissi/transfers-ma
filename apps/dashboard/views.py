@@ -1665,6 +1665,27 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
     return response
 
 
+# Inline supplier set on a transfer (AJAX)
+@login_required
+@user_passes_test(is_admin)
+def transfer_set_supplier(request, pk):
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'POST required'}, status=405)
+    transfer = get_object_or_404(Transfer, pk=pk)
+    supplier_id = request.POST.get('supplier_id') or None
+    if supplier_id:
+        try:
+            supplier = Supplier.objects.get(pk=supplier_id)
+        except Supplier.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Supplier not found'}, status=404)
+        transfer.supplier = supplier
+        transfer.save(update_fields=['supplier'])
+        return JsonResponse({'ok': True, 'supplier_id': supplier.pk, 'supplier_name': supplier.name})
+    transfer.supplier = None
+    transfer.save(update_fields=['supplier'])
+    return JsonResponse({'ok': True, 'supplier_id': None, 'supplier_name': None})
+
+
 # Suppliers
 @login_required
 @user_passes_test(is_admin)

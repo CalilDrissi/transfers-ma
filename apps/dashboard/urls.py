@@ -59,6 +59,9 @@ urlpatterns = [
     # Accounting
     path('accounting/', views.accounting, name='accounting'),
 
+    # Inline supplier set on a transfer (AJAX)
+    path('transfers/<int:pk>/set-supplier/', views.transfer_set_supplier, name='transfer_set_supplier'),
+
     # Suppliers
     path('suppliers/', views.supplier_list, name='supplier_list'),
     path('suppliers/create/', views.supplier_create, name='supplier_create'),

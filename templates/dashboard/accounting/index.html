@@ -126,8 +126,13 @@
                         <td>
                             {% if t.driver %}{{ t.driver.get_full_name|default:t.driver.email }}{% else %}<span class="text-muted">—</span>{% endif %}
                         </td>
-                        <td class="small">
-                            {% if t.supplier %}{{ t.supplier.name }}{% elif t.vehicle and t.vehicle.supplier %}{{ t.vehicle.supplier.name }}{% elif t.vehicle and t.vehicle.supplier_name %}{{ t.vehicle.supplier_name }}{% else %}<span class="text-muted">—</span>{% endif %}
+                        <td class="small" style="min-width:160px;">
+                            <select class="form-select form-select-sm supplier-edit" data-pk="{{ t.pk }}">
+                                <option value="">{% trans "— None —" %}</option>
+                                {% for s in suppliers %}
+                                <option value="{{ s.pk }}" {% if t.supplier_id == s.pk %}selected{% endif %}>{{ s.name }}</option>
+                                {% endfor %}
+                            </select>
                         </td>
                         <td>
                             <span class="badge bg-{% if t.status == 'completed' %}success{% elif t.status == 'cancelled' or t.status == 'no_show' %}danger{% elif t.status == 'in_progress' %}info{% else %}secondary{% endif %}">
@@ -164,5 +169,47 @@
     </ul>
 </nav>
 {% endif %}
+
+{% csrf_token %}
+<script>
+(function() {
+    var csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    document.querySelectorAll('.supplier-edit').forEach(function(sel) {
+        var lastValue = sel.value;
+        sel.addEventListener('change', function() {
+            var pk = sel.dataset.pk;
+            var newVal = sel.value;
+            var cell = sel.closest('td');
+            sel.disabled = true;
+            var fd = new FormData();
+            fd.append('supplier_id', newVal);
+            fd.append('csrfmiddlewaretoken', csrf);
+            fetch('/dashboard/transfers/' + pk + '/set-supplier/', {
+                method: 'POST',
+                body: fd,
+                credentials: 'same-origin',
+            }).then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            }).then(function(data) {
+                if (!data.ok) throw new Error(data.error || 'Save failed');
+                cell.style.transition = 'background-color 0.4s';
+                cell.style.backgroundColor = '#d1e7dd';
+                lastValue = newVal;
+                setTimeout(function() {
+                    // Reload the page to refresh totals + filtered rows accurately
+                    window.location.reload();
+                }, 350);
+            }).catch(function(err) {
+                cell.style.backgroundColor = '#f8d7da';
+                sel.value = lastValue;
+                sel.disabled = false;
+                console.error('Supplier save failed:', err);
+                setTimeout(function() { cell.style.backgroundColor = ''; }, 1500);
+            });
+        });
+    });
+})();
+</script>
 
 {% endblock %}
