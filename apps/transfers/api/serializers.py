@@ -130,6 +130,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
         # Calculate base price: zone pricing → route pricing (no fallback)
         base_price = None
         deposit_percentage_from_pricing = Decimal('0')
+        priced_vehicle = None  # The specific Vehicle whose pricing row was used
 
         if all([pickup_lat, pickup_lng, dropoff_lat, dropoff_lng]):
             from apps.locations.models import Route, Zone, VehicleRoutePricing
@@ -158,11 +159,12 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                         zone_distance_range=distance_range,
                         vehicle__category=vehicle_category,
                         is_active=True,
-                    ).first()
+                    ).select_related('vehicle__supplier').first()
                     if zp:
                         base_price = zp.price
                         deposit_percentage_from_pricing = zone.deposit_percentage
                         pricing_method = 'zone'
+                        priced_vehicle = zp.vehicle
 
             # 2. Route pricing with zone adjustments
             if base_price is None:
@@ -182,9 +184,10 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                             rp = VehicleRoutePricing.objects.filter(
                                 route=route, vehicle__category=vehicle_category, is_active=True,
                                 pickup_zone__isnull=True, dropoff_zone__isnull=True,
-                            ).first()
+                            ).select_related('vehicle__supplier').first()
                             if rp:
                                 base_price = rp.price
+                                priced_vehicle = rp.vehicle
                                 if is_reverse:
                                     m_pickup = find_matching_dropoff_zone(route, p_lat, p_lng)
                                     m_dropoff = find_matching_pickup_zone(route, d_lat, d_lng)
@@ -203,8 +206,11 @@ class TransferCreateSerializer(serializers.ModelSerializer):
 
         # Create transfer
         from apps.accounts.models import SiteSettings
+        priced_supplier = priced_vehicle.supplier if priced_vehicle and priced_vehicle.supplier_id else None
         transfer = Transfer.objects.create(
             vehicle_category=vehicle_category,
+            vehicle=priced_vehicle,
+            supplier=priced_supplier,
             distance_km=distance_km,
             duration_minutes=duration_minutes,
             base_price=base_price,
@@ -261,6 +267,8 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                 luggage=transfer.luggage,
                 child_seats=transfer.child_seats,
                 vehicle_category=vehicle_category,
+                vehicle=priced_vehicle,
+                supplier=priced_supplier,
                 base_price=base_price,
                 extras_price=extras_total,
                 total_price=base_price + extras_total,
