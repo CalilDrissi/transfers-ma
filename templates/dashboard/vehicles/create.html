@@ -58,8 +58,16 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">{% trans "Supplier Name" %}</label>
-                            <input type="text" name="supplier_name" class="form-control" placeholder="{% trans 'e.g., ABC Transport' %}">
+                            <label class="form-label">{% trans "Supplier" %}</label>
+                            <select name="supplier" class="form-select">
+                                <option value="">{% trans "— None —" %}</option>
+                                {% for s in suppliers %}
+                                <option value="{{ s.pk }}">{{ s.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">
+                                <a href="{% url 'dashboard:supplier_list' %}" target="_blank">{% trans "Manage suppliers" %}</a>
+                            </small>
                         </div>
 
                         {% if service_type == 'transfer' %}

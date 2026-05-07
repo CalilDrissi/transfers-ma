@@ -372,6 +372,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{% url 'dashboard:supplier_list' %}" class="nav-link {% active_link request '/suppliers/' %}" title="{% trans 'Suppliers' %}">
+                    <i class="bi bi-people-fill"></i>
+                    <span class="nav-link-text">{% trans "Suppliers" %}</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{% url 'dashboard:rental_company_list' %}" class="nav-link {% active_link request '/rental-companies/' %}" title="{% trans 'Rental Companies' %}">
                     <i class="bi bi-building"></i>
                     <span class="nav-link-text">{% trans "Rental Companies" %}

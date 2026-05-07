@@ -57,15 +57,17 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">{% trans "Supplier Name" %}</label>
-                            <input type="text" name="supplier_name" class="form-control" value="{{ vehicle.supplier_name }}">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Supplier" %} <small class="text-muted">(<a href="{% url 'dashboard:supplier_list' %}" target="_blank">{% trans "manage" %}</a>)</small></label>
+                            <select name="supplier" class="form-select">
+                                <option value="">{% trans "— None —" %}</option>
+                                {% for s in suppliers %}
+                                <option value="{{ s.pk }}" {% if vehicle.supplier_id == s.pk %}selected{% endif %}>{{ s.name }}{% if s.email %} — {{ s.email }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label">{% trans "Supplier Email" %}</label>
-                            <input type="email" name="supplier_email" class="form-control" value="{{ vehicle.supplier_email }}">
-                        </div>
+                        <input type="hidden" name="supplier_name" value="{{ vehicle.supplier_name }}">
+                        <input type="hidden" name="supplier_email" value="{{ vehicle.supplier_email }}">
 
                         <div class="col-md-6">
                             <div class="form-check mt-4">

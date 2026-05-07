@@ -332,16 +332,29 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     customer_phone=booking.customer_phone,
                     booking_details=booking_details,
                 )
-                # Email to vehicle supplier
+                # Email to vehicle supplier — prefer Supplier FK, fall back to legacy text fields
                 if booking.vehicle_category:
-                    supplier_vehicle = booking.vehicle_category.vehicles.filter(
-                        supplier_email__gt='',
-                    ).values('supplier_email', 'supplier_name').first()
-                    if supplier_vehicle:
+                    supplier_email = ''
+                    supplier_name = ''
+                    fk_match = booking.vehicle_category.vehicles.filter(
+                        supplier__isnull=False,
+                        supplier__email__gt='',
+                    ).select_related('supplier').first()
+                    if fk_match and fk_match.supplier:
+                        supplier_email = fk_match.supplier.email
+                        supplier_name = fk_match.supplier.name
+                    else:
+                        legacy = booking.vehicle_category.vehicles.filter(
+                            supplier_email__gt='',
+                        ).values('supplier_email', 'supplier_name').first()
+                        if legacy:
+                            supplier_email = legacy['supplier_email']
+                            supplier_name = legacy['supplier_name']
+                    if supplier_email:
                         send_supplier_new_booking_alert.delay(
                             booking_ref=booking.booking_ref,
-                            supplier_email=supplier_vehicle['supplier_email'],
-                            supplier_name=supplier_vehicle['supplier_name'],
+                            supplier_email=supplier_email,
+                            supplier_name=supplier_name,
                             customer_name=booking.customer_name,
                             customer_phone=booking.customer_phone,
                             booking_details=booking_details,

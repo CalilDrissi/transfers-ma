@@ -18,7 +18,7 @@ from apps.trips.models import (
     TripBooking, Trip, TripImage, TripHighlight, TripItineraryStop,
     TripPriceTier, TripContentBlock, TripFAQ
 )
-from apps.vehicles.models import Vehicle, VehicleCategory, VehicleFeature, VehicleZonePricing, VehicleImage
+from apps.vehicles.models import Vehicle, VehicleCategory, VehicleFeature, VehicleZonePricing, VehicleImage, Supplier
 from apps.locations.models import Zone, ZoneDistanceRange, Route, VehicleRoutePricing, RoutePickupZone, RouteDropoffZone
 from apps.payments.models import Payment, Coupon
 from apps.rental_companies.models import RentalCompany, CompanyDocument, CompanyPayout
@@ -366,6 +366,7 @@ def vehicle_create(request, service_type='transfer'):
         name = request.POST.get('name')
         passengers = request.POST.get('passengers')
         luggage = request.POST.get('luggage')
+        supplier_id = request.POST.get('supplier') or None
         supplier_name = request.POST.get('supplier_name', '')
         supplier_email = request.POST.get('supplier_email', '')
         daily_rate = request.POST.get('daily_rate') or None
@@ -394,6 +395,7 @@ def vehicle_create(request, service_type='transfer'):
                     name=name,
                     passengers=passengers,
                     luggage=luggage,
+                    supplier_id=supplier_id,
                     supplier_name=supplier_name,
                     supplier_email=supplier_email,
                     daily_rate=daily_rate,
@@ -489,12 +491,15 @@ def vehicle_create(request, service_type='transfer'):
         'pickup_zones', 'dropoff_zones'
     ).order_by('order', 'name')
 
+    suppliers = Supplier.objects.filter(is_active=True).order_by('name')
+
     context = {
         'categories': categories,
         'features': features,
         'service_type': service_type,
         'zones': zones,
         'routes': routes,
+        'suppliers': suppliers,
     }
     return render(request, 'dashboard/vehicles/create.html', context)
 
@@ -517,6 +522,7 @@ def vehicle_detail(request, pk):
             vehicle.name = request.POST.get('name')
             vehicle.passengers = request.POST.get('passengers')
             vehicle.luggage = request.POST.get('luggage')
+            vehicle.supplier_id = request.POST.get('supplier') or None
             vehicle.supplier_name = request.POST.get('supplier_name', '')
             vehicle.supplier_email = request.POST.get('supplier_email', '')
             vehicle.status = request.POST.get('status')
@@ -707,6 +713,8 @@ def vehicle_detail(request, pk):
     # Get vehicle images
     vehicle_images = vehicle.images.all().order_by('-is_primary', 'order', 'created_at')
 
+    suppliers = Supplier.objects.filter(is_active=True).order_by('name')
+
     context = {
         'vehicle': vehicle,
         'categories': categories,
@@ -717,6 +725,7 @@ def vehicle_detail(request, pk):
         'route_pricing': route_pricing,
         'available_routes': available_routes,
         'vehicle_images': vehicle_images,
+        'suppliers': suppliers,
     }
     return render(request, 'dashboard/vehicles/detail.html', context)
 
@@ -1499,15 +1508,20 @@ def accounting(request):
     date_from_str = request.GET.get('date_from') or month_start.isoformat()
     date_to_str = request.GET.get('date_to') or today.isoformat()
     driver_id = request.GET.get('driver') or ''
+    supplier_id = request.GET.get('supplier') or ''
     status = request.GET.get('status') or ''
 
-    qs = Transfer.objects.select_related('driver', 'vehicle', 'vehicle_category').order_by('-pickup_datetime')
+    qs = Transfer.objects.select_related(
+        'driver', 'vehicle', 'vehicle__supplier', 'vehicle_category'
+    ).order_by('-pickup_datetime')
     if date_from_str:
         qs = qs.filter(pickup_datetime__date__gte=date_from_str)
     if date_to_str:
         qs = qs.filter(pickup_datetime__date__lte=date_to_str)
     if driver_id:
         qs = qs.filter(driver_id=driver_id)
+    if supplier_id:
+        qs = qs.filter(vehicle__supplier_id=supplier_id)
     if status:
         qs = qs.filter(status=status)
 
@@ -1518,6 +1532,7 @@ def accounting(request):
     page = paginator.get_page(request.GET.get('page'))
 
     drivers = User.objects.filter(role=User.Role.DRIVER, is_active=True).order_by('first_name', 'last_name')
+    suppliers = Supplier.objects.filter(is_active=True).order_by('name')
 
     context = {
         'page_obj': page,
@@ -1527,8 +1542,10 @@ def accounting(request):
         'date_from': date_from_str,
         'date_to': date_to_str,
         'driver_id': driver_id,
+        'supplier_id': supplier_id,
         'status': status,
         'drivers': drivers,
+        'suppliers': suppliers,
         'statuses': Transfer.Status.choices,
     }
     return render(request, 'dashboard/accounting/index.html', context)
@@ -1549,7 +1566,7 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
         'Booking Ref', 'Status', 'Pickup Date', 'Pickup Time',
         'Customer Name', 'Email', 'Phone',
         'Pickup Address', 'Dropoff Address', 'Distance (km)', 'Passengers',
-        'Vehicle Category', 'Assigned Driver', 'Vehicle',
+        'Vehicle Category', 'Assigned Driver', 'Vehicle', 'Supplier',
         'Base Price', 'Extras', 'Discount', 'Total', 'Currency', 'Deposit',
         'Round Trip', 'Created At',
     ]
@@ -1571,6 +1588,13 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
         vehicle_label = ''
         if t.vehicle:
             vehicle_label = getattr(t.vehicle, 'plate_number', '') or getattr(t.vehicle, 'name', '') or str(t.vehicle)
+        # Supplier: prefer FK, fall back to legacy text field on the vehicle
+        supplier_label = ''
+        if t.vehicle:
+            if t.vehicle.supplier_id and t.vehicle.supplier:
+                supplier_label = t.vehicle.supplier.name
+            else:
+                supplier_label = (t.vehicle.supplier_name or '').strip()
         ws.append([
             t.booking_ref,
             t.get_status_display(),
@@ -1586,6 +1610,7 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
             t.vehicle_category.name if t.vehicle_category_id else '',
             driver_name,
             vehicle_label,
+            supplier_label,
             float(t.base_price or 0),
             float(t.extras_price or 0),
             float(t.discount or 0),
@@ -1596,8 +1621,8 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
             ca.replace(tzinfo=None) if ca else None,
         ])
 
-    # Number formatting on monetary + distance columns
-    money_cols = [10, 15, 16, 17, 18, 20]  # 1-indexed
+    # Number formatting on monetary + distance columns (shifted by +1 due to Supplier column)
+    money_cols = [10, 16, 17, 18, 19, 21]  # 1-indexed
     for row_idx in range(2, ws.max_row + 1):
         for col_idx in money_cols:
             ws.cell(row=row_idx, column=col_idx).number_format = '#,##0.00'
@@ -1605,8 +1630,8 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
     # Auto-ish width
     widths = {
         1: 14, 2: 12, 3: 11, 4: 8, 5: 22, 6: 26, 7: 16,
-        8: 32, 9: 32, 10: 11, 11: 6, 12: 16, 13: 22, 14: 14,
-        15: 12, 16: 10, 17: 10, 18: 12, 19: 8, 20: 10, 21: 10, 22: 18,
+        8: 32, 9: 32, 10: 11, 11: 6, 12: 16, 13: 22, 14: 14, 15: 18,
+        16: 12, 17: 10, 18: 10, 19: 12, 20: 8, 21: 10, 22: 10, 23: 18,
     }
     for col_idx, w in widths.items():
         ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = w
@@ -1625,6 +1650,79 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
     )
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+# Suppliers
+@login_required
+@user_passes_test(is_admin)
+def supplier_list(request):
+    """List of suppliers (fournisseurs)."""
+    qs = Supplier.objects.annotate(vehicle_count=Count('vehicles')).order_by('name')
+    search = request.GET.get('search', '').strip()
+    if search:
+        qs = qs.filter(Q(name__icontains=search) | Q(email__icontains=search))
+    return render(request, 'dashboard/suppliers/list.html', {
+        'suppliers': qs,
+        'search': search,
+    })
+
+
+@login_required
+@user_passes_test(is_admin)
+def supplier_create(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            Supplier.objects.create(
+                name=name,
+                email=request.POST.get('email', '').strip(),
+                phone=request.POST.get('phone', '').strip(),
+                notes=request.POST.get('notes', '').strip(),
+                is_active=request.POST.get('is_active') == 'on',
+            )
+            messages.success(request, f'Supplier "{name}" created.')
+            return redirect('dashboard:supplier_list')
+        messages.error(request, 'Name is required.')
+    return render(request, 'dashboard/suppliers/form.html', {'supplier': None})
+
+
+@login_required
+@user_passes_test(is_admin)
+def supplier_detail(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            supplier.name = name
+            supplier.email = request.POST.get('email', '').strip()
+            supplier.phone = request.POST.get('phone', '').strip()
+            supplier.notes = request.POST.get('notes', '').strip()
+            supplier.is_active = request.POST.get('is_active') == 'on'
+            supplier.save()
+            messages.success(request, 'Supplier updated.')
+            return redirect('dashboard:supplier_list')
+        messages.error(request, 'Name is required.')
+    return render(request, 'dashboard/suppliers/form.html', {
+        'supplier': supplier,
+        'vehicles': supplier.vehicles.all(),
+    })
+
+
+@login_required
+@user_passes_test(is_admin)
+def supplier_delete(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    if request.method == 'POST':
+        if supplier.vehicles.exists():
+            messages.error(
+                request,
+                f'Cannot delete "{supplier.name}" — {supplier.vehicles.count()} vehicle(s) still linked. Reassign them first.',
+            )
+        else:
+            name = supplier.name
+            supplier.delete()
+            messages.success(request, f'Supplier "{name}" deleted.')
+    return redirect('dashboard:supplier_list')
 
 
 @login_required

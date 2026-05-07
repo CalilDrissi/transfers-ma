@@ -47,6 +47,26 @@ class VehicleCategory(models.Model):
         return self.name
 
 
+class Supplier(models.Model):
+    """Transfer service supplier (fournisseur) — owns one or more vehicles."""
+
+    name = models.CharField(_('name'), max_length=200)
+    email = models.EmailField(_('email'), max_length=254, blank=True)
+    phone = models.CharField(_('phone'), max_length=30, blank=True)
+    notes = models.TextField(_('notes'), blank=True)
+    is_active = models.BooleanField(_('active'), default=True)
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('updated at'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('supplier')
+        verbose_name_plural = _('suppliers')
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class VehicleFeature(models.Model):
     """Features that vehicles can have (WiFi, AC, leather seats, etc.)."""
 
@@ -99,6 +119,13 @@ class Vehicle(models.Model):
     luggage = models.PositiveSmallIntegerField(_('luggage capacity'))
     supplier_name = models.CharField(_('supplier name'), max_length=200, blank=True)
     supplier_email = models.EmailField(_('supplier email'), max_length=254, blank=True)
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        null=True, blank=True,
+        related_name='vehicles',
+        verbose_name=_('supplier'),
+    )
     features = models.ManyToManyField(
         VehicleFeature,
         blank=True,
