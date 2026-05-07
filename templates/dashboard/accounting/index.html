@@ -64,7 +64,7 @@
 
 <!-- Summary -->
 <div class="row g-3 mb-3">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card">
             <div class="card-body">
                 <div class="text-muted small">{% trans "Transfers in range" %}</div>
@@ -72,15 +72,25 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <div class="text-muted small">{% trans "Total revenue" %}</div>
-                <div class="fs-3 fw-bold">{{ total_revenue|floatformat:2 }}</div>
+                <div class="text-muted small">{% trans "Cost (MAD)" %}</div>
+                <div class="fs-3 fw-bold">{{ total_cost_mad|floatformat:2 }}</div>
+                <small class="text-muted">{% trans "Paid to suppliers" %}</small>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted small">{% trans "Price (EUR)" %}</div>
+                <div class="fs-3 fw-bold">{{ total_price_eur|floatformat:2 }}</div>
+                <small class="text-muted">{% trans "Customer revenue (EUR only)" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="card">
             <div class="card-body">
                 <div class="text-muted small">{% trans "Date range" %}</div>

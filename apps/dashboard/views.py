@@ -1545,11 +1545,15 @@ def accounting(request):
     drivers = User.objects.filter(role=User.Role.DRIVER, is_active=True).order_by('first_name', 'last_name')
     suppliers = Supplier.objects.filter(is_active=True).order_by('name')
 
+    total_cost_mad = qs.aggregate(s=Sum('cost'))['s'] or Decimal('0')
+    total_price_eur = qs.filter(currency='EUR').aggregate(s=Sum('total_price'))['s'] or Decimal('0')
+
     context = {
         'page_obj': page,
         'transfers': page.object_list,
         'total_count': qs.count(),
-        'total_revenue': qs.aggregate(s=Sum('total_price'))['s'] or Decimal('0'),
+        'total_cost_mad': total_cost_mad,
+        'total_price_eur': total_price_eur,
         'date_from': date_from_str,
         'date_to': date_to_str,
         'driver_id': driver_id,
@@ -1578,7 +1582,7 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
         'Customer Name', 'Email', 'Phone',
         'Pickup Address', 'Dropoff Address', 'Distance (km)', 'Passengers',
         'Vehicle Category', 'Assigned Driver', 'Vehicle', 'Supplier',
-        'Base Price', 'Extras', 'Discount', 'Total', 'Currency', 'Deposit',
+        'Base Price', 'Extras', 'Discount', 'Total', 'Currency', 'Deposit', 'Cost (MAD)',
         'Round Trip', 'Created At',
     ]
     ws.append(headers)
@@ -1630,21 +1634,21 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
             float(t.total_price or 0),
             t.currency,
             float(t.deposit_amount or 0),
+            float(t.cost) if t.cost is not None else None,
             'Yes' if t.is_round_trip else 'No',
             ca.replace(tzinfo=None) if ca else None,
         ])
 
-    # Number formatting on monetary + distance columns (shifted by +1 due to Supplier column)
-    money_cols = [10, 16, 17, 18, 19, 21]  # 1-indexed
+    # Number formatting on monetary + distance columns
+    money_cols = [10, 16, 17, 18, 19, 21, 22]  # 1-indexed (added Cost col 22)
     for row_idx in range(2, ws.max_row + 1):
         for col_idx in money_cols:
             ws.cell(row=row_idx, column=col_idx).number_format = '#,##0.00'
 
-    # Auto-ish width
     widths = {
         1: 14, 2: 12, 3: 11, 4: 8, 5: 22, 6: 26, 7: 16,
         8: 32, 9: 32, 10: 11, 11: 6, 12: 16, 13: 22, 14: 14, 15: 18,
-        16: 12, 17: 10, 18: 10, 19: 12, 20: 8, 21: 10, 22: 10, 23: 18,
+        16: 12, 17: 10, 18: 10, 19: 12, 20: 8, 21: 10, 22: 12, 23: 10, 24: 18,
     }
     for col_idx, w in widths.items():
         ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = w

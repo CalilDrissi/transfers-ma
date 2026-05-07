@@ -131,6 +131,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
         base_price = None
         deposit_percentage_from_pricing = Decimal('0')
         priced_vehicle = None  # The specific Vehicle whose pricing row was used
+        priced_cost = None     # Supplier cost (MAD) from that pricing row
 
         if all([pickup_lat, pickup_lng, dropoff_lat, dropoff_lng]):
             from apps.locations.models import Route, Zone, VehicleRoutePricing
@@ -165,6 +166,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                         deposit_percentage_from_pricing = zone.deposit_percentage
                         pricing_method = 'zone'
                         priced_vehicle = zp.vehicle
+                        priced_cost = zp.cost
 
             # 2. Route pricing with zone adjustments
             if base_price is None:
@@ -188,6 +190,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                             if rp:
                                 base_price = rp.price
                                 priced_vehicle = rp.vehicle
+                                priced_cost = rp.cost
                                 if is_reverse:
                                     m_pickup = find_matching_dropoff_zone(route, p_lat, p_lng)
                                     m_dropoff = find_matching_pickup_zone(route, d_lat, d_lng)
@@ -211,6 +214,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             vehicle_category=vehicle_category,
             vehicle=priced_vehicle,
             supplier=priced_supplier,
+            cost=priced_cost,
             distance_km=distance_km,
             duration_minutes=duration_minutes,
             base_price=base_price,
@@ -269,6 +273,7 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                 vehicle_category=vehicle_category,
                 vehicle=priced_vehicle,
                 supplier=priced_supplier,
+                cost=priced_cost,
                 base_price=base_price,
                 extras_price=extras_total,
                 total_price=base_price + extras_total,

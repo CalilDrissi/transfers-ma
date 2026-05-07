@@ -174,6 +174,11 @@ class Transfer(models.Model):
         default=0
     )
     total_price = models.DecimalField(_('total price'), max_digits=10, decimal_places=2)
+    cost = models.DecimalField(
+        _('cost'), max_digits=10, decimal_places=2,
+        null=True, blank=True,
+        help_text=_('Amount paid to supplier, in MAD'),
+    )
     deposit_amount = models.DecimalField(
         _('deposit amount'), max_digits=10, decimal_places=2,
         default=0, help_text=_('Deposit amount based on zone/route percentage')
