@@ -14,7 +14,7 @@
                 <i class="bi bi-gear me-2"></i>{% trans "General Settings" %}
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" id="generalSettingsForm" data-original-currency="{{ site_settings.default_currency }}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="update_general">
 
@@ -212,4 +212,28 @@
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    var form = document.getElementById('generalSettingsForm');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+        var sel = document.getElementById('default_currency');
+        if (!sel) return;
+        var original = form.dataset.originalCurrency || '';
+        var current = sel.value;
+        if (original && current && original !== current) {
+            var msg = "{% trans 'WARNING: Changing the price currency will affect ALL future bookings.' %}\n\n"
+                    + "{% trans 'Current:' %} " + original + "\n"
+                    + "{% trans 'New:' %}     " + current + "\n\n"
+                    + "{% trans 'Existing bookings keep their currency, but new bookings will be created in the new currency. This caused data inconsistency in the past — only change this if you really mean to charge customers in a different currency.' %}\n\n"
+                    + "{% trans 'Continue?' %}";
+            if (!window.confirm(msg)) {
+                e.preventDefault();
+                sel.value = original;
+            }
+        }
+    });
+})();
+</script>
 {% endblock %}
