@@ -149,6 +149,15 @@ class Transfer(models.Model):
         related_name='assigned_transfers',
         verbose_name=_('assigned driver')
     )
+    supplier = models.ForeignKey(
+        'vehicles.Supplier',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transfers',
+        verbose_name=_('supplier'),
+        help_text=_('Which supplier fulfills this booking. Auto-set from assigned vehicle.'),
+    )
 
     # Pricing
     base_price = models.DecimalField(_('base price'), max_digits=10, decimal_places=2)

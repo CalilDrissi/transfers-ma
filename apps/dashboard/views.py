@@ -229,7 +229,7 @@ def transfer_detail(request, pk):
     """Transfer detail view."""
     transfer = get_object_or_404(
         Transfer.objects.select_related(
-            'vehicle_category', 'vehicle', 'driver', 'customer'
+            'vehicle_category', 'vehicle', 'vehicle__supplier', 'driver', 'customer', 'supplier'
         ),
         pk=pk
     )
@@ -247,9 +247,18 @@ def transfer_detail(request, pk):
                 transfer.driver_id = driver_id
             if vehicle_id:
                 transfer.vehicle_id = vehicle_id
+                # Auto-sync supplier from the assigned vehicle if supplier not already set
+                v = Vehicle.objects.filter(pk=vehicle_id).select_related('supplier').first()
+                if v and v.supplier_id and not transfer.supplier_id:
+                    transfer.supplier_id = v.supplier_id
             transfer.status = 'assigned'
             transfer.save()
             messages.success(request, 'Driver assigned successfully.')
+        elif action == 'update_supplier':
+            supplier_id = request.POST.get('supplier_id') or None
+            transfer.supplier_id = supplier_id
+            transfer.save(update_fields=['supplier'])
+            messages.success(request, 'Supplier updated.')
 
     drivers = User.objects.filter(role='driver', is_active=True)
     vehicles = Vehicle.objects.filter(
@@ -257,6 +266,7 @@ def transfer_detail(request, pk):
         status='available',
         is_active=True
     )
+    suppliers = Supplier.objects.filter(is_active=True).order_by('name')
 
     # Resolve custom field values to display labels
     custom_fields_display = []
@@ -277,6 +287,7 @@ def transfer_detail(request, pk):
         'transfer': transfer,
         'drivers': drivers,
         'vehicles': vehicles,
+        'suppliers': suppliers,
         'statuses': Transfer.Status.choices,
         'custom_fields_display': custom_fields_display,
     }
@@ -1512,7 +1523,7 @@ def accounting(request):
     status = request.GET.get('status') or ''
 
     qs = Transfer.objects.select_related(
-        'driver', 'vehicle', 'vehicle__supplier', 'vehicle_category'
+        'driver', 'vehicle', 'vehicle__supplier', 'vehicle_category', 'supplier'
     ).order_by('-pickup_datetime')
     if date_from_str:
         qs = qs.filter(pickup_datetime__date__gte=date_from_str)
@@ -1521,7 +1532,7 @@ def accounting(request):
     if driver_id:
         qs = qs.filter(driver_id=driver_id)
     if supplier_id:
-        qs = qs.filter(vehicle__supplier_id=supplier_id)
+        qs = qs.filter(supplier_id=supplier_id)
     if status:
         qs = qs.filter(status=status)
 
@@ -1588,9 +1599,11 @@ def _accounting_xlsx(qs, date_from_str, date_to_str):
         vehicle_label = ''
         if t.vehicle:
             vehicle_label = getattr(t.vehicle, 'plate_number', '') or getattr(t.vehicle, 'name', '') or str(t.vehicle)
-        # Supplier: prefer FK, fall back to legacy text field on the vehicle
+        # Supplier: prefer Transfer FK, fall back to vehicle's supplier, then legacy text
         supplier_label = ''
-        if t.vehicle:
+        if t.supplier_id and t.supplier:
+            supplier_label = t.supplier.name
+        elif t.vehicle:
             if t.vehicle.supplier_id and t.vehicle.supplier:
                 supplier_label = t.vehicle.supplier.name
             else:

@@ -165,6 +165,28 @@
             </div>
         </div>
 
+        <!-- Supplier -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-people-fill me-2"></i>{% trans "Supplier" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_supplier">
+                    <select name="supplier_id" class="form-select mb-3">
+                        <option value="">{% trans "— None —" %}</option>
+                        {% for s in suppliers %}
+                        <option value="{{ s.pk }}" {% if transfer.supplier_id == s.pk %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        {% trans "Save Supplier" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </div>
 </div>
 

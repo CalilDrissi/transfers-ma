@@ -127,7 +127,7 @@
                             {% if t.driver %}{{ t.driver.get_full_name|default:t.driver.email }}{% else %}<span class="text-muted">—</span>{% endif %}
                         </td>
                         <td class="small">
-                            {% if t.vehicle and t.vehicle.supplier %}{{ t.vehicle.supplier.name }}{% elif t.vehicle and t.vehicle.supplier_name %}{{ t.vehicle.supplier_name }}{% else %}<span class="text-muted">—</span>{% endif %}
+                            {% if t.supplier %}{{ t.supplier.name }}{% elif t.vehicle and t.vehicle.supplier %}{{ t.vehicle.supplier.name }}{% elif t.vehicle and t.vehicle.supplier_name %}{{ t.vehicle.supplier_name }}{% else %}<span class="text-muted">—</span>{% endif %}
                         </td>
                         <td>
                             <span class="badge bg-{% if t.status == 'completed' %}success{% elif t.status == 'cancelled' or t.status == 'no_show' %}danger{% elif t.status == 'in_progress' %}info{% else %}secondary{% endif %}">
