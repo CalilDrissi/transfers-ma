@@ -114,7 +114,8 @@
                         <th class="text-end">{% trans "Km" %}</th>
                         <th>{% trans "Supplier" %}</th>
                         <th>{% trans "Status" %}</th>
-                        <th class="text-end">{% trans "Total" %}</th>
+                        <th class="text-end">{% trans "Cost (MAD)" %}</th>
+                        <th class="text-end">{% trans "Price" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -149,11 +150,14 @@
                                 {{ t.get_status_display }}
                             </span>
                         </td>
+                        <td class="text-end">
+                            {% if t.cost %}{{ t.cost|floatformat:2 }}{% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
                         <td class="text-end fw-bold">{{ t.total_price|floatformat:2 }} {{ t.currency }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="9" class="text-center py-5 text-muted">
                             <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                             {% trans "No transfers in this range." %}
                         </td>
