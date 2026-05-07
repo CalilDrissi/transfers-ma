@@ -101,7 +101,7 @@
                         <th>{% trans "Pickup" %}</th>
                         <th>{% trans "Customer" %}</th>
                         <th>{% trans "Route" %}</th>
-                        <th>{% trans "Driver" %}</th>
+                        <th class="text-end">{% trans "Km" %}</th>
                         <th>{% trans "Supplier" %}</th>
                         <th>{% trans "Status" %}</th>
                         <th class="text-end">{% trans "Total" %}</th>
@@ -123,8 +123,8 @@
                             {{ t.pickup_address|truncatechars:35 }}
                             <br>&rarr; {{ t.dropoff_address|truncatechars:35 }}
                         </td>
-                        <td>
-                            {% if t.driver %}{{ t.driver.get_full_name|default:t.driver.email }}{% else %}<span class="text-muted">—</span>{% endif %}
+                        <td class="text-end">
+                            {% if t.distance_km %}{{ t.distance_km|floatformat:1 }}{% else %}<span class="text-muted">—</span>{% endif %}
                         </td>
                         <td class="small" style="min-width:160px;">
                             <select class="form-select form-select-sm supplier-edit" data-pk="{{ t.pk }}">
