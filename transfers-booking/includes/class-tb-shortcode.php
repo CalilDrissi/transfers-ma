@@ -32,7 +32,7 @@ class TB_Shortcode {
             $primary_light = TB_Public::darken_hex_static($primary, -15);
             wp_add_inline_style('tb-booking', ".tb-booking-widget { --tb-primary: {$primary}; --tb-primary-light: {$primary_light}; --tb-accent: {$accent}; --tb-accent-hover: {$accent_hover}; }");
         }
-        $gmaps_key = TB_Settings::get('tb_google_maps_api_key');
+        $gmaps_key = trim(TB_Settings::get('tb_google_maps_api_key'));
         if ($gmaps_key && !wp_script_is('google-maps', 'enqueued')) {
             wp_enqueue_script('google-maps', 'https://maps.googleapis.com/maps/api/js?key=' . urlencode($gmaps_key) . '&libraries=places&callback=Function.prototype', [], null, true);
         }

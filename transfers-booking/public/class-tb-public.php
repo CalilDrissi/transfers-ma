@@ -120,7 +120,7 @@ class TB_Public {
         }
 
         // Google Maps
-        $gmaps_key = TB_Settings::get('tb_google_maps_api_key');
+        $gmaps_key = trim(TB_Settings::get('tb_google_maps_api_key'));
         if ($gmaps_key && $has_booking) {
             wp_enqueue_script(
                 'google-maps',
@@ -349,7 +349,7 @@ class TB_Public {
             'nonce'                => wp_create_nonce('tb_api_nonce'),
             'stripePublishableKey' => TB_Settings::get('tb_stripe_publishable_key'),
             'paypalClientId'       => TB_Settings::get('tb_paypal_client_id'),
-            'googleMapsApiKey'     => TB_Settings::get('tb_google_maps_api_key'),
+            'googleMapsApiKey'     => trim(TB_Settings::get('tb_google_maps_api_key')),
             'currencySymbol'       => TB_Settings::get('tb_currency_symbol'),
             'currencyPosition'     => TB_Settings::get('tb_currency_position'),
             'enableRoundTrip'      => (bool) TB_Settings::get('tb_enable_round_trip'),
