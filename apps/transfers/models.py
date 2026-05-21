@@ -295,3 +295,44 @@ class TransferExtraBooking(models.Model):
 
     def __str__(self):
         return f"{self.extra.name} x{self.quantity} for {self.transfer.booking_ref}"
+
+
+class BlockedDate(models.Model):
+    """Date or date-range when transfers cannot be booked (holidays, closures, fleet maintenance)."""
+
+    start_date = models.DateField(_('start date'))
+    end_date = models.DateField(_('end date'), help_text=_('Same as start date for single-day blocks'))
+    reason = models.CharField(_('reason'), max_length=200, help_text=_('Internal label, e.g. "Christmas Holiday", "Fleet maintenance"'))
+    customer_message = models.TextField(
+        _('customer message'),
+        blank=True,
+        help_text=_('Shown to customers who try to book a blocked date. Leave blank for the default generic message.'),
+    )
+    is_active = models.BooleanField(_('active'), default=True, help_text=_('Uncheck to disable without deleting'))
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('updated at'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('blocked date')
+        verbose_name_plural = _('blocked dates')
+        ordering = ['-start_date']
+
+    def __str__(self):
+        if self.start_date == self.end_date:
+            return f"{self.reason} ({self.start_date})"
+        return f"{self.reason} ({self.start_date} → {self.end_date})"
+
+    def save(self, *args, **kwargs):
+        # Default end_date to start_date if not provided
+        if not self.end_date:
+            self.end_date = self.start_date
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def covering(cls, date):
+        """Return the active BlockedDate covering this date, or None."""
+        return cls.objects.filter(
+            is_active=True,
+            start_date__lte=date,
+            end_date__gte=date,
+        ).first()

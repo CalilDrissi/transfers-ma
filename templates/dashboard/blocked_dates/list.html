@@ -1,0 +1,73 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "Blocked Dates" %}{% endblock %}
+{% block page_title %}{% trans "Blocked Dates" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:blocked_date_create' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>{% trans "Add Block" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            <i class="bi bi-info-circle me-1"></i>
+            {% trans "Dates listed here will reject new transfer bookings (both public and admin manual). Each block can show a custom message to the customer." %}
+        </p>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Range" %}</th>
+                        <th>{% trans "Reason" %}</th>
+                        <th>{% trans "Customer message" %}</th>
+                        <th class="text-center">{% trans "Status" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in blocks %}
+                    <tr>
+                        <td>
+                            <strong>{{ b.start_date|date:"Y-m-d" }}</strong>
+                            {% if b.start_date != b.end_date %} → <strong>{{ b.end_date|date:"Y-m-d" }}</strong>{% endif %}
+                            {% if b.start_date <= today and b.end_date >= today %}
+                                <span class="badge bg-danger ms-2">{% trans "Active now" %}</span>
+                            {% elif b.start_date > today %}
+                                <span class="badge bg-info ms-2">{% trans "Upcoming" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary ms-2">{% trans "Past" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ b.reason }}</td>
+                        <td class="small text-muted" style="max-width:320px;">
+                            {{ b.customer_message|default:"(default generic message)"|truncatechars:80 }}
+                        </td>
+                        <td class="text-center">
+                            {% if b.is_active %}
+                                <span class="badge bg-success">{% trans "Active" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "Disabled" %}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'dashboard:blocked_date_edit' b.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{% url 'dashboard:blocked_date_delete' b.pk %}" class="d-inline" onsubmit="return confirm('{% trans 'Delete this block?' %}');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-5 text-muted">{% trans "No blocked dates yet." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

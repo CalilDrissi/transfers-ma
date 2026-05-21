@@ -63,6 +63,12 @@ urlpatterns = [
     # Inline supplier set on a transfer (AJAX)
     path('transfers/<int:pk>/set-supplier/', views.transfer_set_supplier, name='transfer_set_supplier'),
 
+    # Blocked dates (closures / holidays)
+    path('blocked-dates/', views.blocked_date_list, name='blocked_date_list'),
+    path('blocked-dates/create/', views.blocked_date_create, name='blocked_date_create'),
+    path('blocked-dates/<int:pk>/', views.blocked_date_edit, name='blocked_date_edit'),
+    path('blocked-dates/<int:pk>/delete/', views.blocked_date_delete, name='blocked_date_delete'),
+
     # Suppliers
     path('suppliers/', views.supplier_list, name='supplier_list'),
     path('suppliers/create/', views.supplier_create, name='supplier_create'),

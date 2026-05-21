@@ -1957,6 +1957,82 @@ def supplier_delete(request, pk):
     return redirect('dashboard:supplier_list')
 
 
+# Blocked dates (closures / holidays)
+@login_required
+@user_passes_test(is_admin)
+def blocked_date_list(request):
+    """List of blocked dates."""
+    from apps.transfers.models import BlockedDate
+    today = timezone.now().date()
+    qs = BlockedDate.objects.all().order_by('-start_date')
+    return render(request, 'dashboard/blocked_dates/list.html', {
+        'blocks': qs,
+        'today': today,
+    })
+
+
+@login_required
+@user_passes_test(is_admin)
+def blocked_date_create(request):
+    from apps.transfers.models import BlockedDate
+    if request.method == 'POST':
+        start = request.POST.get('start_date', '').strip()
+        end = request.POST.get('end_date', '').strip() or start
+        reason = request.POST.get('reason', '').strip()
+        if not (start and reason):
+            messages.error(request, 'Start date and reason are required.')
+        elif end < start:
+            messages.error(request, 'End date cannot be before start date.')
+        else:
+            BlockedDate.objects.create(
+                start_date=start,
+                end_date=end,
+                reason=reason,
+                customer_message=request.POST.get('customer_message', '').strip(),
+                is_active=request.POST.get('is_active') == 'on',
+            )
+            messages.success(request, f'Blocked date "{reason}" added.')
+            return redirect('dashboard:blocked_date_list')
+    return render(request, 'dashboard/blocked_dates/form.html', {'block': None})
+
+
+@login_required
+@user_passes_test(is_admin)
+def blocked_date_edit(request, pk):
+    from apps.transfers.models import BlockedDate
+    block = get_object_or_404(BlockedDate, pk=pk)
+    if request.method == 'POST':
+        start = request.POST.get('start_date', '').strip()
+        end = request.POST.get('end_date', '').strip() or start
+        reason = request.POST.get('reason', '').strip()
+        if not (start and reason):
+            messages.error(request, 'Start date and reason are required.')
+        elif end < start:
+            messages.error(request, 'End date cannot be before start date.')
+        else:
+            block.start_date = start
+            block.end_date = end
+            block.reason = reason
+            block.customer_message = request.POST.get('customer_message', '').strip()
+            block.is_active = request.POST.get('is_active') == 'on'
+            block.save()
+            messages.success(request, 'Blocked date updated.')
+            return redirect('dashboard:blocked_date_list')
+    return render(request, 'dashboard/blocked_dates/form.html', {'block': block})
+
+
+@login_required
+@user_passes_test(is_admin)
+def blocked_date_delete(request, pk):
+    from apps.transfers.models import BlockedDate
+    block = get_object_or_404(BlockedDate, pk=pk)
+    if request.method == 'POST':
+        label = block.reason
+        block.delete()
+        messages.success(request, f'Blocked date "{label}" deleted.')
+    return redirect('dashboard:blocked_date_list')
+
+
 @login_required
 @user_passes_test(is_admin)
 def reports(request):

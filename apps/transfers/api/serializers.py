@@ -83,6 +83,24 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             return 'custom'
         return value
 
+    def validate_pickup_datetime(self, value):
+        from apps.transfers.models import BlockedDate
+        block = BlockedDate.covering(value.date())
+        if block:
+            msg = block.customer_message.strip() if block.customer_message else 'Selected pickup date is unavailable. Please pick another date.'
+            raise serializers.ValidationError(msg)
+        return value
+
+    def validate(self, attrs):
+        # Also block the return-trip date if round trip
+        if attrs.get('is_round_trip') and attrs.get('return_datetime'):
+            from apps.transfers.models import BlockedDate
+            block = BlockedDate.covering(attrs['return_datetime'].date())
+            if block:
+                msg = block.customer_message.strip() if block.customer_message else 'Selected return date is unavailable. Please pick another date.'
+                raise serializers.ValidationError({'return_datetime': msg})
+        return attrs
+
     class Meta:
         model = Transfer
         fields = [
