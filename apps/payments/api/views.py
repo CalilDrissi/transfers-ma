@@ -332,10 +332,15 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     customer_phone=booking.customer_phone,
                     booking_details=booking_details,
                 )
-                # Email to vehicle supplier — prefer Supplier FK, fall back to legacy text fields
-                if booking.vehicle_category:
-                    supplier_email = ''
-                    supplier_name = ''
+                # Email to the actual supplier of this booking.
+                # Source of truth: Transfer.supplier (set by serializer from the priced vehicle).
+                # Fall back to category-level lookup only if Transfer.supplier is missing.
+                supplier_email = ''
+                supplier_name = ''
+                if getattr(booking, 'supplier_id', None) and booking.supplier and booking.supplier.email:
+                    supplier_email = booking.supplier.email
+                    supplier_name = booking.supplier.name
+                elif booking.vehicle_category:
                     fk_match = booking.vehicle_category.vehicles.filter(
                         supplier__isnull=False,
                         supplier__email__gt='',
@@ -350,15 +355,15 @@ class PaymentViewSet(viewsets.ModelViewSet):
                         if legacy:
                             supplier_email = legacy['supplier_email']
                             supplier_name = legacy['supplier_name']
-                    if supplier_email:
-                        send_supplier_new_booking_alert.delay(
-                            booking_ref=booking.booking_ref,
-                            supplier_email=supplier_email,
-                            supplier_name=supplier_name,
-                            customer_name=booking.customer_name,
-                            customer_phone=booking.customer_phone,
-                            booking_details=booking_details,
-                        )
+                if supplier_email:
+                    send_supplier_new_booking_alert.delay(
+                        booking_ref=booking.booking_ref,
+                        supplier_email=supplier_email,
+                        supplier_name=supplier_name,
+                        customer_name=booking.customer_name,
+                        customer_phone=booking.customer_phone,
+                        booking_details=booking_details,
+                    )
             except Exception:
                 pass
 
