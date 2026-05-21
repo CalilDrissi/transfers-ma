@@ -225,6 +225,200 @@ def transfer_list(request):
 
 @login_required
 @user_passes_test(is_admin)
+def transfer_create(request):
+    """Manual booking creation by admin operator."""
+    from apps.accounts.models import CustomField
+    from apps.payments.models import PaymentGateway
+    from apps.transfers.api.serializers import TransferCreateSerializer
+    from django.contrib.contenttypes.models import ContentType
+    from django.utils.dateparse import parse_datetime
+    from rest_framework.exceptions import ValidationError as DRFValidationError
+
+    if request.method == 'POST':
+        try:
+            # 1. Build payload for TransferCreateSerializer
+            def _f(name, default=''):
+                return (request.POST.get(name) or default).strip() if isinstance(request.POST.get(name), str) else request.POST.get(name)
+
+            def _num(name):
+                v = (request.POST.get(name) or '').strip()
+                return float(v) if v else None
+
+            # Extras: parse extras_qty_<id> POST keys
+            extras_data = []
+            for key, val in request.POST.items():
+                if key.startswith('extras_qty_') and val and val.strip() and int(val) > 0:
+                    extra_id = key.replace('extras_qty_', '')
+                    try:
+                        extras_data.append({'extra_id': int(extra_id), 'quantity': int(val)})
+                    except (ValueError, TypeError):
+                        pass
+
+            # Custom fields: parse custom_<name> POST keys
+            custom_field_values = {}
+            active_cfs = CustomField.objects.filter(is_active=True, applies_to__in=['transfer', 'both'])
+            for cf in active_cfs:
+                v = request.POST.get(f'custom_{cf.name}', '')
+                if cf.field_type == 'checkbox':
+                    custom_field_values[cf.name] = bool(v)
+                elif v:
+                    custom_field_values[cf.name] = v
+
+            payload = {
+                'customer_name': _f('customer_name'),
+                'customer_email': _f('customer_email'),
+                'customer_phone': _f('customer_phone'),
+                'pickup_address': _f('pickup_address'),
+                'pickup_latitude': _num('pickup_latitude'),
+                'pickup_longitude': _num('pickup_longitude'),
+                'dropoff_address': _f('dropoff_address'),
+                'dropoff_latitude': _num('dropoff_latitude'),
+                'dropoff_longitude': _num('dropoff_longitude'),
+                'pickup_datetime': parse_datetime(_f('pickup_datetime') or ''),
+                'transfer_type': _f('transfer_type') or 'custom',
+                'flight_number': _f('flight_number'),
+                'passengers': int(_f('passengers') or 1),
+                'luggage': int(_f('luggage') or 1),
+                'child_seats': int(_f('child_seats') or 0),
+                'vehicle_category_id': int(_f('vehicle_category')) if _f('vehicle_category') else None,
+                'special_requests': _f('special_requests'),
+                'is_round_trip': request.POST.get('is_round_trip') == 'on',
+                'return_datetime': parse_datetime(_f('return_datetime') or '') if request.POST.get('is_round_trip') == 'on' else None,
+                'extras': extras_data,
+                'custom_field_values': custom_field_values,
+            }
+            # Strip nones so serializer defaults kick in
+            payload = {k: v for k, v in payload.items() if v is not None}
+
+            ser = TransferCreateSerializer(data=payload)
+            ser.is_valid(raise_exception=True)
+            transfer = ser.save()
+
+            # 2. Apply manual price override
+            override_raw = (request.POST.get('price_override') or '').strip()
+            if override_raw:
+                from decimal import Decimal
+                try:
+                    new_base = Decimal(override_raw)
+                    transfer.base_price = new_base
+                    transfer.total_price = new_base + (transfer.extras_price or 0) - (transfer.discount or 0)
+                    transfer.save(update_fields=['base_price', 'total_price'])
+                except Exception:
+                    messages.warning(request, 'Invalid price override — kept auto-calculated value.')
+
+            # 3. Optional Payment record
+            if request.POST.get('mark_as_paid') == 'on':
+                gateway_id = request.POST.get('payment_gateway')
+                if gateway_id:
+                    gateway = PaymentGateway.objects.filter(pk=gateway_id, is_active=True).first()
+                    if gateway:
+                        from django.utils import timezone as tz
+                        Payment.objects.create(
+                            content_type=ContentType.objects.get_for_model(Transfer),
+                            object_id=transfer.pk,
+                            payment_type=Payment.PaymentType.TRANSFER,
+                            customer_email=transfer.customer_email,
+                            gateway=gateway,
+                            amount=transfer.total_price,
+                            currency=transfer.currency,
+                            status=Payment.Status.COMPLETED,
+                            completed_at=tz.now(),
+                            metadata={'created_via': 'manual_admin_booking'},
+                        )
+
+            # 4. Optional emails
+            send_customer = request.POST.get('send_customer_email') == 'on'
+            send_admin = request.POST.get('send_admin_email') == 'on'
+            send_supplier = request.POST.get('send_supplier_email') == 'on'
+
+            if send_customer or send_admin or send_supplier:
+                combined_total = transfer.total_price * 2 if transfer.is_round_trip else transfer.total_price
+                booking_details = {
+                    'pickup_address': transfer.pickup_address,
+                    'dropoff_address': transfer.dropoff_address,
+                    'pickup_datetime': str(transfer.pickup_datetime),
+                    'passengers': transfer.passengers,
+                    'vehicle_category': transfer.vehicle_category.name if transfer.vehicle_category else '',
+                    'is_round_trip': transfer.is_round_trip,
+                    'return_datetime': str(transfer.return_datetime) if transfer.return_datetime else '',
+                    'flight_number': transfer.flight_number or '',
+                    'special_requests': transfer.special_requests or '',
+                    'base_price': str(transfer.base_price),
+                    'extras_price': str(transfer.extras_price),
+                    'deposit_amount': str(transfer.deposit_amount),
+                    'total_price': str(combined_total),
+                    'single_leg_price': str(transfer.total_price),
+                    'currency': transfer.currency,
+                    'customer_phone': transfer.customer_phone,
+                    'pricing_method': transfer.pricing_method or '',
+                }
+                if transfer.custom_field_values:
+                    field_labels = dict(
+                        CustomField.objects.filter(
+                            name__in=transfer.custom_field_values.keys()
+                        ).values_list('name', 'label')
+                    )
+                    booking_details['custom_fields'] = [
+                        {'label': field_labels.get(k, k.replace('_', ' ').title()), 'value': v}
+                        for k, v in transfer.custom_field_values.items() if v
+                    ]
+                from apps.notifications.tasks import (
+                    send_booking_confirmation,
+                    send_admin_new_booking_alert,
+                    send_supplier_new_booking_alert,
+                )
+                if send_customer:
+                    send_booking_confirmation.delay(
+                        booking_ref=transfer.booking_ref,
+                        customer_email=transfer.customer_email,
+                        customer_name=transfer.customer_name,
+                        booking_details=booking_details,
+                    )
+                if send_admin:
+                    send_admin_new_booking_alert.delay(
+                        booking_ref=transfer.booking_ref,
+                        customer_name=transfer.customer_name,
+                        customer_email=transfer.customer_email,
+                        customer_phone=transfer.customer_phone,
+                        booking_details=booking_details,
+                    )
+                if send_supplier and transfer.supplier_id and transfer.supplier.email:
+                    send_supplier_new_booking_alert.delay(
+                        booking_ref=transfer.booking_ref,
+                        supplier_email=transfer.supplier.email,
+                        supplier_name=transfer.supplier.name,
+                        customer_name=transfer.customer_name,
+                        customer_phone=transfer.customer_phone,
+                        booking_details=booking_details,
+                    )
+
+            messages.success(request, f'Booking {transfer.booking_ref} created successfully.')
+            return redirect('dashboard:transfer_detail', pk=transfer.pk)
+
+        except DRFValidationError as e:
+            messages.error(request, f'Validation error: {e.detail}')
+        except Exception as e:
+            messages.error(request, f'Could not create booking: {e}')
+
+    # GET — render form
+    categories = VehicleCategory.objects.filter(is_active=True).order_by('order', 'name')
+    extras = TransferExtra.objects.filter(is_active=True).prefetch_related('vehicle_categories').order_by('name')
+    custom_fields = CustomField.objects.filter(is_active=True, applies_to__in=['transfer', 'both']).order_by('display_order', 'label')
+    gateways = PaymentGateway.objects.filter(is_active=True, gateway_type__in=['cash', 'bank_transfer']).order_by('order', 'name')
+
+    transfer_types = Transfer.TransferType.choices
+
+    return render(request, 'dashboard/transfers/create.html', {
+        'categories': categories,
+        'extras': extras,
+        'custom_fields': custom_fields,
+        'gateways': gateways,
+        'transfer_types': transfer_types,
+    })
+
+
+@login_required
+@user_passes_test(is_admin)
 def transfer_detail(request, pk):
     """Transfer detail view."""
     transfer = get_object_or_404(

@@ -1,0 +1,369 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n dashboard_tags %}
+
+{% block title %}{% trans "New Booking" %}{% endblock %}
+{% block page_title %}{% trans "New Booking" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:transfer_list' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Transfers" %}
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .req { color: #dc3545; font-weight: 600; }
+    .opt { color: #6c757d; font-size: 0.85em; font-weight: normal; }
+    .extra-row { padding: 0.5rem 0; border-bottom: 1px solid #f1f1f1; }
+    .extra-row:last-child { border-bottom: none; }
+    .price-preview {
+        background: #f8f9fa;
+        border: 1px dashed #adb5bd;
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .price-preview .price-row { display: flex; justify-content: space-between; }
+    .price-preview .price-row.total { font-weight: 700; font-size: 1.15rem; border-top: 1px solid #adb5bd; padding-top: 0.5rem; margin-top: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="manualBookingForm">
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-lg-8">
+
+            <!-- Customer -->
+            <div class="card mb-3">
+                <div class="card-header"><h6 class="mb-0">{% trans "Customer" %}</h6></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Name" %} <span class="req">*</span></label>
+                            <input type="text" name="customer_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Email" %} <span class="req">*</span></label>
+                            <input type="email" name="customer_email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Phone" %} <span class="req">*</span></label>
+                            <input type="text" name="customer_phone" class="form-control" required placeholder="+212600000000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trip -->
+            <div class="card mb-3">
+                <div class="card-header"><h6 class="mb-0">{% trans "Trip" %}</h6></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Transfer type" %}</label>
+                            <select name="transfer_type" class="form-select" id="transfer_type">
+                                {% for value, label in transfer_types %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="flight-number-wrap" style="display:none;">
+                            <label class="form-label">{% trans "Flight number" %}</label>
+                            <input type="text" name="flight_number" class="form-control" placeholder="AT1234">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Pickup address" %} <span class="req">*</span></label>
+                            <input type="text" name="pickup_address" id="pickup_address" class="form-control" required autocomplete="off">
+                            <input type="hidden" name="pickup_latitude" id="pickup_latitude">
+                            <input type="hidden" name="pickup_longitude" id="pickup_longitude">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Dropoff address" %} <span class="req">*</span></label>
+                            <input type="text" name="dropoff_address" id="dropoff_address" class="form-control" required autocomplete="off">
+                            <input type="hidden" name="dropoff_latitude" id="dropoff_latitude">
+                            <input type="hidden" name="dropoff_longitude" id="dropoff_longitude">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Pickup date & time" %} <span class="req">*</span></label>
+                            <input type="datetime-local" name="pickup_datetime" id="pickup_datetime" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Passengers" %}</label>
+                            <input type="number" name="passengers" class="form-control" min="1" value="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Luggage" %}</label>
+                            <input type="number" name="luggage" class="form-control" min="0" value="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Child seats" %}</label>
+                            <input type="number" name="child_seats" class="form-control" min="0" value="0">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_round_trip" id="is_round_trip" class="form-check-input">
+                                <label class="form-check-label" for="is_round_trip">{% trans "Round trip" %}</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="return-datetime-wrap" style="display:none;">
+                            <label class="form-label">{% trans "Return date & time" %}</label>
+                            <input type="datetime-local" name="return_datetime" id="return_datetime" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Special requests" %} <span class="opt">({% trans "optional" %})</span></label>
+                            <textarea name="special_requests" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle & Extras -->
+            <div class="card mb-3">
+                <div class="card-header"><h6 class="mb-0">{% trans "Vehicle & Extras" %}</h6></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Vehicle category" %} <span class="req">*</span></label>
+                            <select name="vehicle_category" id="vehicle_category" class="form-select" required>
+                                <option value="">{% trans "— Select —" %}</option>
+                                {% for c in categories %}
+                                <option value="{{ c.pk }}" data-passengers="{{ c.max_passengers }}">{{ c.name }} ({% trans "max" %} {{ c.max_passengers }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% if extras %}
+                    <hr class="my-3">
+                    <div><strong>{% trans "Extras" %}</strong> <span class="opt">({% trans "optional" %})</span></div>
+                    <div class="mt-2" id="extras-list">
+                        {% for ex in extras %}
+                        <div class="extra-row d-flex justify-content-between align-items-center"
+                             data-categories="{% for c in ex.vehicle_categories.all %}{{ c.pk }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                            <div>
+                                <strong>{{ ex.name }}</strong>
+                                <span class="text-muted ms-2">{{ ex.price }}</span>
+                                {% if ex.description %}<div class="small text-muted">{{ ex.description }}</div>{% endif %}
+                            </div>
+                            <div>
+                                <input type="number" name="extras_qty_{{ ex.pk }}" class="form-control form-control-sm" min="0" value="0" style="width:80px;text-align:center;">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if custom_fields %}
+            <!-- Custom Fields -->
+            <div class="card mb-3">
+                <div class="card-header"><h6 class="mb-0">{% trans "Additional information" %}</h6></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for cf in custom_fields %}
+                        <div class="{% if cf.field_type == 'textarea' %}col-12{% else %}col-md-6{% endif %}">
+                            <label class="form-label">
+                                {{ cf.label }}{% if cf.is_required %} <span class="req">*</span>{% endif %}
+                            </label>
+                            {% if cf.field_type == 'text' or cf.field_type == 'email' or cf.field_type == 'phone' %}
+                                <input type="{{ cf.field_type }}" name="custom_{{ cf.name }}" class="form-control" {% if cf.is_required %}required{% endif %} placeholder="{{ cf.placeholder }}">
+                            {% elif cf.field_type == 'number' %}
+                                <input type="number" name="custom_{{ cf.name }}" class="form-control" {% if cf.is_required %}required{% endif %} placeholder="{{ cf.placeholder }}">
+                            {% elif cf.field_type == 'date' %}
+                                <input type="date" name="custom_{{ cf.name }}" class="form-control" {% if cf.is_required %}required{% endif %}>
+                            {% elif cf.field_type == 'textarea' %}
+                                <textarea name="custom_{{ cf.name }}" class="form-control" rows="2" {% if cf.is_required %}required{% endif %} placeholder="{{ cf.placeholder }}"></textarea>
+                            {% elif cf.field_type == 'select' %}
+                                <select name="custom_{{ cf.name }}" class="form-select" {% if cf.is_required %}required{% endif %}>
+                                    <option value="">{% trans "— Select —" %}</option>
+                                    {% for opt in cf.options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+                                </select>
+                            {% elif cf.field_type == 'checkbox' %}
+                                <div class="form-check">
+                                    <input type="checkbox" name="custom_{{ cf.name }}" value="1" class="form-check-input">
+                                    <label class="form-check-label">{{ cf.help_text_field|default:'' }}</label>
+                                </div>
+                            {% endif %}
+                            {% if cf.help_text_field and cf.field_type != 'checkbox' %}<small class="text-muted">{{ cf.help_text_field }}</small>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card mb-3" style="position:sticky;top:1rem;">
+                <div class="card-header"><h6 class="mb-0">{% trans "Pricing" %}</h6></div>
+                <div class="card-body">
+                    <div class="price-preview mb-3" id="price-preview">
+                        <div class="text-muted small">{% trans "Fill in addresses + vehicle category to see calculated price" %}</div>
+                    </div>
+                    <label class="form-label">{% trans "Override total price" %} <span class="opt">({% trans "optional" %})</span></label>
+                    <input type="number" name="price_override" class="form-control" min="0" step="0.01" placeholder="{% trans 'Leave empty to use calculated price' %}">
+                    <small class="text-muted">{% trans "If set, replaces the auto-calculated base price" %}</small>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><h6 class="mb-0">{% trans "Payment" %}</h6></div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input type="checkbox" name="mark_as_paid" id="mark_as_paid" class="form-check-input">
+                        <label class="form-check-label" for="mark_as_paid">{% trans "Mark as paid" %}</label>
+                    </div>
+                    <div id="payment-block" style="display:none;">
+                        <label class="form-label">{% trans "Payment gateway" %}</label>
+                        <select name="payment_gateway" class="form-select">
+                            {% for g in gateways %}
+                            <option value="{{ g.pk }}">{{ g.display_name }}</option>
+                            {% empty %}
+                            <option value="">{% trans "(No active cash/bank gateways configured)" %}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">{% trans "A completed Payment record will be created tied to this transfer." %}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><h6 class="mb-0">{% trans "Notifications" %}</h6></div>
+                <div class="card-body">
+                    <div class="form-check">
+                        <input type="checkbox" name="send_customer_email" id="send_customer_email" class="form-check-input" checked>
+                        <label class="form-check-label" for="send_customer_email">{% trans "Send customer confirmation" %}</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="send_admin_email" id="send_admin_email" class="form-check-input" checked>
+                        <label class="form-check-label" for="send_admin_email">{% trans "Send admin alert" %}</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="send_supplier_email" id="send_supplier_email" class="form-check-input" checked>
+                        <label class="form-check-label" for="send_supplier_email">{% trans "Send supplier alert" %}</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-check-lg me-1"></i>{% trans "Create Booking" %}
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+{% if GOOGLE_MAPS_API_KEY %}
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initManualBookingMaps"></script>
+{% endif %}
+<script>
+(function() {
+    // Show/hide flight number for airport types
+    var typeSel = document.getElementById('transfer_type');
+    var flightWrap = document.getElementById('flight-number-wrap');
+    function updateFlightVis() {
+        var v = typeSel.value;
+        flightWrap.style.display = (v === 'airport_pickup' || v === 'airport_dropoff') ? '' : 'none';
+    }
+    typeSel.addEventListener('change', updateFlightVis);
+    updateFlightVis();
+
+    // Show/hide return datetime
+    var rt = document.getElementById('is_round_trip');
+    var rtWrap = document.getElementById('return-datetime-wrap');
+    rt.addEventListener('change', function() { rtWrap.style.display = this.checked ? '' : 'none'; });
+
+    // Show/hide payment block
+    var paidCB = document.getElementById('mark_as_paid');
+    var paymentBlock = document.getElementById('payment-block');
+    paidCB.addEventListener('change', function() { paymentBlock.style.display = this.checked ? '' : 'none'; });
+
+    // Filter extras by selected vehicle category
+    var catSel = document.getElementById('vehicle_category');
+    function filterExtras() {
+        var catId = catSel.value;
+        document.querySelectorAll('.extra-row').forEach(function(row) {
+            var catList = (row.dataset.categories || '').split(',').filter(Boolean);
+            // empty list = available for all
+            row.style.display = (!catList.length || !catId || catList.indexOf(catId) >= 0) ? '' : 'none';
+        });
+        requestPriceQuote();
+    }
+    if (catSel) catSel.addEventListener('change', filterExtras);
+
+    // Live price preview via the same endpoint the customer flow uses
+    function requestPriceQuote() {
+        var pLat = document.getElementById('pickup_latitude').value;
+        var pLng = document.getElementById('pickup_longitude').value;
+        var dLat = document.getElementById('dropoff_latitude').value;
+        var dLng = document.getElementById('dropoff_longitude').value;
+        var catId = catSel.value;
+        var preview = document.getElementById('price-preview');
+        if (!(pLat && pLng && dLat && dLng && catId)) {
+            preview.innerHTML = '<div class="text-muted small">{% trans "Fill in addresses + vehicle category to see calculated price" %}</div>';
+            return;
+        }
+        preview.innerHTML = '<div class="text-muted small"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Calculating..." %}</div>';
+        fetch('/api/v1/locations/routes/get_pricing/?origin_lat=' + pLat + '&origin_lng=' + pLng + '&destination_lat=' + dLat + '&destination_lng=' + dLng + '&passengers=1', { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.pricing_type === 'none' || !data.vehicle_options) {
+                    preview.innerHTML = '<div class="text-danger small">{% trans "No pricing configured for this route. Use override." %}</div>';
+                    return;
+                }
+                var match = (data.vehicle_options || []).find(function(v) { return String(v.category_id) === String(catId); });
+                if (!match) {
+                    preview.innerHTML = '<div class="text-warning small">{% trans "Selected category not priced for this route. Use override." %}</div>';
+                    return;
+                }
+                var html = '<div class="price-row"><span>{% trans "Distance" %}</span><span>' + (data.distance_km || '—') + ' km</span></div>';
+                html += '<div class="price-row"><span>{% trans "Pricing method" %}</span><span>' + (data.pricing_type || '—') + '</span></div>';
+                html += '<div class="price-row total"><span>{% trans "Base price" %}</span><span>' + match.price.toFixed(2) + ' ' + (data.currency || '') + '</span></div>';
+                preview.innerHTML = html;
+            })
+            .catch(function() {
+                preview.innerHTML = '<div class="text-danger small">{% trans "Could not fetch price" %}</div>';
+            });
+    }
+
+    ['pickup_latitude','pickup_longitude','dropoff_latitude','dropoff_longitude'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', requestPriceQuote);
+    });
+
+    // Google Places autocomplete
+    window.initManualBookingMaps = function() {
+        if (!window.google || !window.google.maps || !window.google.maps.places) return;
+        var bias = { country: 'ma' };
+        function bindAuto(inputId, latId, lngId) {
+            var input = document.getElementById(inputId);
+            if (!input) return;
+            var ac = new google.maps.places.Autocomplete(input, { componentRestrictions: bias, fields: ['formatted_address','geometry'] });
+            ac.addListener('place_changed', function() {
+                var p = ac.getPlace();
+                if (p.geometry && p.geometry.location) {
+                    var latEl = document.getElementById(latId);
+                    var lngEl = document.getElementById(lngId);
+                    latEl.value = p.geometry.location.lat();
+                    lngEl.value = p.geometry.location.lng();
+                    // Trigger change so price preview fires
+                    latEl.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+        bindAuto('pickup_address', 'pickup_latitude', 'pickup_longitude');
+        bindAuto('dropoff_address', 'dropoff_latitude', 'dropoff_longitude');
+    };
+
+    {% if not GOOGLE_MAPS_API_KEY %}
+    // Without Google, allow manually typed addresses without coords — price preview will just say no coords
+    console.warn('GOOGLE_MAPS_API_KEY missing — autocomplete disabled. Pricing must be entered manually.');
+    {% endif %}
+})();
+</script>
+{% endblock %}
