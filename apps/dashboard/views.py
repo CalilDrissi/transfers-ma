@@ -1993,7 +1993,7 @@ def blocked_date_create(request):
             )
             messages.success(request, f'Blocked date "{reason}" added.')
             return redirect('dashboard:blocked_date_list')
-    return render(request, 'dashboard/blocked_dates/form.html', {'block': None})
+    return render(request, 'dashboard/blocked_dates/form.html', {'blocked_date': None})
 
 
 @login_required
@@ -2018,7 +2018,7 @@ def blocked_date_edit(request, pk):
             block.save()
             messages.success(request, 'Blocked date updated.')
             return redirect('dashboard:blocked_date_list')
-    return render(request, 'dashboard/blocked_dates/form.html', {'block': block})
+    return render(request, 'dashboard/blocked_dates/form.html', {'blocked_date': block})
 
 
 @login_required

@@ -1,8 +1,8 @@
 {% extends 'dashboard/base.html' %}
 {% load i18n %}
 
-{% block title %}{% if block %}{% trans "Edit Blocked Date" %}{% else %}{% trans "New Blocked Date" %}{% endif %}{% endblock %}
-{% block page_title %}{% if block %}{% trans "Edit Blocked Date" %}{% else %}{% trans "New Blocked Date" %}{% endif %}{% endblock %}
+{% block title %}{% if blocked_date %}{% trans "Edit Blocked Date" %}{% else %}{% trans "New Blocked Date" %}{% endif %}{% endblock %}
+{% block page_title %}{% if blocked_date %}{% trans "Edit Blocked Date" %}{% else %}{% trans "New Blocked Date" %}{% endif %}{% endblock %}
 
 {% block page_actions %}
 <a href="{% url 'dashboard:blocked_date_list' %}" class="btn btn-outline-secondary">
@@ -20,25 +20,25 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">{% trans "Start date" %} <span class="text-danger">*</span></label>
-                            <input type="date" name="start_date" class="form-control" required value="{{ block.start_date|date:'Y-m-d' }}">
+                            <input type="date" name="start_date" class="form-control" required value="{{ blocked_date.start_date|date:'Y-m-d' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">{% trans "End date" %} <small class="text-muted">({% trans "leave empty for single-day block" %})</small></label>
-                            <input type="date" name="end_date" class="form-control" value="{{ block.end_date|date:'Y-m-d' }}">
+                            <input type="date" name="end_date" class="form-control" value="{{ blocked_date.end_date|date:'Y-m-d' }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label">{% trans "Reason" %} <span class="text-danger">*</span></label>
-                            <input type="text" name="reason" class="form-control" required value="{{ block.reason|default:'' }}" placeholder="{% trans 'e.g. Christmas Holiday, Eid al-Adha, Fleet maintenance' %}">
+                            <input type="text" name="reason" class="form-control" required value="{{ blocked_date.reason|default:'' }}" placeholder="{% trans 'e.g. Christmas Holiday, Eid al-Adha, Fleet maintenance' %}">
                             <small class="text-muted">{% trans "Internal label, not shown to customers" %}</small>
                         </div>
                         <div class="col-12">
                             <label class="form-label">{% trans "Customer message" %} <small class="text-muted">({% trans "optional" %})</small></label>
-                            <textarea name="customer_message" class="form-control" rows="3" placeholder="{% trans 'e.g. We are closed for Christmas. Please book from Dec 27 onwards.' %}">{{ block.customer_message|default:'' }}</textarea>
+                            <textarea name="customer_message" class="form-control" rows="3" placeholder="{% trans 'e.g. We are closed for Christmas. Please book from Dec 27 onwards.' %}">{{ blocked_date.customer_message|default:'' }}</textarea>
                             <small class="text-muted">{% trans "Shown to customers who try to book on this date. If empty, a generic message is used." %}</small>
                         </div>
                         <div class="col-12">
                             <div class="form-check">
-                                <input type="checkbox" name="is_active" id="is_active" class="form-check-input" {% if not block or block.is_active %}checked{% endif %}>
+                                <input type="checkbox" name="is_active" id="is_active" class="form-check-input" {% if not blocked_date or blocked_date.is_active %}checked{% endif %}>
                                 <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
                                 <div><small class="text-muted">{% trans "Uncheck to disable without deleting." %}</small></div>
                             </div>
