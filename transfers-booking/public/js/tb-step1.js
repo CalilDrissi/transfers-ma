@@ -749,9 +749,13 @@
             }
 
             var state = TB.State.getAll();
-            TB.API.getPricing(state.pickupLat, state.pickupLng, state.dropoffLat, state.dropoffLng, state.passengers)
+            TB.API.getPricing(state.pickupLat, state.pickupLng, state.dropoffLat, state.dropoffLng, state.passengers, state.pickupDatetime)
                 .then(function (data) {
                     TB.Utils.setButtonLoading(btn, false);
+                    if (data.blocked) {
+                        TB.Step1.showBlockedDateMessage(container, data.blocked_message);
+                        return;
+                    }
                     if (data.pricing_type === 'calculated' && tbConfig.showNoRouteMessage) {
                         TB.Step1.showNoRouteMessage(container);
                         return;
@@ -800,6 +804,16 @@
                 (tbConfig.i18n.minBookingTime || 'We can only accept bookings for this route with a minimum of {hours} hours notice.')
                     .replace('{hours}', minHours)
             );
+            html += '</strong></div>';
+            container.innerHTML = html;
+            container.style.display = 'block';
+        },
+
+        showBlockedDateMessage: function (container, message) {
+            if (!container) return;
+            var msg = message || (tbConfig.i18n.blockedDate || 'Selected pickup date is unavailable. Please pick another date.');
+            var html = '<div class="tb-alert tb-alert--error" style="margin-top:1rem;"><strong>';
+            html += TB.Utils.escapeHtml(msg);
             html += '</strong></div>';
             container.innerHTML = html;
             container.style.display = 'block';

@@ -63,14 +63,16 @@
             return this._call('google_maps_config');
         },
 
-        getPricing: function (originLat, originLng, destLat, destLng, passengers) {
-            return this._call('get_pricing', {
+        getPricing: function (originLat, originLng, destLat, destLng, passengers, pickupDatetime) {
+            var p = {
                 origin_lat: originLat,
                 origin_lng: originLng,
                 destination_lat: destLat,
                 destination_lng: destLng,
                 passengers: passengers
-            });
+            };
+            if (pickupDatetime) p.pickup_datetime = pickupDatetime;
+            return this._call('get_pricing', p);
         },
 
         getExtras: function (categoryId) {

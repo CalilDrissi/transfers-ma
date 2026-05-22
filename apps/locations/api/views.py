@@ -399,6 +399,25 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
         dest_lng = serializer.validated_data['destination_lng']
         passengers = int(request.query_params.get('passengers', 1))
 
+        # Early blocked-date check — runs before pricing so the customer sees the
+        # error inline at step 1 of the wizard, not after picking a vehicle.
+        pickup_dt_raw = request.query_params.get('pickup_datetime')
+        if pickup_dt_raw:
+            from django.utils.dateparse import parse_datetime, parse_date
+            from apps.transfers.models import BlockedDate
+            parsed = parse_datetime(pickup_dt_raw)
+            pickup_date = parsed.date() if parsed else parse_date(pickup_dt_raw[:10])
+            if pickup_date:
+                block = BlockedDate.covering(pickup_date)
+                if block:
+                    msg = block.customer_message.strip() if block.customer_message else 'Selected pickup date is unavailable. Please pick another date.'
+                    return Response({
+                        'blocked': True,
+                        'blocked_message': msg,
+                        'pricing_type': 'none',
+                        'vehicle_options': [],
+                    }, status=200)
+
         # Step 1: Check if both points are in the same Zone (within-city transfer)
         pickup_zone = find_matching_zone(origin_lat, origin_lng)
         dropoff_zone = find_matching_zone(dest_lat, dest_lng)
