@@ -101,31 +101,29 @@ class Command(BaseCommand):
         created_count = 0
         for offset, status, cost, price, name in bookings_spec:
             ref = f"DEMO-{uuid.uuid4().hex[:6].upper()}"
-            t, tcreated = Transfer.objects.get_or_create(
+            Transfer.objects.create(
                 booking_ref=ref,
-                defaults=dict(
-                    supplier=supplier,
-                    vehicle_category=cat,
-                    customer_name=name,
-                    customer_email="demo-customer@example.com",
-                    customer_phone="+212600000000",
-                    pickup_address="Marrakech Menara Airport, Marrakech",
-                    pickup_latitude="31.6069",
-                    pickup_longitude="-8.0363",
-                    dropoff_address="Jemaa el-Fna, Medina, Marrakech",
-                    dropoff_latitude="31.6258",
-                    dropoff_longitude="-7.9892",
-                    pickup_datetime=now + timedelta(days=offset),
-                    passengers=2,
-                    luggage=2,
-                    total_price=price,
-                    cost=cost,
-                    currency="EUR",
-                    status=status,
-                ),
+                supplier=supplier,
+                vehicle_category=cat,
+                customer_name=name,
+                customer_email="demo-customer@example.com",
+                customer_phone="+212600000000",
+                pickup_address="Marrakech Menara Airport, Marrakech",
+                pickup_latitude="31.6069",
+                pickup_longitude="-8.0363",
+                dropoff_address="Jemaa el-Fna, Medina, Marrakech",
+                dropoff_latitude="31.6258",
+                dropoff_longitude="-7.9892",
+                pickup_datetime=now + timedelta(days=offset),
+                passengers=2,
+                luggage=2,
+                base_price=price,
+                total_price=price,
+                cost=cost,
+                currency="EUR",
+                status=status,
             )
-            if tcreated:
-                created_count += 1
+            created_count += 1
 
         self.stdout.write(f"  Created {created_count} sample bookings (7 total)")
         self.stdout.write("")
