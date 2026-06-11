@@ -1,0 +1,92 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Account" %}{% endblock %}
+{% block page_title %}{% trans "Account Settings" %}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-7">
+        <!-- Profile -->
+        <div class="card mb-3">
+            <div class="card-header">{% trans "Company Profile" %}</div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_profile">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Company Name" %} *</label>
+                            <input type="text" name="name" class="form-control" required value="{{ supplier.name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Email" %}</label>
+                            <input type="email" name="email" class="form-control" value="{{ supplier.email }}">
+                            <small class="text-muted">{% trans "Also updates your login email." %}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Phone" %}</label>
+                            <input type="text" name="phone" class="form-control" value="{{ supplier.phone }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Notes" %}</label>
+                            <textarea name="notes" class="form-control" rows="3">{{ supplier.notes }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">{% trans "Save Profile" %}</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card">
+            <div class="card-header">{% trans "Change Password" %}</div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Current Password" %}</label>
+                            <input type="password" name="old_password" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "New Password" %}</label>
+                            <input type="password" name="new_password1" class="form-control" required minlength="8">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Confirm New Password" %}</label>
+                            <input type="password" name="new_password2" class="form-control" required minlength="8">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-outline-secondary">{% trans "Change Password" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">{% trans "Login Info" %}</div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <label class="form-label text-muted small">{% trans "Login Email" %}</label>
+                    <div>{{ user.email }}</div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label text-muted small">{% trans "Role" %}</label>
+                    <div><span class="badge bg-secondary">{% trans "Supplier" %}</span></div>
+                </div>
+                <div>
+                    <label class="form-label text-muted small">{% trans "Portal URL" %}</label>
+                    <div><code>/supplier/</code></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

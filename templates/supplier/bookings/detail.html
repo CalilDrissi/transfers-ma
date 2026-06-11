@@ -1,0 +1,155 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ transfer.booking_ref }}{% endblock %}
+{% block page_title %}{% trans "Booking" %} <code>{{ transfer.booking_ref }}</code>{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'supplier:booking_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header">{% trans "Booking Details" %}</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">{% trans "Booking Ref" %}</label>
+                        <div><code>{{ transfer.booking_ref }}</code></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">{% trans "Status" %}</label>
+                        <div>
+                            {% if transfer.status == 'pending' %}<span class="badge bg-warning text-dark fs-6">{% trans "Pending" %}</span>
+                            {% elif transfer.status == 'confirmed' %}<span class="badge bg-success fs-6">{% trans "Confirmed" %}</span>
+                            {% elif transfer.status == 'completed' %}<span class="badge bg-primary fs-6">{% trans "Completed" %}</span>
+                            {% elif transfer.status == 'cancelled' %}<span class="badge bg-danger fs-6">{% trans "Cancelled" %}</span>
+                            {% else %}<span class="badge bg-secondary fs-6">{{ transfer.get_status_display }}</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">{% trans "Pickup Date & Time" %}</label>
+                        <div>{{ transfer.pickup_datetime|date:"d M Y H:i" }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">{% trans "Vehicle Category" %}</label>
+                        <div>{{ transfer.vehicle_category.name|default:"—" }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">{% trans "Passengers" %}</label>
+                        <div>{{ transfer.passengers }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">{% trans "Luggage" %}</label>
+                        <div>{{ transfer.luggage }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small">{% trans "Pickup Address" %}</label>
+                        <div>{{ transfer.pickup_address|default:"—" }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small">{% trans "Dropoff Address" %}</label>
+                        <div>{{ transfer.dropoff_address|default:"—" }}</div>
+                    </div>
+                    {% if transfer.flight_number %}
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">{% trans "Flight Number" %}</label>
+                        <div>{{ transfer.flight_number }}</div>
+                    </div>
+                    {% endif %}
+                    {% if transfer.special_requests %}
+                    <div class="col-12">
+                        <label class="form-label text-muted small">{% trans "Special Requests" %}</label>
+                        <div>{{ transfer.special_requests }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">{% trans "Customer" %}</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small">{% trans "Name" %}</label>
+                        <div>{{ transfer.customer_name|default:"—" }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small">{% trans "Email" %}</label>
+                        <div>{{ transfer.customer_email|default:"—" }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small">{% trans "Phone" %}</label>
+                        <div>{{ transfer.customer_phone|default:"—" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Financials -->
+        <div class="card mb-3">
+            <div class="card-header">{% trans "Financials" %}</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Your Cost (MAD)" %}</span>
+                    <strong>{% if transfer.cost %}{{ transfer.cost|floatformat:2 }} MAD{% else %}—{% endif %}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Customer Price" %}</span>
+                    <strong>{% if transfer.total_price %}{{ transfer.total_price|floatformat:2 }} {{ transfer.currency }}{% else %}—{% endif %}</strong>
+                </div>
+                {% if transfer.is_round_trip %}
+                <div class="mt-2 pt-2 border-top">
+                    <span class="badge bg-info">{% trans "Round Trip" %}</span>
+                    {% if transfer.return_datetime %}
+                    <div class="small text-muted mt-1">{% trans "Return:" %} {{ transfer.return_datetime|date:"d M Y H:i" }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-header">{% trans "Actions" %}</div>
+            <div class="card-body d-flex flex-column gap-2">
+                {% if transfer.status == 'pending' %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="confirm">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle me-1"></i>{% trans "Confirm Booking" %}
+                    </button>
+                </form>
+                {% endif %}
+                {% if transfer.status == 'pending' or transfer.status == 'confirmed' %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="complete">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check2-all me-1"></i>{% trans "Mark Completed" %}
+                    </button>
+                </form>
+                <form method="post" onsubmit="return confirm('{% trans "Cancel this booking?" %}')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="cancel">
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-x-circle me-1"></i>{% trans "Cancel" %}
+                    </button>
+                </form>
+                {% endif %}
+                {% if transfer.status == 'cancelled' or transfer.status == 'completed' %}
+                <p class="text-muted small mb-0">{% trans "No actions available for this status." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

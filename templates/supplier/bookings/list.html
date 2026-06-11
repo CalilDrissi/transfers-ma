@@ -1,0 +1,100 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "My Bookings" %}{% endblock %}
+{% block page_title %}{% trans "My Bookings" %} <span class="badge bg-secondary ms-2">{{ total_count }}</span>{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">{% trans "Date From" %}</label>
+                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">{% trans "Date To" %}</label>
+                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">{% trans "Status" %}</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">{% trans "All" %}</option>
+                    {% for val, label in statuses %}
+                    <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
+                <a href="{% url 'supplier:booking_list' %}" class="btn btn-outline-secondary btn-sm">{% trans "Clear" %}</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if transfers %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "Ref" %}</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Route" %}</th>
+                        <th>{% trans "Vehicle" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Cost (MAD)" %}</th>
+                        <th>{% trans "Price (EUR)" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transfers %}
+                    <tr>
+                        <td><a href="{% url 'supplier:booking_detail' t.pk %}"><code>{{ t.booking_ref }}</code></a></td>
+                        <td>{{ t.pickup_datetime|date:"d M Y H:i" }}</td>
+                        <td>{{ t.customer_name|default:"—" }}</td>
+                        <td class="small text-muted" style="max-width:200px;">
+                            {{ t.pickup_address|truncatechars:30 }}<br>→ {{ t.dropoff_address|truncatechars:30 }}
+                        </td>
+                        <td>{{ t.vehicle_category.name|default:"—" }}</td>
+                        <td>
+                            {% if t.status == 'pending' %}<span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                            {% elif t.status == 'confirmed' %}<span class="badge bg-success">{% trans "Confirmed" %}</span>
+                            {% elif t.status == 'completed' %}<span class="badge bg-primary">{% trans "Completed" %}</span>
+                            {% elif t.status == 'cancelled' %}<span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                            {% else %}<span class="badge bg-secondary">{{ t.get_status_display }}</span>{% endif %}
+                        </td>
+                        <td>{% if t.cost %}{{ t.cost|floatformat:0 }}{% else %}—{% endif %}</td>
+                        <td>{% if t.total_price and t.currency == 'EUR' %}{{ t.total_price|floatformat:0 }} €{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if page_obj.has_other_pages %}
+        <div class="d-flex justify-content-center py-3">
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status }}&date_from={{ date_from }}&date_to={{ date_to }}">«</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status }}&date_from={{ date_from }}&date_to={{ date_to }}">»</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-calendar-x display-4 d-block mb-3"></i>
+            <p>{% trans "No bookings found." %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

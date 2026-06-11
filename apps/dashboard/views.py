@@ -1923,17 +1923,54 @@ def supplier_create(request):
 def supplier_detail(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)
     if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        if name:
-            supplier.name = name
-            supplier.email = request.POST.get('email', '').strip()
-            supplier.phone = request.POST.get('phone', '').strip()
-            supplier.notes = request.POST.get('notes', '').strip()
-            supplier.is_active = request.POST.get('is_active') == 'on'
-            supplier.save()
-            messages.success(request, 'Supplier updated.')
-            return redirect('dashboard:supplier_list')
-        messages.error(request, 'Name is required.')
+        action = request.POST.get('action', 'update_supplier')
+
+        if action == 'update_supplier':
+            name = request.POST.get('name', '').strip()
+            if name:
+                supplier.name = name
+                supplier.email = request.POST.get('email', '').strip()
+                supplier.phone = request.POST.get('phone', '').strip()
+                supplier.notes = request.POST.get('notes', '').strip()
+                supplier.is_active = request.POST.get('is_active') == 'on'
+                supplier.save()
+                messages.success(request, 'Supplier updated.')
+                return redirect('dashboard:supplier_list')
+            messages.error(request, 'Name is required.')
+
+        elif action == 'create_portal_login':
+            portal_email = request.POST.get('portal_email', '').strip()
+            portal_password = request.POST.get('portal_password', '').strip()
+            if not portal_email or not portal_password:
+                messages.error(request, 'Email and password are required to create a portal login.')
+            elif User.objects.filter(email=portal_email).exclude(pk=getattr(supplier.user, 'pk', None)).exists():
+                messages.error(request, f'A user with email "{portal_email}" already exists.')
+            else:
+                if supplier.user:
+                    # Update existing portal user's email / password
+                    supplier.user.email = portal_email
+                    supplier.user.set_password(portal_password)
+                    supplier.user.save(update_fields=['email', 'password'])
+                    messages.success(request, 'Portal login updated.')
+                else:
+                    portal_user = User.objects.create_user(
+                        email=portal_email,
+                        password=portal_password,
+                        role=User.Role.SUPPLIER,
+                        is_active=True,
+                    )
+                    supplier.user = portal_user
+                    supplier.save(update_fields=['user'])
+                    messages.success(request, f'Portal login created. Supplier can log in at /supplier/login/ with {portal_email}.')
+
+        elif action == 'remove_portal_login':
+            if supplier.user:
+                old_user = supplier.user
+                supplier.user = None
+                supplier.save(update_fields=['user'])
+                old_user.delete()
+                messages.success(request, 'Portal login removed and user account deleted.')
+
     return render(request, 'dashboard/suppliers/form.html', {
         'supplier': supplier,
         'vehicles': supplier.vehicles.all(),

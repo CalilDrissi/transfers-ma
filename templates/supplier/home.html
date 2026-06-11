@@ -1,0 +1,135 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_bookings }}</div>
+            <div class="stat-label">{% trans "Total Bookings" %}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-value">{{ month_bookings }}</div>
+            <div class="stat-label">{% trans "This Month" %}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-value text-success">{{ total_cost_mad|floatformat:0 }}</div>
+            <div class="stat-label">{% trans "Total Cost (MAD)" %}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-value text-info">{{ total_revenue_eur|floatformat:0 }}</div>
+            <div class="stat-label">{% trans "Total Revenue (EUR)" %}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center py-4">
+                <div class="display-5 fw-bold text-primary">{{ vehicle_count }}</div>
+                <div class="text-muted mt-1">{% trans "Active Vehicles" %}</div>
+                <a href="{% url 'supplier:vehicle_list' %}" class="btn btn-sm btn-outline-primary mt-3">{% trans "Manage" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center py-4">
+                <div class="display-5 fw-bold text-secondary">{{ zone_count }}</div>
+                <div class="text-muted mt-1">{% trans "Active Zones" %}</div>
+                <a href="{% url 'supplier:zone_list' %}" class="btn btn-sm btn-outline-secondary mt-3">{% trans "Manage" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center py-4">
+                <div class="display-5 fw-bold text-warning">{{ route_count }}</div>
+                <div class="text-muted mt-1">{% trans "Active Routes" %}</div>
+                <a href="{% url 'supplier:route_list' %}" class="btn btn-sm btn-outline-warning mt-3">{% trans "Manage" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>{% trans "Recent Bookings" %}</span>
+                <a href="{% url 'supplier:booking_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Ref" %}</th>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "Customer" %}</th>
+                                <th>{% trans "Vehicle" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Cost (MAD)" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in recent_bookings %}
+                            <tr>
+                                <td><a href="{% url 'supplier:booking_detail' t.pk %}"><code>{{ t.booking_ref }}</code></a></td>
+                                <td>{{ t.pickup_datetime|date:"d M Y" }}</td>
+                                <td>{{ t.customer_name|default:"—" }}</td>
+                                <td>{{ t.vehicle_category.name|default:"—" }}</td>
+                                <td>
+                                    {% if t.status == 'pending' %}<span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                                    {% elif t.status == 'confirmed' %}<span class="badge bg-success">{% trans "Confirmed" %}</span>
+                                    {% elif t.status == 'completed' %}<span class="badge bg-primary">{% trans "Completed" %}</span>
+                                    {% elif t.status == 'cancelled' %}<span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                                    {% else %}<span class="badge bg-secondary">{{ t.get_status_display }}</span>{% endif %}
+                                </td>
+                                <td>{% if t.cost %}{{ t.cost|floatformat:0 }} MAD{% else %}—{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">{% trans "No bookings yet." %}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">{% trans "Booking Status Breakdown" %}</div>
+            <div class="card-body">
+                {% for label, count in status_counts.items %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">{{ label }}</span>
+                    <span class="badge bg-light text-dark border">{{ count }}</span>
+                </div>
+                {% endfor %}
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">{% trans "This Month Cost (MAD)" %}</small>
+                    <strong>{{ month_cost_mad|floatformat:0 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">{% trans "This Month Revenue (EUR)" %}</small>
+                    <strong>{{ month_revenue_eur|floatformat:0 }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

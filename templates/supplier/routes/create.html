@@ -1,0 +1,120 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "New Route" %}{% endblock %}
+{% block page_title %}{% trans "New Route" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'supplier:route_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-9">
+        <div class="card">
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-header">{% trans "Route Details" %}</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Route Name" %} *</label>
+                            <input type="text" name="name" class="form-control" required placeholder="e.g. Marrakech – Agadir">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Origin" %} *</label>
+                            <input type="text" name="origin_name" id="origin_input" class="form-control" required placeholder="{% trans 'City or location name' %}">
+                            <input type="hidden" name="origin_latitude" id="origin_lat">
+                            <input type="hidden" name="origin_longitude" id="origin_lng">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Destination" %} *</label>
+                            <input type="text" name="destination_name" id="destination_input" class="form-control" required placeholder="{% trans 'City or location name' %}">
+                            <input type="hidden" name="destination_latitude" id="destination_lat">
+                            <input type="hidden" name="destination_longitude" id="destination_lng">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Origin Radius (km)" %}</label>
+                            <input type="number" step="0.01" name="origin_radius_km" class="form-control" value="10">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Destination Radius (km)" %}</label>
+                            <input type="number" step="0.01" name="destination_radius_km" class="form-control" value="10">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Distance (km)" %}</label>
+                            <input type="number" step="0.01" name="distance_km" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Est. Duration (min)" %}</label>
+                            <input type="number" name="estimated_duration_minutes" class="form-control" placeholder="—">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Deposit %" %}</label>
+                            <input type="number" step="0.01" name="deposit_percentage" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check mt-4 pt-2">
+                                <input type="checkbox" name="is_active" id="is_active" class="form-check-input" checked>
+                                <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
+                            </div>
+                        </div>
+
+                        {% if GOOGLE_MAPS_API_KEY %}
+                        <div class="col-12">
+                            <div id="route-map" style="height:300px;border-radius:0.5rem;"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Create Route" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if GOOGLE_MAPS_API_KEY %}
+<script>
+let map, originMarker, destMarker;
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('route-map'), {
+        center: {lat: 31.6295, lng: -8.0083}, zoom: 6,
+    });
+    const originAC = new google.maps.places.Autocomplete(document.getElementById('origin_input'));
+    const destAC = new google.maps.places.Autocomplete(document.getElementById('destination_input'));
+
+    originAC.addListener('place_changed', () => {
+        const p = originAC.getPlace();
+        if (p.geometry) {
+            document.getElementById('origin_lat').value = p.geometry.location.lat();
+            document.getElementById('origin_lng').value = p.geometry.location.lng();
+            if (originMarker) originMarker.setMap(null);
+            originMarker = new google.maps.Marker({map, position: p.geometry.location, label: 'A'});
+        }
+    });
+    destAC.addListener('place_changed', () => {
+        const p = destAC.getPlace();
+        if (p.geometry) {
+            document.getElementById('destination_lat').value = p.geometry.location.lat();
+            document.getElementById('destination_lng').value = p.geometry.location.lng();
+            if (destMarker) destMarker.setMap(null);
+            destMarker = new google.maps.Marker({map, position: p.geometry.location, label: 'B'});
+        }
+    });
+}
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap" async defer></script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Supplier Login" %} - Transfers.ma</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background: linear-gradient(135deg, #1a2940 0%, #0d6efd 100%); min-height: 100vh; display: flex; align-items: center; }
+        .login-card { background: white; border-radius: 1rem; padding: 2.5rem; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 420px; width: 100%; }
+        .login-logo { font-size: 2rem; color: #1a2940; font-weight: 700; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+            <div class="login-card">
+                <div class="text-center mb-4">
+                    <div class="login-logo"><i class="bi bi-truck me-2"></i>Transfers.ma</div>
+                    <p class="text-muted mt-1">{% trans "Supplier Portal" %}</p>
+                </div>
+
+                {% if messages %}
+                {% for msg in messages %}
+                <div class="alert alert-danger">{{ msg }}</div>
+                {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Email" %}</label>
+                        <input type="email" name="email" class="form-control" autofocus required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">{% trans "Password" %}</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>{% trans "Log In" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -38,6 +38,7 @@ class User(AbstractUser):
         DRIVER = 'driver', _('Driver')
         CLIENT = 'client', _('Client')
         RENTAL_COMPANY = 'rental_company', _('Rental Company')
+        SUPPLIER = 'supplier', _('Supplier')
 
     username = None
     email = models.EmailField(_('email address'), unique=True)
@@ -95,6 +96,10 @@ class User(AbstractUser):
     @property
     def is_rental_company(self):
         return self.role == self.Role.RENTAL_COMPANY
+
+    @property
+    def is_supplier(self):
+        return self.role == self.Role.SUPPLIER
 
 
 class Profile(models.Model):

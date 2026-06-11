@@ -1,0 +1,216 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Supplier Portal{% endblock %} - Transfers.ma</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --primary-color: #0d6efd;
+            --sidebar-bg: #1a2940;
+        }
+
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8f9fa; }
+
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100vh;
+            width: var(--sidebar-width); background-color: var(--sidebar-bg);
+            padding: 1rem; overflow-y: auto; z-index: 1000;
+            transition: width 0.3s ease, transform 0.3s ease;
+        }
+        .sidebar-brand {
+            color: white; font-size: 1.4rem; font-weight: 700;
+            padding: 1rem 0; text-decoration: none;
+            display: flex; align-items: center; gap: 0.5rem;
+            white-space: nowrap; overflow: hidden;
+        }
+        .sidebar-brand-text { transition: opacity 0.2s; }
+        .sidebar-nav { list-style: none; padding: 0; margin: 1.5rem 0; }
+        .sidebar-nav .nav-item { margin-bottom: 0.25rem; }
+        .sidebar-nav .nav-link {
+            color: rgba(255,255,255,0.7); padding: 0.75rem 1rem; border-radius: 0.5rem;
+            display: flex; align-items: center; gap: 0.75rem;
+            transition: all 0.2s; white-space: nowrap; overflow: hidden;
+        }
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active { color: white; background-color: rgba(255,255,255,0.1); }
+        .sidebar-nav .nav-link i { font-size: 1.25rem; min-width: 1.25rem; }
+        .nav-link-text { transition: opacity 0.2s; }
+        .sidebar-section-label {
+            color: rgba(255,255,255,0.35); font-size: 0.7rem; text-transform: uppercase;
+            letter-spacing: 0.1em; padding: 1rem 1rem 0.25rem; font-weight: 600;
+        }
+        .main-content { margin-left: var(--sidebar-width); padding: 1.5rem; min-height: 100vh; transition: margin-left 0.3s ease; }
+        .top-bar {
+            background: white; padding: 1rem 1.5rem; margin: -1.5rem -1.5rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;
+        }
+        .sidebar-toggle { background: none; border: none; color: #6c757d; font-size: 1.25rem; padding: 0.25rem 0.5rem; cursor: pointer; border-radius: 0.375rem; transition: background-color 0.2s; }
+        .sidebar-toggle:hover { background-color: #e9ecef; color: #212529; }
+        .card { border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 0.75rem; }
+        .card-header { background: white; border-bottom: 1px solid #e9ecef; font-weight: 600; }
+        .table th { font-weight: 600; color: #495057; border-top: none; }
+        .stat-card { background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-card .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary-color); }
+        .stat-card .stat-label { color: #6c757d; font-size: 0.875rem; }
+
+        /* Collapsed */
+        body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); padding: 1rem 0.5rem; }
+        body.sidebar-collapsed .sidebar-brand { justify-content: center; padding: 1rem 0; }
+        body.sidebar-collapsed .sidebar-brand-text,
+        body.sidebar-collapsed .nav-link-text,
+        body.sidebar-collapsed .sidebar-section-label,
+        body.sidebar-collapsed .sidebar-user-info span { display: none; }
+        body.sidebar-collapsed .sidebar-nav .nav-link { justify-content: center; padding: 0.75rem; }
+        body.sidebar-collapsed .sidebar-nav .nav-link i { margin: 0; }
+        body.sidebar-collapsed .main-content { margin-left: var(--sidebar-collapsed-width); }
+        body.sidebar-collapsed .sidebar-footer { text-align: center; }
+
+        /* Mobile */
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); width: var(--sidebar-width) !important; }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; }
+            .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+            .sidebar-overlay.show { display: block; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <nav class="sidebar" id="sidebar">
+        <a href="{% url 'supplier:home' %}" class="sidebar-brand">
+            <i class="bi bi-truck"></i>
+            <span class="sidebar-brand-text">{% trans "Supplier Portal" %}</span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="{% url 'supplier:home' %}" class="nav-link {% if request.path == '/supplier/' %}active{% endif %}" title="{% trans 'Dashboard' %}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span class="nav-link-text">{% trans "Dashboard" %}</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section-label">{% trans "Fleet" %}</li>
+
+            <li class="nav-item">
+                <a href="{% url 'supplier:vehicle_list' %}" class="nav-link {% if '/supplier/vehicles' in request.path %}active{% endif %}" title="{% trans 'My Vehicles' %}">
+                    <i class="bi bi-car-front"></i>
+                    <span class="nav-link-text">{% trans "My Vehicles" %}</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section-label">{% trans "Geography & Pricing" %}</li>
+
+            <li class="nav-item">
+                <a href="{% url 'supplier:zone_list' %}" class="nav-link {% if '/supplier/zones' in request.path %}active{% endif %}" title="{% trans 'My Zones' %}">
+                    <i class="bi bi-geo-alt"></i>
+                    <span class="nav-link-text">{% trans "My Zones" %}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'supplier:route_list' %}" class="nav-link {% if '/supplier/routes' in request.path %}active{% endif %}" title="{% trans 'My Routes' %}">
+                    <i class="bi bi-signpost-2"></i>
+                    <span class="nav-link-text">{% trans "My Routes" %}</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section-label">{% trans "Business" %}</li>
+
+            <li class="nav-item">
+                <a href="{% url 'supplier:booking_list' %}" class="nav-link {% if '/supplier/bookings' in request.path %}active{% endif %}" title="{% trans 'My Bookings' %}">
+                    <i class="bi bi-calendar-check"></i>
+                    <span class="nav-link-text">{% trans "My Bookings" %}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'supplier:earnings' %}" class="nav-link {% if '/supplier/earnings' in request.path %}active{% endif %}" title="{% trans 'Earnings' %}">
+                    <i class="bi bi-cash-stack"></i>
+                    <span class="nav-link-text">{% trans "Earnings" %}</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer mt-auto" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+            <div class="sidebar-user-info d-flex align-items-center gap-2 mb-2 px-2">
+                <i class="bi bi-person-circle text-white-50 fs-5"></i>
+                <span class="text-white-50 small text-truncate">{{ request.user.email }}</span>
+            </div>
+            <a href="{% url 'supplier:account' %}" class="nav-link {% if '/supplier/account' in request.path %}active{% endif %}">
+                <i class="bi bi-gear"></i>
+                <span class="nav-link-text">{% trans "Account" %}</span>
+            </a>
+            <a href="{% url 'supplier:logout' %}" class="nav-link text-danger">
+                <i class="bi bi-box-arrow-left"></i>
+                <span class="nav-link-text">{% trans "Logout" %}</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div>
+                    <h5 class="mb-0 fw-600">{% block page_title %}{% endblock %}</h5>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                {% block page_actions %}{% endblock %}
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-3">
+            {% for msg in messages %}
+            <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function isMobile() { return window.innerWidth <= 992; }
+
+        sidebarToggle.addEventListener('click', () => {
+            if (isMobile()) {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.classList.toggle('show');
+            } else {
+                document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('supplierSidebarCollapsed', document.body.classList.contains('sidebar-collapsed'));
+            }
+        });
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        });
+        if (!isMobile() && localStorage.getItem('supplierSidebarCollapsed') === 'true') {
+            document.body.classList.add('sidebar-collapsed');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

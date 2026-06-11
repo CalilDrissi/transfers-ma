@@ -15,6 +15,7 @@
     <div class="col-lg-8">
         <form method="post">
             {% csrf_token %}
+            <input type="hidden" name="action" value="update_supplier">
             <div class="card">
                 <div class="card-body">
                     <div class="row g-3">
@@ -53,7 +54,7 @@
 
     {% if supplier %}
     <div class="col-lg-4">
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header">
                 <h6 class="mb-0">{% trans "Linked Vehicles" %} <span class="badge bg-secondary ms-1">{{ vehicles|length }}</span></h6>
             </div>
@@ -66,6 +67,65 @@
                 </ul>
                 {% else %}
                 <p class="text-muted mb-0 small">{% trans "No vehicles linked yet." %}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Portal Login -->
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h6 class="mb-0"><i class="bi bi-person-lock me-1"></i>{% trans "Supplier Portal Login" %}</h6>
+                {% if supplier.user %}
+                <span class="badge bg-success">{% trans "Active" %}</span>
+                {% else %}
+                <span class="badge bg-secondary">{% trans "Not set" %}</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if supplier.user %}
+                <p class="small mb-2">
+                    <i class="bi bi-envelope me-1"></i>{{ supplier.user.email }}<br>
+                    <span class="text-muted">{% trans "Portal URL:" %} <code>/supplier/</code></span>
+                </p>
+                <form method="post" class="mb-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_portal_login">
+                    <div class="mb-2">
+                        <label class="form-label small">{% trans "Email" %}</label>
+                        <input type="email" name="portal_email" class="form-control form-control-sm" value="{{ supplier.user.email }}">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">{% trans "New password" %} <span class="text-muted">({% trans "leave blank to keep" %})</span></label>
+                        <input type="password" name="portal_password" class="form-control form-control-sm" placeholder="{% trans 'Enter new password to change' %}">
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-pencil me-1"></i>{% trans "Update Login" %}
+                    </button>
+                </form>
+                <form method="post" onsubmit="return confirm('{% trans "Delete this portal login? The user account will be removed." %}')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="remove_portal_login">
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                        <i class="bi bi-trash me-1"></i>{% trans "Remove Login" %}
+                    </button>
+                </form>
+                {% else %}
+                <p class="small text-muted mb-2">{% trans "Create a login so this supplier can access the self-service portal." %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_portal_login">
+                    <div class="mb-2">
+                        <label class="form-label small">{% trans "Email" %} *</label>
+                        <input type="email" name="portal_email" class="form-control form-control-sm" value="{{ supplier.email }}" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">{% trans "Password" %} *</label>
+                        <input type="password" name="portal_password" class="form-control form-control-sm" required minlength="8">
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-plus me-1"></i>{% trans "Create Portal Login" %}
+                    </button>
+                </form>
                 {% endif %}
             </div>
         </div>

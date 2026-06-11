@@ -39,6 +39,9 @@ urlpatterns = [
     path('register/', include('apps.rental_companies.registration_urls')),
     path('portal/', include('apps.rental_companies.urls')),
 
+    # Supplier self-service portal
+    path('supplier/', include('apps.supplier_portal.urls')),
+
     # Language switching
     path('i18n/', include('django.conf.urls.i18n')),
 ]

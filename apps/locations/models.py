@@ -68,6 +68,16 @@ class Zone(models.Model):
         blank=True,
         help_text=_('Custom key-value data for this zone')
     )
+    # Supplier portal: null = admin-owned global zone; non-null = supplier's own zone
+    owner_supplier = models.ForeignKey(
+        'vehicles.Supplier',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='zones',
+        verbose_name=_('owner supplier'),
+        help_text=_('If set, this zone was created by and belongs to this supplier.')
+    )
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
 
@@ -295,6 +305,16 @@ class Route(models.Model):
         default=dict,
         blank=True,
         help_text=_('Custom key-value data for this route')
+    )
+    # Supplier portal: null = admin-owned global route; non-null = supplier's own route
+    owner_supplier = models.ForeignKey(
+        'vehicles.Supplier',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='routes',
+        verbose_name=_('owner supplier'),
+        help_text=_('If set, this route was created by and belongs to this supplier.')
     )
 
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)

@@ -1,0 +1,42 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "My Zones" %}{% endblock %}
+{% block page_title %}{% trans "My Zones" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'supplier:zone_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>{% trans "New Zone" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        {% if zones %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Distance Ranges" %}</th><th>{% trans "Radius (km)" %}</th><th>{% trans "Active" %}</th><th></th></tr></thead>
+                <tbody>
+                    {% for zone in zones %}
+                    <tr>
+                        <td><a href="{% url 'supplier:zone_detail' zone.pk %}">{{ zone.name }}</a></td>
+                        <td>{{ zone.distance_ranges.count }}</td>
+                        <td>{{ zone.radius_km|default:"—" }}</td>
+                        <td>{% if zone.is_active %}<i class="bi bi-check-circle text-success"></i>{% else %}<i class="bi bi-x-circle text-secondary"></i>{% endif %}</td>
+                        <td><a href="{% url 'supplier:zone_detail' zone.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-geo-alt display-4 d-block mb-3"></i>
+            <p>{% trans "No zones yet. Create zones to define within-city pricing areas." %}</p>
+            <a href="{% url 'supplier:zone_create' %}" class="btn btn-primary">{% trans "Create your first zone" %}</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

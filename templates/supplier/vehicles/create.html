@@ -1,0 +1,132 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Add Vehicle" %}{% endblock %}
+{% block page_title %}{% trans "Add Vehicle" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'supplier:vehicle_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-3">
+        <!-- Basic Info -->
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header">{% trans "Vehicle Details" %}</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Category" %} *</label>
+                            <select name="category" class="form-select" required>
+                                <option value="">{% trans "Select category" %}</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.pk }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Name" %} *</label>
+                            <input type="text" name="name" class="form-control" required placeholder="e.g. Toyota Camry 2023">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Passengers" %} *</label>
+                            <input type="number" name="passengers" class="form-control" required min="1" value="4">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Luggage" %} *</label>
+                            <input type="number" name="luggage" class="form-control" required min="0" value="3">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Important Note Type" %}</label>
+                            <select name="important_note_type" class="form-select">
+                                <option value="info">{% trans "Info" %}</option>
+                                <option value="warning">{% trans "Warning" %}</option>
+                                <option value="success">{% trans "Success" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Customer Description" %}</label>
+                            <textarea name="client_description" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Important Note" %}</label>
+                            <input type="text" name="important_note" class="form-control" placeholder="{% trans 'Optional note shown to customers' %}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Photo" %}</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone Pricing -->
+            {% if zones %}
+            <div class="card mb-3">
+                <div class="card-header">{% trans "Zone Pricing" %} <small class="text-muted fw-normal">({% trans "Set price + cost per distance band" %})</small></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead><tr><th>{% trans "Zone / Range" %}</th><th>{% trans "Customer Price (EUR)" %}</th><th>{% trans "Your Cost (MAD)" %}</th><th>{% trans "Min Hours" %}</th></tr></thead>
+                            <tbody>
+                                {% for zone in zones %}
+                                {% for dr in zone.distance_ranges.all %}
+                                {% if dr.is_active %}
+                                <tr>
+                                    <td>{{ zone.name }}: {{ dr.name }} ({{ dr.min_km }}–{{ dr.max_km }} km)</td>
+                                    <td><input type="number" step="0.01" name="zone_price_{{ dr.pk }}" class="form-control form-control-sm" placeholder="0.00"></td>
+                                    <td><input type="number" step="0.01" name="zone_cost_{{ dr.pk }}" class="form-control form-control-sm" placeholder="0.00"></td>
+                                    <td><input type="number" name="zone_min_hours_{{ dr.pk }}" class="form-control form-control-sm" placeholder="—"></td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Route Pricing -->
+            {% if routes %}
+            <div class="card mb-3">
+                <div class="card-header">{% trans "Route Pricing" %}</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead><tr><th>{% trans "Route" %}</th><th>{% trans "Customer Price (EUR)" %}</th><th>{% trans "Your Cost (MAD)" %}</th><th>{% trans "Min Hours" %}</th></tr></thead>
+                            <tbody>
+                                {% for route in routes %}
+                                <tr>
+                                    <td>{{ route.name }}</td>
+                                    <td><input type="number" step="0.01" name="route_price_{{ route.pk }}" class="form-control form-control-sm" placeholder="0.00"></td>
+                                    <td><input type="number" step="0.01" name="route_cost_{{ route.pk }}" class="form-control form-control-sm" placeholder="0.00"></td>
+                                    <td><input type="number" name="route_min_hours_{{ route.pk }}" class="form-control form-control-sm" placeholder="—"></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Create Vehicle" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

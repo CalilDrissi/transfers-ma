@@ -1,0 +1,43 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "My Routes" %}{% endblock %}
+{% block page_title %}{% trans "My Routes" %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'supplier:route_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>{% trans "New Route" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        {% if routes %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Origin → Destination" %}</th><th>{% trans "Distance" %}</th><th>{% trans "Vehicles" %}</th><th>{% trans "Active" %}</th><th></th></tr></thead>
+                <tbody>
+                    {% for route in routes %}
+                    <tr>
+                        <td><a href="{% url 'supplier:route_detail' route.pk %}">{{ route.name }}</a></td>
+                        <td class="small text-muted">{{ route.origin_name }} → {{ route.destination_name }}</td>
+                        <td>{% if route.distance_km %}{{ route.distance_km }} km{% else %}—{% endif %}</td>
+                        <td>{{ route.vehicle_count }}</td>
+                        <td>{% if route.is_active %}<i class="bi bi-check-circle text-success"></i>{% else %}<i class="bi bi-x-circle text-secondary"></i>{% endif %}</td>
+                        <td><a href="{% url 'supplier:route_detail' route.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-signpost-2 display-4 d-block mb-3"></i>
+            <p>{% trans "No routes yet. Create routes to define long-distance transfer pricing." %}</p>
+            <a href="{% url 'supplier:route_create' %}" class="btn btn-primary">{% trans "Create your first route" %}</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

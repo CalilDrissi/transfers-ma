@@ -1,0 +1,126 @@
+{% extends 'supplier/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Earnings" %}{% endblock %}
+{% block page_title %}{% trans "Earnings" %}{% endblock %}
+
+{% block page_actions %}
+<a href="?format=xlsx&date_from={{ date_from }}&date_to={{ date_to }}" class="btn btn-outline-success btn-sm">
+    <i class="bi bi-file-earmark-excel me-1"></i>{% trans "Export .xlsx" %}
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">{% trans "From" %}</label>
+                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">{% trans "To" %}</label>
+                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary btn-sm mt-4">{% trans "Apply" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_bookings }}</div>
+            <div class="stat-label">{% trans "Bookings in Period" %}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value text-success">{{ total_cost_mad|floatformat:0 }}</div>
+            <div class="stat-label">{% trans "Total Cost (MAD)" %}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value text-info">{{ total_revenue_eur|floatformat:0 }}</div>
+            <div class="stat-label">{% trans "Total Revenue (EUR)" %}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Breakdown -->
+{% if monthly %}
+<div class="card mb-3">
+    <div class="card-header">{% trans "Monthly Breakdown (Last 12 months)" %}</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>{% trans "Month" %}</th><th>{% trans "Bookings" %}</th><th>{% trans "Cost (MAD)" %}</th><th>{% trans "Revenue (EUR)" %}</th></tr></thead>
+                <tbody>
+                    {% for m in monthly %}
+                    <tr>
+                        <td>{{ m.month|date:"M Y" }}</td>
+                        <td>{{ m.count }}</td>
+                        <td>{% if m.cost_mad %}{{ m.cost_mad|floatformat:0 }}{% else %}—{% endif %}</td>
+                        <td>{% if m.revenue_eur %}{{ m.revenue_eur|floatformat:0 }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Transaction List -->
+<div class="card">
+    <div class="card-header">{% trans "Transactions" %}</div>
+    <div class="card-body p-0">
+        {% if transfers %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>{% trans "Ref" %}</th><th>{% trans "Date" %}</th><th>{% trans "Customer" %}</th><th>{% trans "Category" %}</th><th>{% trans "Status" %}</th><th>{% trans "Cost (MAD)" %}</th><th>{% trans "Price (EUR)" %}</th></tr></thead>
+                <tbody>
+                    {% for t in transfers %}
+                    <tr>
+                        <td><a href="{% url 'supplier:booking_detail' t.pk %}"><code>{{ t.booking_ref }}</code></a></td>
+                        <td>{{ t.pickup_datetime|date:"d M Y" }}</td>
+                        <td>{{ t.customer_name|default:"—" }}</td>
+                        <td>{{ t.vehicle_category.name|default:"—" }}</td>
+                        <td>
+                            {% if t.status == 'completed' %}<span class="badge bg-primary">{% trans "Completed" %}</span>
+                            {% elif t.status == 'confirmed' %}<span class="badge bg-success">{% trans "Confirmed" %}</span>
+                            {% else %}<span class="badge bg-secondary">{{ t.get_status_display }}</span>{% endif %}
+                        </td>
+                        <td>{% if t.cost %}{{ t.cost|floatformat:0 }}{% else %}—{% endif %}</td>
+                        <td>{% if t.total_price and t.currency == 'EUR' %}{{ t.total_price|floatformat:0 }} €{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if page_obj.has_other_pages %}
+        <div class="d-flex justify-content-center py-3">
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&date_from={{ date_from }}&date_to={{ date_to }}">«</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&date_from={{ date_from }}&date_to={{ date_to }}">»</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="p-4 text-center text-muted">{% trans "No transactions in this period." %}</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

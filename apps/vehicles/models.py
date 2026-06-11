@@ -55,6 +55,16 @@ class Supplier(models.Model):
     phone = models.CharField(_('phone'), max_length=30, blank=True)
     notes = models.TextField(_('notes'), blank=True)
     is_active = models.BooleanField(_('active'), default=True)
+    # Portal login: links this supplier to a User account with role='supplier'
+    user = models.OneToOneField(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='supplier_account',
+        verbose_name=_('portal user'),
+        help_text=_('User account that can log into the supplier portal.')
+    )
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
 
