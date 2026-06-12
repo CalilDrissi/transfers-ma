@@ -59,6 +59,11 @@
                             <label class="form-label">{% trans "Customer Description" %}</label>
                             <textarea name="client_description" class="form-control" rows="3">{{ vehicle.client_description }}</textarea>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Internal Notes" %}</label>
+                            <textarea name="notes" class="form-control" rows="2">{{ vehicle.notes }}</textarea>
+                            <small class="text-muted">{% trans "Internal notes, not visible to customers." %}</small>
+                        </div>
                         <div class="col-md-9">
                             <label class="form-label">{% trans "Important Note" %}</label>
                             <input type="text" name="important_note" class="form-control" value="{{ vehicle.important_note }}">

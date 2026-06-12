@@ -297,6 +297,7 @@ def vehicle_detail(request, pk):
             vehicle.status = request.POST.get('status', vehicle.status)
             vehicle.is_active = request.POST.get('is_active') == 'on'
             vehicle.client_description = request.POST.get('client_description', '')
+            vehicle.notes = request.POST.get('notes', '')
             vehicle.important_note = request.POST.get('important_note', '')
             vehicle.important_note_type = request.POST.get('important_note_type', 'info')
             try:
@@ -675,6 +676,8 @@ def route_create(request):
                 client_notice=request.POST.get('client_notice', ''),
                 client_notice_type=request.POST.get('client_notice_type', 'info'),
                 route_description=request.POST.get('route_description', ''),
+                travel_tips=request.POST.get('travel_tips', ''),
+                estimated_traffic_info=request.POST.get('estimated_traffic_info', ''),
                 highlights=highlights,
                 included_amenities=included_amenities,
                 custom_info=custom_info,
@@ -728,6 +731,8 @@ def route_detail(request, pk):
             route.client_notice = request.POST.get('client_notice', '')
             route.client_notice_type = request.POST.get('client_notice_type', 'info')
             route.route_description = request.POST.get('route_description', '')
+            route.travel_tips = request.POST.get('travel_tips', '')
+            route.estimated_traffic_info = request.POST.get('estimated_traffic_info', '')
             try:
                 route.highlights = json_mod.loads(request.POST.get('highlights', '[]') or '[]')
             except (json_mod.JSONDecodeError, ValueError):
@@ -828,9 +833,19 @@ def route_detail(request, pk):
             vehicle = get_object_or_404(Vehicle, pk=vehicle_id, supplier=supplier)
             if vehicle_id and price:
                 try:
+                    pickup_zone = None
+                    dropoff_zone = None
+                    pz_id = request.POST.get('pickup_zone_id')
+                    dz_id = request.POST.get('dropoff_zone_id')
+                    if pz_id:
+                        pickup_zone = get_object_or_404(RoutePickupZone, pk=pz_id, route=route)
+                    if dz_id:
+                        dropoff_zone = get_object_or_404(RouteDropoffZone, pk=dz_id, route=route)
                     VehicleRoutePricing.objects.create(
                         vehicle=vehicle,
                         route=route,
+                        pickup_zone=pickup_zone,
+                        dropoff_zone=dropoff_zone,
                         price=price,
                         cost=request.POST.get('cost') or None,
                         min_booking_hours=request.POST.get('min_booking_hours') or None,

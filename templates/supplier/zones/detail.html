@@ -33,6 +33,16 @@
                             <label class="form-label">{% trans "Description" %}</label>
                             <textarea name="description" class="form-control" rows="2">{{ zone.description }}</textarea>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Area Description" %}</label>
+                            <textarea name="area_description" class="form-control" rows="2">{{ zone.area_description }}</textarea>
+                            <small class="text-muted">{% trans "Customer-facing description of this area." %}</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Pickup Instructions" %}</label>
+                            <textarea name="pickup_instructions" class="form-control" rows="2">{{ zone.pickup_instructions }}</textarea>
+                            <small class="text-muted">{% trans "Specific pickup instructions shown to customers in this zone." %}</small>
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label">{% trans "Deposit %" %}</label>
                             <input type="number" step="0.01" name="deposit_percentage" class="form-control" value="{{ zone.deposit_percentage }}">

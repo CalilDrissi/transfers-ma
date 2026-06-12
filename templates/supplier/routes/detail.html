@@ -10,61 +10,155 @@
 </a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .map-container { height: 250px; border-radius: 0.5rem; border: 1px solid #dee2e6; margin-bottom: 1rem; }
+    .zones-map-container { height: 280px; border-radius: 0.5rem; border: 1px solid #dee2e6; }
+    .location-card { background: #f8f9fa; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; }
+    .radius-value { font-weight: 600; color: #0d6efd; }
+    .zone-badge { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; }
+    .pac-container { z-index: 10000 !important; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row g-3">
     <div class="col-lg-8">
-        <!-- Route Info -->
+        <!-- Route Details -->
         <div class="card mb-3">
             <div class="card-header">{% trans "Route Details" %}</div>
-            <form method="post">
+            <form method="post" id="routeForm">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update_route">
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-12">
+                        <div class="col-md-8">
                             <label class="form-label">{% trans "Route Name" %} *</label>
                             <input type="text" name="name" class="form-control" required value="{{ route.name }}">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">{% trans "Origin" %}</label>
-                            <input type="text" name="origin_name" class="form-control" value="{{ route.origin_name }}">
-                            <div class="row g-1 mt-1">
-                                <div class="col-6"><input type="number" step="0.0000001" name="origin_latitude" class="form-control form-control-sm" placeholder="{% trans 'Lat' %}" value="{{ route.origin_latitude|default:'' }}"></div>
-                                <div class="col-6"><input type="number" step="0.0000001" name="origin_longitude" class="form-control form-control-sm" placeholder="{% trans 'Lng' %}" value="{{ route.origin_longitude|default:'' }}"></div>
-                            </div>
-                            <input type="number" step="0.01" name="origin_radius_km" class="form-control form-control-sm mt-1" placeholder="{% trans 'Radius km' %}" value="{{ route.origin_radius_km }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">{% trans "Destination" %}</label>
-                            <input type="text" name="destination_name" class="form-control" value="{{ route.destination_name }}">
-                            <div class="row g-1 mt-1">
-                                <div class="col-6"><input type="number" step="0.0000001" name="destination_latitude" class="form-control form-control-sm" placeholder="{% trans 'Lat' %}" value="{{ route.destination_latitude|default:'' }}"></div>
-                                <div class="col-6"><input type="number" step="0.0000001" name="destination_longitude" class="form-control form-control-sm" placeholder="{% trans 'Lng' %}" value="{{ route.destination_longitude|default:'' }}"></div>
-                            </div>
-                            <input type="number" step="0.01" name="destination_radius_km" class="form-control form-control-sm mt-1" placeholder="{% trans 'Radius km' %}" value="{{ route.destination_radius_km }}">
-                        </div>
                         <div class="col-md-4">
+                            <label class="form-label">{% trans "Description" %}</label>
+                            <textarea name="description" class="form-control" rows="1">{{ route.description }}</textarea>
+                        </div>
+
+                        <!-- Origin map -->
+                        <div class="col-md-6">
+                            <div class="location-card h-100">
+                                <h6 class="mb-3"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Origin (Pickup Area)" %}</h6>
+                                <div class="mb-2">
+                                    <label class="form-label small">{% trans "City / Location Name" %}</label>
+                                    <input type="text" name="origin_name" id="origin_name" class="form-control" value="{{ route.origin_name }}" autocomplete="off">
+                                </div>
+                                <div id="originMap" class="map-container"></div>
+                                <div class="row g-1 mb-2">
+                                    <div class="col-6">
+                                        <label class="form-label small">{% trans "Latitude" %}</label>
+                                        <input type="number" step="0.0000001" id="origin_latitude" name="origin_latitude" class="form-control form-control-sm" value="{{ route.origin_latitude|default:'' }}">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">{% trans "Longitude" %}</label>
+                                        <input type="number" step="0.0000001" id="origin_longitude" name="origin_longitude" class="form-control form-control-sm" value="{{ route.origin_longitude|default:'' }}">
+                                    </div>
+                                </div>
+                                <label class="form-label small">{% trans "Pickup Radius" %}: <span id="origin_radius_display" class="radius-value">{{ route.origin_radius_km }}</span> km</label>
+                                <input type="range" class="form-range" id="origin_radius_slider" min="1" max="100" value="{{ route.origin_radius_km }}" step="1">
+                                <input type="hidden" id="origin_radius_km" name="origin_radius_km" value="{{ route.origin_radius_km }}">
+                            </div>
+                        </div>
+
+                        <!-- Destination map -->
+                        <div class="col-md-6">
+                            <div class="location-card h-100">
+                                <h6 class="mb-3"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Destination (Dropoff Area)" %}</h6>
+                                <div class="mb-2">
+                                    <label class="form-label small">{% trans "City / Location Name" %}</label>
+                                    <input type="text" name="destination_name" id="destination_name" class="form-control" value="{{ route.destination_name }}" autocomplete="off">
+                                </div>
+                                <div id="destinationMap" class="map-container"></div>
+                                <div class="row g-1 mb-2">
+                                    <div class="col-6">
+                                        <label class="form-label small">{% trans "Latitude" %}</label>
+                                        <input type="number" step="0.0000001" id="destination_latitude" name="destination_latitude" class="form-control form-control-sm" value="{{ route.destination_latitude|default:'' }}">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">{% trans "Longitude" %}</label>
+                                        <input type="number" step="0.0000001" id="destination_longitude" name="destination_longitude" class="form-control form-control-sm" value="{{ route.destination_longitude|default:'' }}">
+                                    </div>
+                                </div>
+                                <label class="form-label small">{% trans "Dropoff Radius" %}: <span id="destination_radius_display" class="radius-value">{{ route.destination_radius_km }}</span> km</label>
+                                <input type="range" class="form-range" id="destination_radius_slider" min="1" max="100" value="{{ route.destination_radius_km }}" step="1">
+                                <input type="hidden" id="destination_radius_km" name="destination_radius_km" value="{{ route.destination_radius_km }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
                             <label class="form-label">{% trans "Distance (km)" %}</label>
-                            <input type="number" step="0.01" name="distance_km" class="form-control" value="{{ route.distance_km }}">
+                            <input type="number" step="0.01" name="distance_km" id="distance_km" class="form-control" value="{{ route.distance_km }}">
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Est. Duration (min)" %}</label>
-                            <input type="number" name="estimated_duration_minutes" class="form-control" value="{{ route.estimated_duration_minutes|default:'' }}">
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "Duration (min)" %}</label>
+                            <input type="number" name="estimated_duration_minutes" id="estimated_duration_minutes" class="form-control" value="{{ route.estimated_duration_minutes|default:'' }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label class="form-label">{% trans "Deposit %" %}</label>
                             <input type="number" step="0.01" name="deposit_percentage" class="form-control" value="{{ route.deposit_percentage }}">
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-check mt-2">
+                        <div class="col-md-4 d-flex align-items-end gap-3">
+                            <div class="form-check mb-1">
                                 <input type="checkbox" name="is_bidirectional" id="is_bidirectional" class="form-check-input" {% if route.is_bidirectional %}checked{% endif %}>
-                                <label class="form-check-label" for="is_bidirectional">{% trans "Bidirectional (return trip allowed)" %}</label>
+                                <label class="form-check-label" for="is_bidirectional">{% trans "Bidirectional" %}</label>
+                            </div>
+                            <div class="form-check mb-1">
+                                <input type="checkbox" name="is_active" id="is_active" class="form-check-input" {% if route.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <hr class="my-3">
+                    <h6 class="mb-3">{% trans "Customer Information" %}</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Client Notice" %}</label>
+                            <textarea name="client_notice" class="form-control" rows="2">{{ route.client_notice }}</textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Notice Type" %}</label>
+                            <select name="client_notice_type" class="form-select">
+                                <option value="info" {% if route.client_notice_type == "info" %}selected{% endif %}>Info</option>
+                                <option value="warning" {% if route.client_notice_type == "warning" %}selected{% endif %}>Warning</option>
+                                <option value="success" {% if route.client_notice_type == "success" %}selected{% endif %}>Success</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Route Description" %}</label>
+                            <textarea name="route_description" class="form-control" rows="3">{{ route.route_description }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Highlights" %}</label>
+                            <input type="hidden" name="highlights" id="highlightsInput" value='{{ route.highlights|safe }}'>
+                            <div id="highlightsList" class="mb-2"></div>
+                            <div class="input-group">
+                                <input type="text" id="highlightNew" class="form-control" placeholder="{% trans 'Add a highlight and press +' %}">
+                                <button type="button" class="btn btn-outline-secondary" onclick="addListItem('highlights')"><i class="bi bi-plus-lg"></i></button>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="form-check mt-2">
-                                <input type="checkbox" name="is_active" id="is_active" class="form-check-input" {% if route.is_active %}checked{% endif %}>
-                                <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
+                            <label class="form-label">{% trans "Travel Tips" %}</label>
+                            <textarea name="travel_tips" class="form-control" rows="2">{{ route.travel_tips }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Traffic Info" %}</label>
+                            <textarea name="estimated_traffic_info" class="form-control" rows="2">{{ route.estimated_traffic_info }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Included Amenities" %}</label>
+                            <input type="hidden" name="included_amenities" id="amenitiesInput" value='{{ route.included_amenities|safe }}'>
+                            <div id="amenitiesList" class="mb-2"></div>
+                            <div class="input-group">
+                                <input type="text" id="amenityNew" class="form-control" placeholder="{% trans 'Add an amenity and press +' %}">
+                                <button type="button" class="btn btn-outline-secondary" onclick="addListItem('amenities')"><i class="bi bi-plus-lg"></i></button>
                             </div>
                         </div>
                     </div>
@@ -81,24 +175,41 @@
             <div class="card-body p-0">
                 {% if vehicle_pricing %}
                 <div class="table-responsive">
-                    <table class="table mb-0">
-                        <thead><tr><th>{% trans "Vehicle" %}</th><th>{% trans "Price (EUR)" %}</th><th>{% trans "Cost (MAD)" %}</th><th>{% trans "Min Hours" %}</th><th></th></tr></thead>
+                    <table class="table mb-0 align-middle small">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Vehicle" %}</th>
+                                <th>{% trans "Pickup Zone" %}</th>
+                                <th>{% trans "Dropoff Zone" %}</th>
+                                <th>{% trans "Price (EUR)" %}</th>
+                                <th>{% trans "Cost (MAD)" %}</th>
+                                <th>{% trans "Min h" %}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {% for vp in vehicle_pricing %}
                             <tr>
                                 <td>{{ vp.vehicle.name }}</td>
                                 <td>
+                                    {% if vp.pickup_zone %}<span class="badge bg-success-subtle text-success-emphasis">{{ vp.pickup_zone.name }}</span>{% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if vp.dropoff_zone %}<span class="badge bg-danger-subtle text-danger-emphasis">{{ vp.dropoff_zone.name }}</span>{% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                                <td>
                                     <form method="post" class="d-flex gap-1">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="update_vehicle_pricing">
                                         <input type="hidden" name="pricing_id" value="{{ vp.pk }}">
-                                        <input type="number" step="0.01" name="price" class="form-control form-control-sm" value="{{ vp.price }}" style="width:90px">
-                                        <input type="number" step="0.01" name="cost" class="form-control form-control-sm" value="{{ vp.cost|default:'' }}" placeholder="—" style="width:90px">
-                                        <input type="number" name="min_booking_hours" class="form-control form-control-sm" value="{{ vp.min_booking_hours|default:'' }}" placeholder="—" style="width:70px">
+                                        <input type="number" step="0.01" name="price" class="form-control form-control-sm" value="{{ vp.price }}" style="width:85px">
+                                        <input type="number" step="0.01" name="cost" class="form-control form-control-sm" value="{{ vp.cost|default:'' }}" placeholder="—" style="width:85px">
+                                        <input type="number" name="min_booking_hours" class="form-control form-control-sm" value="{{ vp.min_booking_hours|default:'' }}" placeholder="—" style="width:60px">
                                         <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check"></i></button>
                                     </form>
                                 </td>
-                                <td colspan="2">
+                                <td colspan="2"></td>
+                                <td>
                                     <form method="post" onsubmit="return confirm('{% trans "Delete?" %}')">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_vehicle_pricing">
@@ -122,14 +233,26 @@
                         <input type="hidden" name="action" value="add_vehicle_pricing">
                         <div class="col-md-3">
                             <select name="vehicle_id" class="form-select form-select-sm" required>
-                                <option value="">{% trans "Select vehicle" %}</option>
+                                <option value="">{% trans "Vehicle" %}</option>
                                 {% for v in available_vehicles %}<option value="{{ v.pk }}">{{ v.name }}</option>{% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-3"><input type="number" step="0.01" name="price" class="form-control form-control-sm" placeholder="{% trans 'Price EUR' %}" required></div>
-                        <div class="col-md-3"><input type="number" step="0.01" name="cost" class="form-control form-control-sm" placeholder="{% trans 'Cost MAD' %}"></div>
-                        <div class="col-md-1"><input type="number" name="min_booking_hours" class="form-control form-control-sm" placeholder="{% trans 'Min h' %}"></div>
-                        <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Add" %}</button></div>
+                        <div class="col-md-2">
+                            <select name="pickup_zone_id" class="form-select form-select-sm">
+                                <option value="">{% trans "Any pickup" %}</option>
+                                {% for pz in pickup_zones %}<option value="{{ pz.pk }}">{{ pz.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="dropoff_zone_id" class="form-select form-select-sm">
+                                <option value="">{% trans "Any dropoff" %}</option>
+                                {% for dz in dropoff_zones %}<option value="{{ dz.pk }}">{{ dz.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2"><input type="number" step="0.01" name="price" class="form-control form-control-sm" placeholder="{% trans 'Price EUR' %}" required></div>
+                        <div class="col-md-2"><input type="number" step="0.01" name="cost" class="form-control form-control-sm" placeholder="{% trans 'Cost MAD' %}"></div>
+                        <div class="col-md-1"><input type="number" name="min_booking_hours" class="form-control form-control-sm" placeholder="{% trans 'h' %}"></div>
+                        <div class="col-12"><button type="submit" class="btn btn-sm btn-primary">{% trans "Add" %}</button></div>
                     </form>
                 </div>
                 {% endif %}
@@ -138,15 +261,22 @@
 
         <!-- Pickup Sub-Zones -->
         <div class="card mb-3">
-            <div class="card-header">{% trans "Pickup Sub-Zones" %} <small class="text-muted fw-normal">{% trans "(optional — refine by pickup area)" %}</small></div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-geo-alt text-success me-1"></i>{% trans "Pickup Sub-Zones" %} <small class="text-muted fw-normal">{% trans "(optional refinement)" %}</small></span>
+                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addPickupZoneModal">
+                    <i class="bi bi-plus-lg me-1"></i>{% trans "Add" %}
+                </button>
+            </div>
             <div class="card-body p-0">
                 {% if pickup_zones %}
-                <table class="table mb-0">
-                    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Price Adj." %}</th><th></th></tr></thead>
+                <table class="table mb-0 align-middle small">
+                    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Coords" %}</th><th>{% trans "Radius" %}</th><th>{% trans "Price Adj." %}</th><th></th></tr></thead>
                     <tbody>
                         {% for pz in pickup_zones %}
                         <tr>
-                            <td>{{ pz.name }}</td>
+                            <td><span class="zone-badge" style="background:{{ pz.color }};"></span>{{ pz.name }}</td>
+                            <td class="text-muted">{{ pz.center_latitude|floatformat:4 }}, {{ pz.center_longitude|floatformat:4 }}</td>
+                            <td>{{ pz.radius_km }} km</td>
                             <td>
                                 <form method="post" class="d-flex gap-1">
                                     {% csrf_token %}
@@ -155,11 +285,14 @@
                                     <input type="hidden" name="zone_name" value="{{ pz.name }}">
                                     <input type="hidden" name="latitude" value="{{ pz.center_latitude }}">
                                     <input type="hidden" name="longitude" value="{{ pz.center_longitude }}">
-                                    <input type="number" step="0.01" name="price_adjustment" class="form-control form-control-sm" value="{{ pz.price_adjustment }}" style="width:90px">
+                                    <input type="number" step="0.01" name="price_adjustment" class="form-control form-control-sm" value="{{ pz.price_adjustment }}" style="width:80px">
                                     <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check"></i></button>
                                 </form>
                             </td>
-                            <td>
+                            <td class="d-flex gap-1">
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editPickupZone{{ pz.pk }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
                                 <form method="post" onsubmit="return confirm('{% trans "Delete?" %}')">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="delete_pickup_zone">
@@ -172,35 +305,29 @@
                     </tbody>
                 </table>
                 {% else %}
-                <p class="p-3 text-muted mb-0 small">{% trans "No pickup sub-zones." %}</p>
+                <p class="p-3 text-muted mb-0 small">{% trans "No pickup sub-zones. The entire origin radius is used." %}</p>
                 {% endif %}
-                <div class="p-3 border-top">
-                    <strong class="small">{% trans "Add Pickup Sub-Zone" %}</strong>
-                    <form method="post" class="row g-2 mt-1">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="add_pickup_zone">
-                        <div class="col-md-3"><input type="text" name="zone_name" class="form-control form-control-sm" placeholder="{% trans 'Name' %}" required></div>
-                        <div class="col-md-2"><input type="number" step="0.0000001" name="latitude" class="form-control form-control-sm" placeholder="{% trans 'Lat' %}" required></div>
-                        <div class="col-md-2"><input type="number" step="0.0000001" name="longitude" class="form-control form-control-sm" placeholder="{% trans 'Lng' %}" required></div>
-                        <div class="col-md-2"><input type="number" step="0.01" name="radius_km" class="form-control form-control-sm" placeholder="{% trans 'Radius km' %}" value="5"></div>
-                        <div class="col-md-1"><input type="number" step="0.01" name="price_adjustment" class="form-control form-control-sm" placeholder="{% trans 'Adj.' %}"></div>
-                        <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Add" %}</button></div>
-                    </form>
-                </div>
             </div>
         </div>
 
         <!-- Dropoff Sub-Zones -->
         <div class="card mb-3">
-            <div class="card-header">{% trans "Dropoff Sub-Zones" %}</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>{% trans "Dropoff Sub-Zones" %} <small class="text-muted fw-normal">{% trans "(optional refinement)" %}</small></span>
+                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#addDropoffZoneModal">
+                    <i class="bi bi-plus-lg me-1"></i>{% trans "Add" %}
+                </button>
+            </div>
             <div class="card-body p-0">
                 {% if dropoff_zones %}
-                <table class="table mb-0">
-                    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Price Adj." %}</th><th></th></tr></thead>
+                <table class="table mb-0 align-middle small">
+                    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Coords" %}</th><th>{% trans "Radius" %}</th><th>{% trans "Price Adj." %}</th><th></th></tr></thead>
                     <tbody>
                         {% for dz in dropoff_zones %}
                         <tr>
-                            <td>{{ dz.name }}</td>
+                            <td><span class="zone-badge" style="background:{{ dz.color }};"></span>{{ dz.name }}</td>
+                            <td class="text-muted">{{ dz.center_latitude|floatformat:4 }}, {{ dz.center_longitude|floatformat:4 }}</td>
+                            <td>{{ dz.radius_km }} km</td>
                             <td>
                                 <form method="post" class="d-flex gap-1">
                                     {% csrf_token %}
@@ -209,11 +336,14 @@
                                     <input type="hidden" name="zone_name" value="{{ dz.name }}">
                                     <input type="hidden" name="latitude" value="{{ dz.center_latitude }}">
                                     <input type="hidden" name="longitude" value="{{ dz.center_longitude }}">
-                                    <input type="number" step="0.01" name="price_adjustment" class="form-control form-control-sm" value="{{ dz.price_adjustment }}" style="width:90px">
+                                    <input type="number" step="0.01" name="price_adjustment" class="form-control form-control-sm" value="{{ dz.price_adjustment }}" style="width:80px">
                                     <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check"></i></button>
                                 </form>
                             </td>
-                            <td>
+                            <td class="d-flex gap-1">
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editDropoffZone{{ dz.pk }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
                                 <form method="post" onsubmit="return confirm('{% trans "Delete?" %}')">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="delete_dropoff_zone">
@@ -226,26 +356,49 @@
                     </tbody>
                 </table>
                 {% else %}
-                <p class="p-3 text-muted mb-0 small">{% trans "No dropoff sub-zones." %}</p>
+                <p class="p-3 text-muted mb-0 small">{% trans "No dropoff sub-zones. The entire destination radius is used." %}</p>
                 {% endif %}
-                <div class="p-3 border-top">
-                    <strong class="small">{% trans "Add Dropoff Sub-Zone" %}</strong>
-                    <form method="post" class="row g-2 mt-1">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="add_dropoff_zone">
-                        <div class="col-md-3"><input type="text" name="zone_name" class="form-control form-control-sm" placeholder="{% trans 'Name' %}" required></div>
-                        <div class="col-md-2"><input type="number" step="0.0000001" name="latitude" class="form-control form-control-sm" placeholder="{% trans 'Lat' %}" required></div>
-                        <div class="col-md-2"><input type="number" step="0.0000001" name="longitude" class="form-control form-control-sm" placeholder="{% trans 'Lng' %}" required></div>
-                        <div class="col-md-2"><input type="number" step="0.01" name="radius_km" class="form-control form-control-sm" placeholder="{% trans 'Radius km' %}" value="5"></div>
-                        <div class="col-md-1"><input type="number" step="0.01" name="price_adjustment" class="form-control form-control-sm" placeholder="{% trans 'Adj.' %}"></div>
-                        <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Add" %}</button></div>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
 
+    <!-- Sidebar -->
     <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">{% trans "Quick Info" %}</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Distance" %}</span>
+                    <strong>{{ route.distance_km }} km</strong>
+                </div>
+                {% if route.estimated_duration_minutes %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Duration" %}</span>
+                    <strong>{{ route.estimated_duration_display }}</strong>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Vehicles Priced" %}</span>
+                    <strong>{{ vehicle_pricing|length }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Pickup Sub-Zones" %}</span>
+                    <strong>{{ pickup_zones|length }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Dropoff Sub-Zones" %}</span>
+                    <strong>{{ dropoff_zones|length }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Created" %}</span>
+                    <span>{{ route.created_at|date:"M d, Y" }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">{% trans "Updated" %}</span>
+                    <span>{{ route.updated_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+        </div>
         <div class="card border-danger">
             <div class="card-header text-danger">{% trans "Danger Zone" %}</div>
             <div class="card-body">
@@ -260,13 +413,347 @@
         </div>
     </div>
 </div>
+
+<!-- Add Pickup Zone Modal -->
+<div class="modal fade" id="addPickupZoneModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_pickup_zone">
+                <input type="hidden" name="latitude" id="addPickupLat" value="{{ route.origin_latitude }}">
+                <input type="hidden" name="longitude" id="addPickupLng" value="{{ route.origin_longitude }}">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Add Pickup Sub-Zone" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Zone Name" %}</label>
+                        <input type="text" name="zone_name" class="form-control" required placeholder="{% trans 'e.g. Airport Terminal, City Center' %}">
+                    </div>
+                    <div id="pickupZoneMap" class="zones-map-container mb-3"></div>
+                    <div class="row align-items-center g-2">
+                        <div class="col">
+                            <label class="form-label">{% trans "Radius" %}: <span id="pickup_radius_display" class="radius-value">5</span> km</label>
+                            <input type="range" class="form-range" id="pickup_radius_slider" name="radius_km" min="1" max="{{ route.origin_radius_km|default:50 }}" value="5" step="1">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label">{% trans "Color" %}</label>
+                            <input type="color" class="form-control form-control-color" id="pickup_color" name="color" value="#28a745">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label">{% trans "Price Adj." %}</label>
+                            <input type="number" step="0.01" name="price_adjustment" class="form-control form-control-sm" value="0" style="width:90px">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-success">{% trans "Add Pickup Sub-Zone" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Dropoff Zone Modal -->
+<div class="modal fade" id="addDropoffZoneModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_dropoff_zone">
+                <input type="hidden" name="latitude" id="addDropoffLat" value="{{ route.destination_latitude }}">
+                <input type="hidden" name="longitude" id="addDropoffLng" value="{{ route.destination_longitude }}">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Add Dropoff Sub-Zone" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Zone Name" %}</label>
+                        <input type="text" name="zone_name" class="form-control" required placeholder="{% trans 'e.g. Hotel District, City Center' %}">
+                    </div>
+                    <div id="dropoffZoneMap" class="zones-map-container mb-3"></div>
+                    <div class="row align-items-center g-2">
+                        <div class="col">
+                            <label class="form-label">{% trans "Radius" %}: <span id="dropoff_radius_display" class="radius-value">5</span> km</label>
+                            <input type="range" class="form-range" id="dropoff_radius_slider" name="radius_km" min="1" max="{{ route.destination_radius_km|default:50 }}" value="5" step="1">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label">{% trans "Color" %}</label>
+                            <input type="color" class="form-control form-control-color" id="dropoff_color" name="color" value="#dc3545">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label">{% trans "Price Adj." %}</label>
+                            <input type="number" step="0.01" name="price_adjustment" class="form-control form-control-sm" value="0" style="width:90px">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Add Dropoff Sub-Zone" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Pickup Zone Modals -->
+{% for pz in pickup_zones %}
+<div class="modal fade" id="editPickupZone{{ pz.pk }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_pickup_zone">
+                <input type="hidden" name="zone_id" value="{{ pz.pk }}">
+                <input type="hidden" name="latitude" id="editPickupLat{{ pz.pk }}" value="{{ pz.center_latitude }}">
+                <input type="hidden" name="longitude" id="editPickupLng{{ pz.pk }}" value="{{ pz.center_longitude }}">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Edit Pickup Sub-Zone" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Zone Name" %}</label>
+                        <input type="text" name="zone_name" class="form-control" required value="{{ pz.name }}">
+                    </div>
+                    <div id="editPickupZoneMap{{ pz.pk }}" class="zones-map-container mb-3"></div>
+                    <div class="row align-items-center g-2">
+                        <div class="col">
+                            <label class="form-label">{% trans "Radius" %}: <span id="editPickupRadiusDisplay{{ pz.pk }}" class="radius-value">{{ pz.radius_km|floatformat:0 }}</span> km</label>
+                            <input type="range" class="form-range" id="editPickupRadiusSlider{{ pz.pk }}" name="radius_km" min="1" max="{{ route.origin_radius_km|default:50 }}" value="{{ pz.radius_km|floatformat:0 }}" step="1">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label">{% trans "Color" %}</label>
+                            <input type="color" class="form-control form-control-color" name="color" value="{{ pz.color }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-success">{% trans "Save Changes" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Edit Dropoff Zone Modals -->
+{% for dz in dropoff_zones %}
+<div class="modal fade" id="editDropoffZone{{ dz.pk }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_dropoff_zone">
+                <input type="hidden" name="zone_id" value="{{ dz.pk }}">
+                <input type="hidden" name="latitude" id="editDropoffLat{{ dz.pk }}" value="{{ dz.center_latitude }}">
+                <input type="hidden" name="longitude" id="editDropoffLng{{ dz.pk }}" value="{{ dz.center_longitude }}">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Edit Dropoff Sub-Zone" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Zone Name" %}</label>
+                        <input type="text" name="zone_name" class="form-control" required value="{{ dz.name }}">
+                    </div>
+                    <div id="editDropoffZoneMap{{ dz.pk }}" class="zones-map-container mb-3"></div>
+                    <div class="row align-items-center g-2">
+                        <div class="col">
+                            <label class="form-label">{% trans "Radius" %}: <span id="editDropoffRadiusDisplay{{ dz.pk }}" class="radius-value">{{ dz.radius_km|floatformat:0 }}</span> km</label>
+                            <input type="range" class="form-range" id="editDropoffRadiusSlider{{ dz.pk }}" name="radius_km" min="1" max="{{ route.destination_radius_km|default:50 }}" value="{{ dz.radius_km|floatformat:0 }}" step="1">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label">{% trans "Color" %}</label>
+                            <input type="color" class="form-control form-control-color" name="color" value="{{ dz.color }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Save Changes" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}
 
 {% block extra_js %}
 {% if GOOGLE_MAPS_API_KEY %}
 <script>
-function initMap() {}
+// Initial values from route
+const initialOriginLat = {{ route.origin_latitude|default:"null" }};
+const initialOriginLng = {{ route.origin_longitude|default:"null" }};
+const initialOriginRadius = {{ route.origin_radius_km|default:"10" }};
+const initialDestLat = {{ route.destination_latitude|default:"null" }};
+const initialDestLng = {{ route.destination_longitude|default:"null" }};
+const initialDestRadius = {{ route.destination_radius_km|default:"10" }};
+
+const existingPickupZones = [{% for pz in pickup_zones %}{ lat: {{ pz.center_latitude }}, lng: {{ pz.center_longitude }}, radius: {{ pz.radius_km }}, color: "{{ pz.color }}" }{% if not forloop.last %},{% endif %}{% endfor %}];
+const existingDropoffZones = [{% for dz in dropoff_zones %}{ lat: {{ dz.center_latitude }}, lng: {{ dz.center_longitude }}, radius: {{ dz.radius_km }}, color: "{{ dz.color }}" }{% if not forloop.last %},{% endif %}{% endfor %}];
+
+let originMap, destinationMap, originMarker, destinationMarker, originCircle, destinationCircle;
+
+function initMaps() {
+    const defaultCenter = { lat: 31.7917, lng: -7.0926 };
+    const originCenter = (initialOriginLat && initialOriginLng) ? { lat: initialOriginLat, lng: initialOriginLng } : defaultCenter;
+    const destCenter = (initialDestLat && initialDestLng) ? { lat: initialDestLat, lng: initialDestLng } : defaultCenter;
+
+    originMap = new google.maps.Map(document.getElementById('originMap'), {
+        center: originCenter, zoom: (initialOriginLat && initialOriginLng) ? 10 : 6, mapTypeControl: false, streetViewControl: false,
+    });
+    destinationMap = new google.maps.Map(document.getElementById('destinationMap'), {
+        center: destCenter, zoom: (initialDestLat && initialDestLng) ? 10 : 6, mapTypeControl: false, streetViewControl: false,
+    });
+
+    // Autocomplete
+    const originAC = new google.maps.places.Autocomplete(document.getElementById('origin_name'), { types: ['(cities)'] });
+    const destAC = new google.maps.places.Autocomplete(document.getElementById('destination_name'), { types: ['(cities)'] });
+    originAC.addListener('place_changed', () => { const p = originAC.getPlace(); if (p.geometry) updateLocation(p.geometry.location.lat(), p.geometry.location.lng(), true); });
+    destAC.addListener('place_changed', () => { const p = destAC.getPlace(); if (p.geometry) updateLocation(p.geometry.location.lat(), p.geometry.location.lng(), false); });
+
+    // Existing locations
+    if (initialOriginLat && initialOriginLng) updateLocation(initialOriginLat, initialOriginLng, true, initialOriginRadius);
+    if (initialDestLat && initialDestLng) updateLocation(initialDestLat, initialDestLng, false, initialDestRadius);
+
+    // Map clicks
+    originMap.addListener('click', e => updateLocation(e.latLng.lat(), e.latLng.lng(), true));
+    destinationMap.addListener('click', e => updateLocation(e.latLng.lat(), e.latLng.lng(), false));
+
+    // Radius sliders
+    document.getElementById('origin_radius_slider').addEventListener('input', function() {
+        const r = parseInt(this.value);
+        document.getElementById('origin_radius_km').value = r;
+        document.getElementById('origin_radius_display').textContent = r;
+        if (originCircle) { originCircle.setRadius(r * 1000); fitBoundsToCircle(originMap, originCircle); }
+    });
+    document.getElementById('destination_radius_slider').addEventListener('input', function() {
+        const r = parseInt(this.value);
+        document.getElementById('destination_radius_km').value = r;
+        document.getElementById('destination_radius_display').textContent = r;
+        if (destinationCircle) { destinationCircle.setRadius(r * 1000); fitBoundsToCircle(destinationMap, destinationCircle); }
+    });
+
+    // Sub-zone modals
+    function initZoneModal(modalId, mapElId, center, parentRadius, existingZones, sliderEl, displayEl, color) {
+        var map = null, newCircle = null;
+        document.getElementById(modalId).addEventListener('shown.bs.modal', function() {
+            if (!map) {
+                map = new google.maps.Map(document.getElementById(mapElId), {
+                    center: center, zoom: 10, mapTypeControl: false, streetViewControl: false,
+                });
+                new google.maps.Circle({ map, center, radius: parentRadius * 1000, fillColor: '#000', fillOpacity: 0.05, strokeColor: '#333', strokeOpacity: 0.4, strokeWeight: 2 });
+                existingZones.forEach(z => new google.maps.Circle({ map, center: { lat: z.lat, lng: z.lng }, radius: z.radius * 1000, fillColor: z.color, fillOpacity: 0.15, strokeColor: z.color, strokeOpacity: 0.6, strokeWeight: 1 }));
+                newCircle = new google.maps.Circle({ map, center, radius: parseInt(sliderEl.value) * 1000, fillColor: color, fillOpacity: 0.2, strokeColor: color, strokeOpacity: 0.8, strokeWeight: 2 });
+                fitBoundsToCircle(map, newCircle);
+            }
+            google.maps.event.trigger(map, 'resize');
+        });
+        sliderEl.addEventListener('input', function() {
+            var r = parseInt(this.value);
+            displayEl.textContent = r;
+            if (newCircle) { newCircle.setRadius(r * 1000); fitBoundsToCircle(map, newCircle); }
+        });
+    }
+
+    if (initialOriginLat && initialOriginLng) {
+        initZoneModal('addPickupZoneModal', 'pickupZoneMap', originCenter, initialOriginRadius, existingPickupZones,
+            document.getElementById('pickup_radius_slider'), document.getElementById('pickup_radius_display'), '#28a745');
+        {% for pz in pickup_zones %}
+        initZoneModal('editPickupZone{{ pz.pk }}', 'editPickupZoneMap{{ pz.pk }}', originCenter, initialOriginRadius, existingPickupZones,
+            document.getElementById('editPickupRadiusSlider{{ pz.pk }}'), document.getElementById('editPickupRadiusDisplay{{ pz.pk }}'), '{{ pz.color }}');
+        {% endfor %}
+    }
+    if (initialDestLat && initialDestLng) {
+        initZoneModal('addDropoffZoneModal', 'dropoffZoneMap', destCenter, initialDestRadius, existingDropoffZones,
+            document.getElementById('dropoff_radius_slider'), document.getElementById('dropoff_radius_display'), '#dc3545');
+        {% for dz in dropoff_zones %}
+        initZoneModal('editDropoffZone{{ dz.pk }}', 'editDropoffZoneMap{{ dz.pk }}', destCenter, initialDestRadius, existingDropoffZones,
+            document.getElementById('editDropoffRadiusSlider{{ dz.pk }}'), document.getElementById('editDropoffRadiusDisplay{{ dz.pk }}'), '{{ dz.color }}');
+        {% endfor %}
+    }
+}
+
+function updateLocation(lat, lng, isOrigin, initialRadius) {
+    const map = isOrigin ? originMap : destinationMap;
+    const color = isOrigin ? '#28a745' : '#dc3545';
+    const radius = initialRadius || parseInt(document.getElementById(isOrigin ? 'origin_radius_km' : 'destination_radius_km').value) || 10;
+    document.getElementById(isOrigin ? 'origin_latitude' : 'destination_latitude').value = lat.toFixed(7);
+    document.getElementById(isOrigin ? 'origin_longitude' : 'destination_longitude').value = lng.toFixed(7);
+    if (isOrigin) { if (originMarker) originMarker.setMap(null); if (originCircle) originCircle.setMap(null); }
+    else { if (destinationMarker) destinationMarker.setMap(null); if (destinationCircle) destinationCircle.setMap(null); }
+    const marker = new google.maps.Marker({
+        position: { lat, lng }, map, draggable: true,
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: color, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 },
+    });
+    const circle = new google.maps.Circle({ map, center: { lat, lng }, radius: radius * 1000, fillColor: color, fillOpacity: 0.2, strokeColor: color, strokeOpacity: 0.8, strokeWeight: 2 });
+    marker.addListener('dragend', function() {
+        const pos = marker.getPosition();
+        document.getElementById(isOrigin ? 'origin_latitude' : 'destination_latitude').value = pos.lat().toFixed(7);
+        document.getElementById(isOrigin ? 'origin_longitude' : 'destination_longitude').value = pos.lng().toFixed(7);
+        circle.setCenter(pos);
+    });
+    if (isOrigin) { originMarker = marker; originCircle = circle; }
+    else { destinationMarker = marker; destinationCircle = circle; }
+    fitBoundsToCircle(map, circle);
+}
+
+function fitBoundsToCircle(map, circle) { map.fitBounds(circle.getBounds()); }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap" async defer></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMaps"></script>
+{% else %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    ['originMap','destinationMap'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<div class="alert alert-warning m-3 small">{% trans "Map not available." %}</div>';
+    });
+});
+</script>
 {% endif %}
+<script>
+function addListItem(type) {
+    var inputId = type === 'highlights' ? 'highlightNew' : 'amenityNew';
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var input = document.getElementById(inputId);
+    var val = input.value.trim(); if (!val) return;
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.push(val); hidden.value = JSON.stringify(items); input.value = '';
+    renderListItems(type);
+}
+function removeListItem(type, index) {
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.splice(index, 1); hidden.value = JSON.stringify(items);
+    renderListItems(type);
+}
+function renderListItems(type) {
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var listId = type === 'highlights' ? 'highlightsList' : 'amenitiesList';
+    var hidden = document.getElementById(hiddenId);
+    var list = document.getElementById(listId);
+    if (!hidden || !list) return;
+    var items = JSON.parse(hidden.value || '[]');
+    list.innerHTML = '';
+    items.forEach(function(item, i) {
+        var badge = document.createElement('span');
+        badge.className = 'badge bg-light text-dark border me-1 mb-1 p-2';
+        badge.innerHTML = item + ' <a href="#" onclick="removeListItem(\'' + type + '\',' + i + ');return false;" class="text-danger ms-1">&times;</a>';
+        list.appendChild(badge);
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    renderListItems('highlights');
+    renderListItems('amenities');
+});
+</script>
 {% endblock %}

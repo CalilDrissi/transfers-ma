@@ -10,66 +10,164 @@
 </a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .map-container { height: 280px; border-radius: 0.5rem; border: 1px solid #dee2e6; margin-bottom: 1rem; }
+    .location-card { background: #f8f9fa; border-radius: 0.75rem; padding: 1.25rem; }
+    .radius-value { font-weight: 600; color: #0d6efd; }
+    .pac-container { z-index: 10000 !important; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
-    <div class="col-lg-9">
+    <div class="col-lg-10">
         <div class="card">
-            <form method="post">
+            <form method="post" id="routeForm">
                 {% csrf_token %}
                 <div class="card-header">{% trans "Route Details" %}</div>
                 <div class="card-body">
                     <div class="row g-3">
+
                         <div class="col-12">
                             <label class="form-label">{% trans "Route Name" %} *</label>
-                            <input type="text" name="name" class="form-control" required placeholder="e.g. Marrakech – Agadir">
+                            <input type="text" name="name" class="form-control" required placeholder="{% trans 'e.g. Marrakech – Agadir' %}">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Description" %}</label>
+                            <textarea name="description" class="form-control" rows="2" placeholder="{% trans 'Optional short description' %}"></textarea>
+                        </div>
+
+                        <!-- Origin + Destination maps side by side -->
+                        <div class="col-md-6">
+                            <div class="location-card h-100">
+                                <h6 class="mb-3"><i class="bi bi-geo-alt text-success me-2"></i>{% trans "Origin (Pickup Area)" %}</h6>
+                                <div class="mb-2">
+                                    <label class="form-label">{% trans "City / Location Name" %} *</label>
+                                    <input type="text" name="origin_name" id="origin_name" class="form-control" required placeholder="{% trans 'e.g. Marrakech' %}" autocomplete="off">
+                                </div>
+                                <div id="originMap" class="map-container"></div>
+                                <div class="row g-1 mb-2">
+                                    <div class="col-6">
+                                        <label class="form-label small">{% trans "Latitude" %}</label>
+                                        <input type="number" step="0.0000001" class="form-control form-control-sm" id="origin_latitude" name="origin_latitude" placeholder="31.6295">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">{% trans "Longitude" %}</label>
+                                        <input type="number" step="0.0000001" class="form-control form-control-sm" id="origin_longitude" name="origin_longitude" placeholder="-7.9811">
+                                    </div>
+                                </div>
+                                <label class="form-label small">{% trans "Pickup Radius" %}: <span id="origin_radius_display" class="radius-value">10</span> km</label>
+                                <input type="range" class="form-range" id="origin_radius_slider" min="1" max="50" value="10" step="1">
+                                <input type="hidden" id="origin_radius_km" name="origin_radius_km" value="10">
+                                <small class="text-muted">{% trans "Clients can choose any pickup within this radius." %}</small>
+                            </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">{% trans "Origin" %} *</label>
-                            <input type="text" name="origin_name" id="origin_input" class="form-control" required placeholder="{% trans 'City or location name' %}">
-                            <input type="hidden" name="origin_latitude" id="origin_lat">
-                            <input type="hidden" name="origin_longitude" id="origin_lng">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">{% trans "Destination" %} *</label>
-                            <input type="text" name="destination_name" id="destination_input" class="form-control" required placeholder="{% trans 'City or location name' %}">
-                            <input type="hidden" name="destination_latitude" id="destination_lat">
-                            <input type="hidden" name="destination_longitude" id="destination_lng">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label">{% trans "Origin Radius (km)" %}</label>
-                            <input type="number" step="0.01" name="origin_radius_km" class="form-control" value="10">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">{% trans "Destination Radius (km)" %}</label>
-                            <input type="number" step="0.01" name="destination_radius_km" class="form-control" value="10">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">{% trans "Distance (km)" %}</label>
-                            <input type="number" step="0.01" name="distance_km" class="form-control" value="0">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">{% trans "Est. Duration (min)" %}</label>
-                            <input type="number" name="estimated_duration_minutes" class="form-control" placeholder="—">
+                            <div class="location-card h-100">
+                                <h6 class="mb-3"><i class="bi bi-geo-alt-fill text-danger me-2"></i>{% trans "Destination (Dropoff Area)" %}</h6>
+                                <div class="mb-2">
+                                    <label class="form-label">{% trans "City / Location Name" %} *</label>
+                                    <input type="text" name="destination_name" id="destination_name" class="form-control" required placeholder="{% trans 'e.g. Agadir' %}" autocomplete="off">
+                                </div>
+                                <div id="destinationMap" class="map-container"></div>
+                                <div class="row g-1 mb-2">
+                                    <div class="col-6">
+                                        <label class="form-label small">{% trans "Latitude" %}</label>
+                                        <input type="number" step="0.0000001" class="form-control form-control-sm" id="destination_latitude" name="destination_latitude" placeholder="30.4278">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">{% trans "Longitude" %}</label>
+                                        <input type="number" step="0.0000001" class="form-control form-control-sm" id="destination_longitude" name="destination_longitude" placeholder="-9.5981">
+                                    </div>
+                                </div>
+                                <label class="form-label small">{% trans "Dropoff Radius" %}: <span id="destination_radius_display" class="radius-value">10</span> km</label>
+                                <input type="range" class="form-range" id="destination_radius_slider" min="1" max="50" value="10" step="1">
+                                <input type="hidden" id="destination_radius_km" name="destination_radius_km" value="10">
+                                <small class="text-muted">{% trans "Clients can choose any dropoff within this radius." %}</small>
+                            </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <!-- Auto-calculated distance/duration display -->
+                        <div class="col-12" id="distanceDisplay" style="display:none;">
+                            <div class="alert alert-info mb-0 py-2">
+                                <i class="bi bi-signpost-2 me-2"></i>
+                                <strong>{% trans "Calculated Distance" %}:</strong> <span id="distanceValue">--</span> km
+                                <span class="mx-2">|</span>
+                                <strong>{% trans "Duration" %}:</strong> <span id="durationValue">--</span>
+                            </div>
+                        </div>
+
+                        <!-- Hidden auto-calc fields -->
+                        <input type="hidden" id="distance_km" name="distance_km" value="">
+                        <input type="hidden" id="estimated_duration_minutes" name="estimated_duration_minutes" value="">
+
+                        <div class="col-md-3">
                             <label class="form-label">{% trans "Deposit %" %}</label>
-                            <input type="number" step="0.01" name="deposit_percentage" class="form-control" value="0">
+                            <input type="number" step="0.01" name="deposit_percentage" class="form-control" value="0" min="0" max="100">
                         </div>
-                        <div class="col-md-4">
-                            <div class="form-check mt-4 pt-2">
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-check mb-1">
                                 <input type="checkbox" name="is_active" id="is_active" class="form-check-input" checked>
                                 <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
                             </div>
                         </div>
-
-                        {% if GOOGLE_MAPS_API_KEY %}
-                        <div class="col-12">
-                            <div id="route-map" style="height:300px;border-radius:0.5rem;"></div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-check mb-1">
+                                <input type="checkbox" name="is_bidirectional" id="is_bidirectional" class="form-check-input" checked>
+                                <label class="form-check-label" for="is_bidirectional">{% trans "Bidirectional" %}</label>
+                            </div>
                         </div>
-                        {% endif %}
+                    </div>
+
+                    <!-- Customer Information -->
+                    <hr class="my-4">
+                    <h6 class="mb-3">{% trans "Customer Information" %}</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Client Notice" %}</label>
+                            <textarea name="client_notice" class="form-control" rows="2" placeholder="{% trans 'Notice shown to customers at booking time' %}"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "Notice Type" %}</label>
+                            <select name="client_notice_type" class="form-select">
+                                <option value="info">Info</option>
+                                <option value="warning">Warning</option>
+                                <option value="success">Success</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Route Description" %}</label>
+                            <textarea name="route_description" class="form-control" rows="3" placeholder="{% trans 'Detailed customer-facing description' %}"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Highlights" %}</label>
+                            <input type="hidden" name="highlights" id="highlightsInput" value="[]">
+                            <div id="highlightsList" class="mb-2"></div>
+                            <div class="input-group">
+                                <input type="text" id="highlightNew" class="form-control" placeholder="{% trans 'Add a highlight and press +' %}">
+                                <button type="button" class="btn btn-outline-secondary" onclick="addListItem('highlights')"><i class="bi bi-plus-lg"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Included Amenities" %}</label>
+                            <input type="hidden" name="included_amenities" id="amenitiesInput" value="[]">
+                            <div id="amenitiesList" class="mb-2"></div>
+                            <div class="input-group">
+                                <input type="text" id="amenityNew" class="form-control" placeholder="{% trans 'Add an amenity and press +' %}">
+                                <button type="button" class="btn btn-outline-secondary" onclick="addListItem('amenities')"><i class="bi bi-plus-lg"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Travel Tips" %}</label>
+                            <textarea name="travel_tips" class="form-control" rows="2" placeholder="{% trans 'e.g. Best to travel early morning' %}"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Traffic Info" %}</label>
+                            <textarea name="estimated_traffic_info" class="form-control" rows="2" placeholder="{% trans 'e.g. Expect delays during summer weekends' %}"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="card-footer text-end">
@@ -86,35 +184,185 @@
 {% block extra_js %}
 {% if GOOGLE_MAPS_API_KEY %}
 <script>
-let map, originMarker, destMarker;
+let originMap, destinationMap;
+let originMarker, destinationMarker;
+let originCircle, destinationCircle;
 
-function initMap() {
-    map = new google.maps.Map(document.getElementById('route-map'), {
-        center: {lat: 31.6295, lng: -8.0083}, zoom: 6,
-    });
-    const originAC = new google.maps.places.Autocomplete(document.getElementById('origin_input'));
-    const destAC = new google.maps.places.Autocomplete(document.getElementById('destination_input'));
+function initMaps() {
+    const defaultCenter = { lat: 31.7917, lng: -7.0926 };
+    const mapOpts = { center: defaultCenter, zoom: 6, mapTypeControl: false, streetViewControl: false };
+
+    originMap = new google.maps.Map(document.getElementById('originMap'), mapOpts);
+    destinationMap = new google.maps.Map(document.getElementById('destinationMap'), { ...mapOpts });
+
+    // Autocomplete
+    const originAC = new google.maps.places.Autocomplete(document.getElementById('origin_name'), { types: ['(cities)'] });
+    const destAC = new google.maps.places.Autocomplete(document.getElementById('destination_name'), { types: ['(cities)'] });
 
     originAC.addListener('place_changed', () => {
         const p = originAC.getPlace();
-        if (p.geometry) {
-            document.getElementById('origin_lat').value = p.geometry.location.lat();
-            document.getElementById('origin_lng').value = p.geometry.location.lng();
-            if (originMarker) originMarker.setMap(null);
-            originMarker = new google.maps.Marker({map, position: p.geometry.location, label: 'A'});
-        }
+        if (p.geometry) updateLocation(p.geometry.location.lat(), p.geometry.location.lng(), true);
     });
     destAC.addListener('place_changed', () => {
         const p = destAC.getPlace();
-        if (p.geometry) {
-            document.getElementById('destination_lat').value = p.geometry.location.lat();
-            document.getElementById('destination_lng').value = p.geometry.location.lng();
-            if (destMarker) destMarker.setMap(null);
-            destMarker = new google.maps.Marker({map, position: p.geometry.location, label: 'B'});
-        }
+        if (p.geometry) updateLocation(p.geometry.location.lat(), p.geometry.location.lng(), false);
     });
+
+    // Prevent enter from submitting form in autocomplete
+    ['origin_name', 'destination_name'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+    });
+
+    // Click on map to place marker
+    originMap.addListener('click', e => updateLocation(e.latLng.lat(), e.latLng.lng(), true));
+    destinationMap.addListener('click', e => updateLocation(e.latLng.lat(), e.latLng.lng(), false));
+
+    // Radius sliders
+    document.getElementById('origin_radius_slider').addEventListener('input', function() {
+        const r = parseInt(this.value);
+        document.getElementById('origin_radius_km').value = r;
+        document.getElementById('origin_radius_display').textContent = r;
+        if (originCircle) { originCircle.setRadius(r * 1000); fitBoundsToCircle(originMap, originCircle); }
+    });
+    document.getElementById('destination_radius_slider').addEventListener('input', function() {
+        const r = parseInt(this.value);
+        document.getElementById('destination_radius_km').value = r;
+        document.getElementById('destination_radius_display').textContent = r;
+        if (destinationCircle) { destinationCircle.setRadius(r * 1000); fitBoundsToCircle(destinationMap, destinationCircle); }
+    });
+
+    // Manual coordinate inputs
+    document.getElementById('origin_latitude').addEventListener('change', () => updateFromInputs(true));
+    document.getElementById('origin_longitude').addEventListener('change', () => updateFromInputs(true));
+    document.getElementById('destination_latitude').addEventListener('change', () => updateFromInputs(false));
+    document.getElementById('destination_longitude').addEventListener('change', () => updateFromInputs(false));
+}
+
+function updateLocation(lat, lng, isOrigin) {
+    const map = isOrigin ? originMap : destinationMap;
+    const color = isOrigin ? '#28a745' : '#dc3545';
+    const radius = parseInt(document.getElementById(isOrigin ? 'origin_radius_km' : 'destination_radius_km').value) || 10;
+
+    document.getElementById(isOrigin ? 'origin_latitude' : 'destination_latitude').value = lat.toFixed(7);
+    document.getElementById(isOrigin ? 'origin_longitude' : 'destination_longitude').value = lng.toFixed(7);
+
+    if (isOrigin) {
+        if (originMarker) originMarker.setMap(null);
+        if (originCircle) originCircle.setMap(null);
+    } else {
+        if (destinationMarker) destinationMarker.setMap(null);
+        if (destinationCircle) destinationCircle.setMap(null);
+    }
+
+    const marker = new google.maps.Marker({
+        position: { lat, lng }, map, draggable: true,
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: color, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
+    });
+    const circle = new google.maps.Circle({
+        map, center: { lat, lng }, radius: radius * 1000,
+        fillColor: color, fillOpacity: 0.2, strokeColor: color, strokeOpacity: 0.8, strokeWeight: 2,
+    });
+    marker.addListener('dragend', function() {
+        const pos = marker.getPosition();
+        document.getElementById(isOrigin ? 'origin_latitude' : 'destination_latitude').value = pos.lat().toFixed(7);
+        document.getElementById(isOrigin ? 'origin_longitude' : 'destination_longitude').value = pos.lng().toFixed(7);
+        circle.setCenter(pos);
+    });
+
+    if (isOrigin) { originMarker = marker; originCircle = circle; }
+    else { destinationMarker = marker; destinationCircle = circle; }
+
+    fitBoundsToCircle(map, circle);
+    tryCalculateDistance();
+}
+
+function updateFromInputs(isOrigin) {
+    const lat = parseFloat(document.getElementById(isOrigin ? 'origin_latitude' : 'destination_latitude').value);
+    const lng = parseFloat(document.getElementById(isOrigin ? 'origin_longitude' : 'destination_longitude').value);
+    if (!isNaN(lat) && !isNaN(lng)) updateLocation(lat, lng, isOrigin);
+}
+
+function fitBoundsToCircle(map, circle) { map.fitBounds(circle.getBounds()); }
+
+function tryCalculateDistance() {
+    const oLat = parseFloat(document.getElementById('origin_latitude').value);
+    const oLng = parseFloat(document.getElementById('origin_longitude').value);
+    const dLat = parseFloat(document.getElementById('destination_latitude').value);
+    const dLng = parseFloat(document.getElementById('destination_longitude').value);
+    if (!isNaN(oLat) && !isNaN(oLng) && !isNaN(dLat) && !isNaN(dLng)) {
+        new google.maps.DistanceMatrixService().getDistanceMatrix({
+            origins: [{ lat: oLat, lng: oLng }],
+            destinations: [{ lat: dLat, lng: dLng }],
+            travelMode: 'DRIVING',
+        }, (response, status) => {
+            if (status === 'OK') {
+                const el = response.rows[0].elements[0];
+                if (el.status === 'OK') {
+                    const km = (el.distance.value / 1000).toFixed(2);
+                    const mins = Math.round(el.duration.value / 60);
+                    document.getElementById('distance_km').value = km;
+                    document.getElementById('estimated_duration_minutes').value = mins;
+                    document.getElementById('distanceValue').textContent = km;
+                    const h = Math.floor(mins / 60), m = mins % 60;
+                    document.getElementById('durationValue').textContent = (h ? h + 'h ' : '') + (m ? m + 'min' : '');
+                    document.getElementById('distanceDisplay').style.display = 'block';
+                }
+            }
+        });
+    }
 }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap" async defer></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMaps"></script>
+{% else %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    ['originMap','destinationMap'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<div class="alert alert-warning m-3 small">{% trans "Map not available — Google Maps API key not configured." %}</div>';
+    });
+});
+</script>
 {% endif %}
+<script>
+function addListItem(type) {
+    var inputId = type === 'highlights' ? 'highlightNew' : 'amenityNew';
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var input = document.getElementById(inputId);
+    var val = input.value.trim();
+    if (!val) return;
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.push(val);
+    hidden.value = JSON.stringify(items);
+    input.value = '';
+    renderListItems(type);
+}
+function removeListItem(type, index) {
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var hidden = document.getElementById(hiddenId);
+    var items = JSON.parse(hidden.value || '[]');
+    items.splice(index, 1);
+    hidden.value = JSON.stringify(items);
+    renderListItems(type);
+}
+function renderListItems(type) {
+    var hiddenId = type === 'highlights' ? 'highlightsInput' : 'amenitiesInput';
+    var listId = type === 'highlights' ? 'highlightsList' : 'amenitiesList';
+    var hidden = document.getElementById(hiddenId);
+    var list = document.getElementById(listId);
+    if (!hidden || !list) return;
+    var items = JSON.parse(hidden.value || '[]');
+    list.innerHTML = '';
+    items.forEach(function(item, i) {
+        var badge = document.createElement('span');
+        badge.className = 'badge bg-light text-dark border me-1 mb-1 p-2';
+        badge.innerHTML = item + ' <a href="#" onclick="removeListItem(\'' + type + '\',' + i + ');return false;" class="text-danger ms-1">&times;</a>';
+        list.appendChild(badge);
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    renderListItems('highlights');
+    renderListItems('amenities');
+});
+</script>
 {% endblock %}
