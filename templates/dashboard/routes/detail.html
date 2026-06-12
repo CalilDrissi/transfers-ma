@@ -230,7 +230,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">{% trans "Highlights" %}</label>
-                                <input type="hidden" name="highlights" id="highlightsInput" value='{{ route.highlights|safe }}'>
+                                <input type="hidden" name="highlights" id="highlightsInput" value="{{ highlights_json }}">
                                 <div id="highlightsList" class="mb-2"></div>
                                 <div class="input-group">
                                     <input type="text" id="highlightNew" class="form-control" placeholder="{% trans 'Add a highlight...' %}">
@@ -249,7 +249,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">{% trans "Included Amenities" %}</label>
-                                <input type="hidden" name="included_amenities" id="amenitiesInput" value='{{ route.included_amenities|safe }}'>
+                                <input type="hidden" name="included_amenities" id="amenitiesInput" value="{{ amenities_json }}">
                                 <div id="amenitiesList" class="mb-2"></div>
                                 <div class="input-group">
                                     <input type="text" id="amenityNew" class="form-control" placeholder="{% trans 'Add an amenity...' %}">

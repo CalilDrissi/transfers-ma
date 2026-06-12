@@ -1543,6 +1543,7 @@ def route_detail(request, pk):
     pickup_zones = route.pickup_zones.filter(is_active=True).order_by('order', 'name')
     dropoff_zones = route.dropoff_zones.filter(is_active=True).order_by('order', 'name')
 
+    import json as json_mod
     site_settings = SiteSettings.get_settings()
     context = {
         'route': route,
@@ -1553,6 +1554,8 @@ def route_detail(request, pk):
         ).order_by('vehicle__name', 'pickup_zone__order', 'dropoff_zone__order'),
         'available_vehicles': available_vehicles,
         'GOOGLE_MAPS_API_KEY': site_settings.google_maps_api_key,
+        'highlights_json': json_mod.dumps(route.highlights or []),
+        'amenities_json': json_mod.dumps(route.included_amenities or []),
     }
     return render(request, 'dashboard/routes/detail.html', context)
 

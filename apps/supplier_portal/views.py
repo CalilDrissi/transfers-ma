@@ -903,6 +903,8 @@ def route_detail(request, pk):
         'vehicle_pricing': vehicle_pricing,
         'available_vehicles': available_vehicles,
         'GOOGLE_MAPS_API_KEY': site_settings.google_maps_api_key,
+        'highlights_json': json_mod.dumps(route.highlights or []),
+        'amenities_json': json_mod.dumps(route.included_amenities or []),
     }
     return render(request, 'supplier/routes/detail.html', context)
 
