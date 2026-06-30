@@ -107,15 +107,8 @@
                 if (addReturnBtn) {
                     addReturnBtn.style.display = (mode === 'round-trip') ? 'none' : 'block';
                 }
-                var returnLegRow = document.getElementById('tb-return-leg-row');
-                if (returnLegRow) {
-                    returnLegRow.style.display = (mode === 'round-trip') ? 'flex' : 'none';
-                }
-                // Search button: row 1 for one-way, row 2 for round-trip
-                var searchBtn1 = document.getElementById('tb-btn-search');
-                var searchBtn2 = document.getElementById('tb-btn-search-rt');
-                if (searchBtn1) searchBtn1.style.display = (mode === 'round-trip') ? 'none' : '';
-                if (searchBtn2) searchBtn2.style.display = (mode === 'round-trip') ? '' : 'none';
+                // CSS class controls row 2 and search button visibility
+                if (singleBar) singleBar.classList.toggle('tb-rt-active', mode === 'round-trip');
                 if (mode === 'round-trip') {
                     TB.Step1.autoFillReturnTo();
                     TB.Step1.initReturnToAutocomplete();
@@ -669,19 +662,18 @@
             if (dtInput && leg0.pickupDatetime) dtInput.value = leg0.pickupDatetime;
             var returnDt = document.getElementById('tb-return-datetime');
             if (returnDt && s.returnDatetime) returnDt.value = s.returnDatetime;
-            if (mode === 'round-trip') {
-                var returnToInput = document.getElementById('tb-return-to-input');
-                if (returnToInput && s.returnDropoffAddress) {
-                    returnToInput.value = s.returnDropoffAddress;
-                    var rtClear = document.getElementById('tb-return-to-clear');
-                    if (rtClear) rtClear.style.display = 'flex';
-                }
-                var fromDisplay = document.getElementById('tb-return-from-display');
-                var leg0r = (s.legs && s.legs[0]) ? s.legs[0] : {};
-                if (fromDisplay && leg0r.dropoffAddress) {
-                    fromDisplay.textContent = leg0r.dropoffAddress;
-                    fromDisplay.style.fontStyle = 'normal';
-                }
+            // Restore return leg values (switchMode called below will show/hide the row via CSS class)
+            var returnToInput = document.getElementById('tb-return-to-input');
+            if (returnToInput && s.returnDropoffAddress) {
+                returnToInput.value = s.returnDropoffAddress;
+                var rtClear = document.getElementById('tb-return-to-clear');
+                if (rtClear) rtClear.style.display = 'flex';
+            }
+            var fromDisplay = document.getElementById('tb-return-from-display');
+            var leg0r = (s.legs && s.legs[0]) ? s.legs[0] : {};
+            if (fromDisplay && leg0r.dropoffAddress) {
+                fromDisplay.textContent = leg0r.dropoffAddress;
+                fromDisplay.style.fontStyle = 'normal';
             }
             var flightInput = document.getElementById('tb-flight-number');
             if (flightInput && s.flightNumber) flightInput.value = s.flightNumber;

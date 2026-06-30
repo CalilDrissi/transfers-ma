@@ -3059,3 +3059,14 @@ input[type="date"], input[type="time"], select, textarea {
     .tb-vehicle-card__pricing { align-items: flex-start; text-align: left; margin-top: 0.5rem; }
     .tb-sidebar { position: static; }
 }
+
+
+/* ── Round-trip return leg row ── */
+/* Hidden by default (ID specificity beats .tb-pill-bar__row class) */
+#tb-return-leg-row { display: none !important; }
+#tb-btn-search-rt { display: none !important; }
+
+/* Shown only when #tb-single-bar has the tb-rt-active class */
+#tb-single-bar.tb-rt-active #tb-return-leg-row { display: flex !important; }
+#tb-single-bar.tb-rt-active #tb-btn-search { display: none !important; }
+#tb-single-bar.tb-rt-active #tb-btn-search-rt { display: flex !important; }
