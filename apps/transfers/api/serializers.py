@@ -66,6 +66,11 @@ class TransferCreateSerializer(serializers.ModelSerializer):
 
     custom_field_values = serializers.JSONField(required=False, default=dict)
 
+    # Round trip: optional explicit return destination (defaults to outbound origin)
+    return_dropoff_address = serializers.CharField(required=False, allow_blank=True, default='')
+    return_dropoff_lat = serializers.FloatField(validators=[validate_latitude], required=False, allow_null=True)
+    return_dropoff_lng = serializers.FloatField(validators=[validate_longitude], required=False, allow_null=True)
+
     def validate_custom_field_values(self, value):
         from apps.accounts.models import CustomField
         required_fields = CustomField.objects.filter(
@@ -111,8 +116,9 @@ class TransferCreateSerializer(serializers.ModelSerializer):
             'pickup_datetime', 'flight_number', 'flight_arrival_time',
             'passengers', 'luggage', 'child_seats',
             'vehicle_category_id', 'special_requests',
-            'is_round_trip', 'return_datetime', 'extras',
-            'custom_field_values',
+            'is_round_trip', 'return_datetime',
+            'return_dropoff_address', 'return_dropoff_lat', 'return_dropoff_lng',
+            'extras', 'custom_field_values',
             'base_price', 'extras_price',
             'total_price', 'deposit_amount', 'currency', 'status',
         ]
@@ -124,6 +130,9 @@ class TransferCreateSerializer(serializers.ModelSerializer):
 
         extras_data = validated_data.pop('extras', [])
         vehicle_category_id = validated_data.pop('vehicle_category_id')
+        return_dropoff_address = validated_data.pop('return_dropoff_address', '') or ''
+        return_dropoff_lat = validated_data.pop('return_dropoff_lat', None)
+        return_dropoff_lng = validated_data.pop('return_dropoff_lng', None)
         vehicle_category = VehicleCategory.objects.get(id=vehicle_category_id)
 
         # Calculate distance if coordinates provided
@@ -270,6 +279,11 @@ class TransferCreateSerializer(serializers.ModelSerializer):
 
         # Handle round trip
         if transfer.is_round_trip and transfer.return_datetime:
+            # Return pickup is always the outbound dropoff (locked)
+            # Return dropoff defaults to outbound pickup unless client specified a different destination
+            rt_dropoff_addr = return_dropoff_address if return_dropoff_address else transfer.pickup_address
+            rt_dropoff_lat = return_dropoff_lat if return_dropoff_lat is not None else transfer.pickup_latitude
+            rt_dropoff_lng = return_dropoff_lng if return_dropoff_lng is not None else transfer.pickup_longitude
             return_transfer = Transfer.objects.create(
                 customer=transfer.customer,
                 customer_name=transfer.customer_name,
@@ -279,9 +293,9 @@ class TransferCreateSerializer(serializers.ModelSerializer):
                 pickup_address=transfer.dropoff_address,
                 pickup_latitude=transfer.dropoff_latitude,
                 pickup_longitude=transfer.dropoff_longitude,
-                dropoff_address=transfer.pickup_address,
-                dropoff_latitude=transfer.pickup_latitude,
-                dropoff_longitude=transfer.pickup_longitude,
+                dropoff_address=rt_dropoff_addr,
+                dropoff_latitude=rt_dropoff_lat,
+                dropoff_longitude=rt_dropoff_lng,
                 distance_km=distance_km,
                 duration_minutes=duration_minutes,
                 pickup_datetime=transfer.return_datetime,

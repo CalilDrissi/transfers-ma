@@ -107,6 +107,14 @@
                 if (addReturnBtn) {
                     addReturnBtn.style.display = (mode === 'round-trip') ? 'none' : 'block';
                 }
+                var returnLegRow = document.getElementById('tb-return-leg-row');
+                if (returnLegRow) {
+                    returnLegRow.style.display = (mode === 'round-trip') ? 'flex' : 'none';
+                }
+                if (mode === 'round-trip') {
+                    TB.Step1.updateReturnFromDisplay();
+                    TB.Step1.initReturnToAutocomplete();
+                }
                 TB.State.set('isRoundTrip', mode === 'round-trip');
             }
             updateFlightBar();
@@ -561,6 +569,7 @@
                     legs[legIdx].transferType = inferTransferType(legs[legIdx].pickupAddress || '', legs[legIdx].dropoffAddress || '');
                     TB.State.set('legs', legs);
                     if (legIdx === 0) TB.State.syncLegToFlat(0);
+                    if (legIdx === 0 && field === 'dropoff') TB.Step1.updateReturnFromDisplay();
                     TB.Step1.syncReturnLeg();
                     var returnLegExists = legs.length > 0 && legs[legs.length - 1].isReturnLeg;
                     if (returnLegExists) TB.Step1.renderAllLegs();
@@ -628,6 +637,7 @@
                         legs[legIdx].transferType = inferTransferType(legs[legIdx].pickupAddress || '', legs[legIdx].dropoffAddress || '');
                         TB.State.set('legs', legs);
                         if (legIdx === 0) TB.State.syncLegToFlat(0);
+                        if (legIdx === 0 && field === 'dropoff') TB.Step1.updateReturnFromDisplay();
                         TB.Step1.syncReturnLeg();
                         var returnLegExists = legs.length > 0 && legs[legs.length - 1].isReturnLeg;
                         if (returnLegExists) TB.Step1.renderAllLegs();
@@ -652,6 +662,12 @@
             if (dtInput && leg0.pickupDatetime) dtInput.value = leg0.pickupDatetime;
             var returnDt = document.getElementById('tb-return-datetime');
             if (returnDt && s.returnDatetime) returnDt.value = s.returnDatetime;
+            var returnToInput = document.getElementById('tb-return-to-input');
+            if (returnToInput && s.returnDropoffAddress) {
+                returnToInput.value = s.returnDropoffAddress;
+                var rtClear = document.getElementById('tb-return-to-clear');
+                if (rtClear) rtClear.style.display = 'flex';
+            }
             var flightInput = document.getElementById('tb-flight-number');
             if (flightInput && s.flightNumber) flightInput.value = s.flightNumber;
             var paxCount = document.getElementById('tb-pax-count');
@@ -685,6 +701,12 @@
                 if (mode === 'round-trip') {
                     var returnDt = TB.State.get('returnDatetime');
                     if (!returnDt) errors.push({ leg: 0, field: 'return', msg: tbConfig.i18n.returnDateRequired });
+                    var rtAddr = TB.State.get('returnDropoffAddress');
+                    if (!rtAddr) {
+                        var rtField = document.getElementById('tb-return-to-field');
+                        if (rtField) rtField.classList.add('tb-pill-bar__field--invalid');
+                        errors.push({ leg: 0, field: 'return-to', msg: 'Please select a return destination.' });
+                    }
                 }
             }
 
@@ -708,6 +730,98 @@
                 if (bar) { bar.classList.add('tb-shake'); setTimeout(function () { bar.classList.remove('tb-shake'); }, 600); }
             }
             return { valid: errors.length === 0, errors: errors };
+        },
+
+        /* ── Return leg helpers ── */
+        updateReturnFromDisplay: function () {
+            var display = document.getElementById('tb-return-from-display');
+            if (!display) return;
+            var legs = TB.State.get('legs') || [];
+            var dropoff = (legs[0] && legs[0].dropoffAddress) ? legs[0].dropoffAddress : '';
+            display.textContent = dropoff || (typeof tbConfig !== 'undefined' && tbConfig.i18n && tbConfig.i18n.returnFromAuto ? tbConfig.i18n.returnFromAuto : 'Return from (auto)');
+            display.style.fontStyle = dropoff ? 'normal' : 'italic';
+        },
+
+        initReturnToAutocomplete: function () {
+            var input = document.getElementById('tb-return-to-input');
+            var dropdown = document.getElementById('tb-return-to-dropdown');
+            var clearBtn = document.getElementById('tb-return-to-clear');
+            if (!input || !dropdown) return;
+            // Avoid double-init
+            if (input._rtAutocompleteInit) return;
+            input._rtAutocompleteInit = true;
+
+            var self = this;
+
+            function setReturnTo(name, lat, lng) {
+                input.value = name;
+                if (clearBtn) clearBtn.style.display = 'flex';
+                TB.State.set('returnDropoffAddress', name);
+                TB.State.set('returnDropoffLat', lat);
+                TB.State.set('returnDropoffLng', lng);
+                var rtField = document.getElementById('tb-return-to-field');
+                if (rtField) rtField.classList.remove('tb-pill-bar__field--invalid');
+            }
+
+            if (window.google && window.google.maps && window.google.maps.places) {
+                var ac = new google.maps.places.Autocomplete(input, { types: ['geocode', 'establishment'] });
+                ac.addListener('place_changed', function () {
+                    var place = ac.getPlace();
+                    if (place.geometry) {
+                        var addr = place.formatted_address || place.name;
+                        if (place.name && place.formatted_address && place.formatted_address.indexOf(place.name) === -1) {
+                            addr = place.name + ', ' + place.formatted_address;
+                        }
+                        setReturnTo(addr, place.geometry.location.lat(), place.geometry.location.lng());
+                    }
+                });
+                input.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
+            } else {
+                // Fallback: filter FALLBACK_LOCATIONS
+                input.addEventListener('input', function () {
+                    var query = input.value.toLowerCase();
+                    if (query.length < 2) { dropdown.classList.remove('tb-show'); return; }
+                    var matches = FALLBACK_LOCATIONS.filter(function (loc) {
+                        return loc.name.toLowerCase().indexOf(query) !== -1 || loc.type.toLowerCase().indexOf(query) !== -1;
+                    });
+                    if (matches.length === 0) { dropdown.classList.remove('tb-show'); return; }
+                    var html = '';
+                    for (var i = 0; i < matches.length; i++) {
+                        var loc = matches[i];
+                        html += '<div class="tb-autocomplete-item" data-name="' + TB.Utils.escapeHtml(loc.name) +
+                            '" data-lat="' + loc.lat + '" data-lng="' + loc.lng + '">' +
+                            '<span class="tb-autocomplete-item__icon">' + (loc.type.indexOf('Airport') !== -1 ? '&#9992;' : '&#9679;') + '</span>' +
+                            '<div><div class="tb-autocomplete-item__name">' + TB.Utils.escapeHtml(loc.name) + '</div>' +
+                            '<div class="tb-autocomplete-item__type">' + TB.Utils.escapeHtml(loc.type) + '</div></div></div>';
+                    }
+                    dropdown.innerHTML = html;
+                    dropdown.classList.add('tb-show');
+                    var items = dropdown.querySelectorAll('.tb-autocomplete-item');
+                    for (var j = 0; j < items.length; j++) {
+                        items[j].addEventListener('mousedown', function (e) {
+                            e.preventDefault();
+                            var name = this.getAttribute('data-name');
+                            var lat = parseFloat(this.getAttribute('data-lat'));
+                            var lng = parseFloat(this.getAttribute('data-lng'));
+                            dropdown.classList.remove('tb-show');
+                            setReturnTo(name, lat, lng);
+                        });
+                    }
+                });
+                input.addEventListener('blur', function () { setTimeout(function () { dropdown.classList.remove('tb-show'); }, 200); });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    input.value = '';
+                    clearBtn.style.display = 'none';
+                    TB.State.set('returnDropoffAddress', '');
+                    TB.State.set('returnDropoffLat', null);
+                    TB.State.set('returnDropoffLng', null);
+                    input._rtAutocompleteInit = false; // allow re-init
+                    self.initReturnToAutocomplete();
+                });
+            }
         },
 
         /* ── Save state ── */

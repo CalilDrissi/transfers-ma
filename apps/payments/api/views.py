@@ -103,14 +103,17 @@ class PaymentViewSet(viewsets.ModelViewSet):
         # For round trips, charge both legs
         is_round_trip = hasattr(booking, 'is_round_trip') and booking.is_round_trip
         payment_amount = booking.total_price * 2 if is_round_trip else booking.total_price
+        is_deposit_payment = False
         client_amount = data.get('payment_amount')
         if client_amount is not None and hasattr(booking, 'deposit_amount') and booking.deposit_amount:
             # Allow client to pay deposit or full — validate it matches one of the two
             if client_amount == booking.deposit_amount:
                 payment_amount = booking.deposit_amount
+                is_deposit_payment = True
             # Otherwise fall through to total_price
         elif gateway_type == 'cash' and hasattr(booking, 'deposit_amount') and booking.deposit_amount:
             payment_amount = booking.deposit_amount
+            is_deposit_payment = True
 
         # Handle coupon
         coupon = None
@@ -141,6 +144,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
             gateway=gateway_db,
             amount=payment_amount,
             currency=booking.currency,
+            is_deposit=is_deposit_payment,
             coupon=coupon,
             coupon_discount=coupon_discount,
             metadata={
@@ -220,8 +224,9 @@ class PaymentViewSet(viewsets.ModelViewSet):
             payment.completed_at = timezone.now()
             payment.save()
 
-            # Update booking status
-            self._update_booking_status(payment, 'confirmed')
+            # Deposit-only payment → booking awaits full payment, not yet confirmed
+            new_booking_status = 'deposit_paid' if payment.is_deposit else 'confirmed'
+            self._update_booking_status(payment, new_booking_status)
 
             return Response(PaymentSerializer(payment).data)
         else:

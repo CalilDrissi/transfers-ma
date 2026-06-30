@@ -9,6 +9,7 @@ def status_badge(status):
     """Return Bootstrap badge class for status."""
     status_classes = {
         'pending': 'bg-warning text-dark',
+        'deposit_paid': 'bg-orange text-dark',
         'confirmed': 'bg-info',
         'assigned': 'bg-primary',
         'in_progress': 'bg-primary',
@@ -20,8 +21,12 @@ def status_badge(status):
         'refunded': 'bg-secondary',
         'processing': 'bg-info',
     }
+    label_overrides = {
+        'deposit_paid': 'Deposit Paid',
+    }
     css_class = status_classes.get(status, 'bg-secondary')
-    return mark_safe(f'<span class="badge {css_class}">{status.replace("_", " ").title()}</span>')
+    label = label_overrides.get(status, status.replace('_', ' ').title())
+    return mark_safe(f'<span class="badge {css_class}">{label}</span>')
 
 
 @register.filter

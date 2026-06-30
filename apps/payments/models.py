@@ -165,6 +165,13 @@ class Payment(models.Model):
         default=0,
     )
 
+    # Deposit flag
+    is_deposit = models.BooleanField(
+        _('is deposit payment'),
+        default=False,
+        help_text=_('True when client paid only the deposit amount, not the full price')
+    )
+
     # Error handling
     error_message = models.TextField(_('error message'), blank=True)
 

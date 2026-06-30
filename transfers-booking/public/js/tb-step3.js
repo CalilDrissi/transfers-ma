@@ -788,6 +788,11 @@
 
             if (state.isRoundTrip && state.returnDatetime) {
                 bookingData.return_datetime = state.returnDatetime;
+                if (state.returnDropoffAddress) {
+                    bookingData.return_dropoff_address = state.returnDropoffAddress;
+                    bookingData.return_dropoff_lat = state.returnDropoffLat || null;
+                    bookingData.return_dropoff_lng = state.returnDropoffLng || null;
+                }
             }
 
             // Step A: Create the booking

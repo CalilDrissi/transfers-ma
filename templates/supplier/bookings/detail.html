@@ -25,6 +25,7 @@
                         <label class="form-label text-muted small">{% trans "Status" %}</label>
                         <div>
                             {% if transfer.status == 'pending' %}<span class="badge bg-warning text-dark fs-6">{% trans "Pending" %}</span>
+                            {% elif transfer.status == 'deposit_paid' %}<span class="badge bg-warning text-dark fs-6">{% trans "Deposit Paid" %}</span>
                             {% elif transfer.status == 'confirmed' %}<span class="badge bg-success fs-6">{% trans "Confirmed" %}</span>
                             {% elif transfer.status == 'completed' %}<span class="badge bg-primary fs-6">{% trans "Completed" %}</span>
                             {% elif transfer.status == 'cancelled' %}<span class="badge bg-danger fs-6">{% trans "Cancelled" %}</span>
@@ -120,7 +121,7 @@
         <div class="card">
             <div class="card-header">{% trans "Actions" %}</div>
             <div class="card-body d-flex flex-column gap-2">
-                {% if transfer.status == 'pending' %}
+                {% if transfer.status == 'pending' or transfer.status == 'deposit_paid' %}
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="confirm">
@@ -129,7 +130,7 @@
                     </button>
                 </form>
                 {% endif %}
-                {% if transfer.status == 'pending' or transfer.status == 'confirmed' %}
+                {% if transfer.status == 'pending' or transfer.status == 'deposit_paid' or transfer.status == 'confirmed' %}
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="complete">

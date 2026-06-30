@@ -9,6 +9,7 @@ class Transfer(models.Model):
 
     class Status(models.TextChoices):
         PENDING = 'pending', _('Pending')
+        DEPOSIT_PAID = 'deposit_paid', _('Deposit Paid')
         CONFIRMED = 'confirmed', _('Confirmed')
         ASSIGNED = 'assigned', _('Driver Assigned')
         IN_PROGRESS = 'in_progress', _('In Progress')
