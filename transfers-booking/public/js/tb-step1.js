@@ -107,9 +107,9 @@
                 if (addReturnBtn) {
                     addReturnBtn.style.display = (mode === 'round-trip') ? 'none' : 'block';
                 }
-                var returnToField = document.getElementById('tb-return-to-field');
-                if (returnToField) {
-                    returnToField.style.display = (mode === 'round-trip') ? 'flex' : 'none';
+                var returnLegRow = document.getElementById('tb-return-leg-row');
+                if (returnLegRow) {
+                    returnLegRow.style.display = (mode === 'round-trip') ? 'flex' : 'none';
                 }
                 if (mode === 'round-trip') {
                     TB.Step1.autoFillReturnTo();
@@ -667,8 +667,8 @@
                 returnToInput.value = s.returnDropoffAddress;
                 var rtClear = document.getElementById('tb-return-to-clear');
                 if (rtClear) rtClear.style.display = 'flex';
-                var rtField = document.getElementById('tb-return-to-field');
-                if (rtField && mode === 'round-trip') rtField.style.display = 'flex';
+                var rtRow = document.getElementById('tb-return-leg-row');
+                if (rtRow && mode === 'round-trip') rtRow.style.display = 'flex';
             }
             var flightInput = document.getElementById('tb-flight-number');
             if (flightInput && s.flightNumber) flightInput.value = s.flightNumber;

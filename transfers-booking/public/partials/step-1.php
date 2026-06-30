@@ -73,15 +73,6 @@
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1v8M1 5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             <?php esc_html_e('Add return', 'transfers-booking'); ?>
         </button>
-        <!-- Return destination: inline, shown only in round-trip mode, pre-filled with outbound origin -->
-        <div class="tb-pill-bar__field tb-pill-bar__field--to" id="tb-return-to-field" style="display:none;">
-            <span class="tb-pill-bar__icon">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.79 1 3 2.79 3 5c0 3 4 7.5 4 7.5s4-4.5 4-7.5c0-2.21-1.79-4-4-4zm0 5.5A1.5 1.5 0 117 4a1.5 1.5 0 010 3z" fill="currentColor"/></svg>
-            </span>
-            <input type="text" id="tb-return-to-input" class="tb-pill-bar__input" placeholder="<?php esc_attr_e('Return destination', 'transfers-booking'); ?>" autocomplete="off">
-            <button type="button" class="tb-pill-bar__clear" id="tb-return-to-clear" style="display:none;">&times;</button>
-            <div class="tb-autocomplete-dropdown" id="tb-return-to-dropdown"></div>
-        </div>
         <!-- Pax -->
         <div class="tb-pill-bar__pax">
             <div class="tb-pax-pill" id="tb-pax-pill">
@@ -95,6 +86,17 @@
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M7 12A5 5 0 107 2a5 5 0 000 10zM14 14l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             <?php esc_html_e('Search', 'transfers-booking'); ?>
         </button>
+    </div>
+    <!-- Return destination row: appears below in round-trip mode -->
+    <div class="tb-pill-bar__row" id="tb-return-leg-row" style="display:none;margin-top:6px;">
+        <div class="tb-pill-bar__field" id="tb-return-to-field" style="flex:1;">
+            <span class="tb-pill-bar__icon">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.79 1 3 2.79 3 5c0 3 4 7.5 4 7.5s4-4.5 4-7.5c0-2.21-1.79-4-4-4zm0 5.5A1.5 1.5 0 117 4a1.5 1.5 0 010 3z" fill="currentColor"/></svg>
+            </span>
+            <input type="text" id="tb-return-to-input" class="tb-pill-bar__input" placeholder="<?php esc_attr_e('Return destination', 'transfers-booking'); ?>" autocomplete="off">
+            <button type="button" class="tb-pill-bar__clear" id="tb-return-to-clear" style="display:none;">&times;</button>
+            <div class="tb-autocomplete-dropdown" id="tb-return-to-dropdown"></div>
+        </div>
     </div>
 </div>
 
