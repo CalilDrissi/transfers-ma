@@ -107,12 +107,12 @@
                 if (addReturnBtn) {
                     addReturnBtn.style.display = (mode === 'round-trip') ? 'none' : 'block';
                 }
-                var returnLegRow = document.getElementById('tb-return-leg-row');
-                if (returnLegRow) {
-                    returnLegRow.style.display = (mode === 'round-trip') ? 'flex' : 'none';
+                var returnToField = document.getElementById('tb-return-to-field');
+                if (returnToField) {
+                    returnToField.style.display = (mode === 'round-trip') ? 'flex' : 'none';
                 }
                 if (mode === 'round-trip') {
-                    TB.Step1.updateReturnFromDisplay();
+                    TB.Step1.autoFillReturnTo();
                     TB.Step1.initReturnToAutocomplete();
                 }
                 TB.State.set('isRoundTrip', mode === 'round-trip');
@@ -569,7 +569,7 @@
                     legs[legIdx].transferType = inferTransferType(legs[legIdx].pickupAddress || '', legs[legIdx].dropoffAddress || '');
                     TB.State.set('legs', legs);
                     if (legIdx === 0) TB.State.syncLegToFlat(0);
-                    if (legIdx === 0 && field === 'dropoff') TB.Step1.updateReturnFromDisplay();
+                    if (legIdx === 0 && field === 'pickup' && TB.State.get('mode') === 'round-trip') TB.Step1.autoFillReturnTo();
                     TB.Step1.syncReturnLeg();
                     var returnLegExists = legs.length > 0 && legs[legs.length - 1].isReturnLeg;
                     if (returnLegExists) TB.Step1.renderAllLegs();
@@ -637,7 +637,7 @@
                         legs[legIdx].transferType = inferTransferType(legs[legIdx].pickupAddress || '', legs[legIdx].dropoffAddress || '');
                         TB.State.set('legs', legs);
                         if (legIdx === 0) TB.State.syncLegToFlat(0);
-                        if (legIdx === 0 && field === 'dropoff') TB.Step1.updateReturnFromDisplay();
+                        if (legIdx === 0 && field === 'pickup' && TB.State.get('mode') === 'round-trip') TB.Step1.autoFillReturnTo();
                         TB.Step1.syncReturnLeg();
                         var returnLegExists = legs.length > 0 && legs[legs.length - 1].isReturnLeg;
                         if (returnLegExists) TB.Step1.renderAllLegs();
@@ -667,6 +667,8 @@
                 returnToInput.value = s.returnDropoffAddress;
                 var rtClear = document.getElementById('tb-return-to-clear');
                 if (rtClear) rtClear.style.display = 'flex';
+                var rtField = document.getElementById('tb-return-to-field');
+                if (rtField && mode === 'round-trip') rtField.style.display = 'flex';
             }
             var flightInput = document.getElementById('tb-flight-number');
             if (flightInput && s.flightNumber) flightInput.value = s.flightNumber;
@@ -733,13 +735,25 @@
         },
 
         /* ── Return leg helpers ── */
-        updateReturnFromDisplay: function () {
-            var display = document.getElementById('tb-return-from-display');
-            if (!display) return;
+        autoFillReturnTo: function () {
+            var input = document.getElementById('tb-return-to-input');
+            var clearBtn = document.getElementById('tb-return-to-clear');
+            if (!input) return;
             var legs = TB.State.get('legs') || [];
-            var dropoff = (legs[0] && legs[0].dropoffAddress) ? legs[0].dropoffAddress : '';
-            display.textContent = dropoff || (typeof tbConfig !== 'undefined' && tbConfig.i18n && tbConfig.i18n.returnFromAuto ? tbConfig.i18n.returnFromAuto : 'Return from (auto)');
-            display.style.fontStyle = dropoff ? 'normal' : 'italic';
+            var leg0 = legs[0] || {};
+            // Only auto-fill if user hasn't manually set a different value
+            var existingAddr = TB.State.get('returnDropoffAddress') || '';
+            var prevPickup = TB.State.get('_rtAutoFilledFrom') || '';
+            var userOverrode = existingAddr && existingAddr !== prevPickup;
+            if (userOverrode) return;
+            if (leg0.pickupAddress) {
+                input.value = leg0.pickupAddress;
+                if (clearBtn) clearBtn.style.display = 'flex';
+                TB.State.set('returnDropoffAddress', leg0.pickupAddress);
+                TB.State.set('returnDropoffLat', leg0.pickupLat || null);
+                TB.State.set('returnDropoffLng', leg0.pickupLng || null);
+                TB.State.set('_rtAutoFilledFrom', leg0.pickupAddress);
+            }
         },
 
         initReturnToAutocomplete: function () {
@@ -753,12 +767,14 @@
 
             var self = this;
 
-            function setReturnTo(name, lat, lng) {
+            function setReturnTo(name, lat, lng, isAuto) {
                 input.value = name;
                 if (clearBtn) clearBtn.style.display = 'flex';
                 TB.State.set('returnDropoffAddress', name);
                 TB.State.set('returnDropoffLat', lat);
                 TB.State.set('returnDropoffLng', lng);
+                // Track whether user manually overrode the auto-fill
+                if (!isAuto) TB.State.set('_rtAutoFilledFrom', '');
                 var rtField = document.getElementById('tb-return-to-field');
                 if (rtField) rtField.classList.remove('tb-pill-bar__field--invalid');
             }
@@ -818,7 +834,8 @@
                     TB.State.set('returnDropoffAddress', '');
                     TB.State.set('returnDropoffLat', null);
                     TB.State.set('returnDropoffLng', null);
-                    input._rtAutocompleteInit = false; // allow re-init
+                    TB.State.set('_rtAutoFilledFrom', '');
+                    input._rtAutocompleteInit = false;
                     self.initReturnToAutocomplete();
                 });
             }
