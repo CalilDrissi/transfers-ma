@@ -81,7 +81,7 @@
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
         </div>
-        <!-- Search button -->
+        <!-- Search button: visible in one-way mode, hidden in round-trip -->
         <button type="button" id="tb-btn-search" class="tb-pill-bar__search">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M7 12A5 5 0 107 2a5 5 0 000 10zM14 14l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             <?php esc_html_e('Search', 'transfers-booking'); ?>
@@ -105,6 +105,11 @@
             <button type="button" class="tb-pill-bar__clear" id="tb-return-to-clear" style="display:none;">&times;</button>
             <div class="tb-autocomplete-dropdown" id="tb-return-to-dropdown"></div>
         </div>
+        <!-- Search button for round-trip: lives on the second row -->
+        <button type="button" id="tb-btn-search-rt" class="tb-pill-bar__search">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M7 12A5 5 0 107 2a5 5 0 000 10zM14 14l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <?php esc_html_e('Search', 'transfers-booking'); ?>
+        </button>
     </div>
 </div>
 

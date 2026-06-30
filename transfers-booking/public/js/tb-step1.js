@@ -111,6 +111,11 @@
                 if (returnLegRow) {
                     returnLegRow.style.display = (mode === 'round-trip') ? 'flex' : 'none';
                 }
+                // Search button: row 1 for one-way, row 2 for round-trip
+                var searchBtn1 = document.getElementById('tb-btn-search');
+                var searchBtn2 = document.getElementById('tb-btn-search-rt');
+                if (searchBtn1) searchBtn1.style.display = (mode === 'round-trip') ? 'none' : '';
+                if (searchBtn2) searchBtn2.style.display = (mode === 'round-trip') ? '' : 'none';
                 if (mode === 'round-trip') {
                     TB.Step1.autoFillReturnTo();
                     TB.Step1.initReturnToAutocomplete();
@@ -337,6 +342,8 @@
             }
             var btn = document.getElementById('tb-btn-search');
             if (btn) btn.addEventListener('click', function () { self.onNext(); });
+            var btnRt = document.getElementById('tb-btn-search-rt');
+            if (btnRt) btnRt.addEventListener('click', function () { self.onNext(); });
             var multiBtn = document.getElementById('tb-btn-search-multi');
             if (multiBtn) multiBtn.addEventListener('click', function () { self.onNext(); });
             var dtInput = document.querySelector('#tb-single-bar input[data-field="datetime"]');
@@ -746,28 +753,40 @@
             var legs = TB.State.get('legs') || [];
             var leg0 = legs[0] || {};
 
-            // Return from: always mirrors outbound dropoff
+            // Fallback: read directly from DOM inputs if state not yet populated
+            var pickupDom = document.querySelector('#tb-single-bar input[data-field="pickup"]');
+            var dropoffDom = document.querySelector('#tb-single-bar input[data-field="dropoff"]');
+            var pickupAddr = leg0.pickupAddress || (pickupDom ? pickupDom.value : '');
+            var dropoffAddr = leg0.dropoffAddress || (dropoffDom ? dropoffDom.value : '');
+
+            // Return from: always mirrors outbound dropoff (locked)
             var fromDisplay = document.getElementById('tb-return-from-display');
             if (fromDisplay) {
-                fromDisplay.textContent = leg0.dropoffAddress || '';
-                fromDisplay.style.fontStyle = leg0.dropoffAddress ? 'normal' : 'italic';
-                if (!leg0.dropoffAddress) fromDisplay.textContent = 'Return from';
+                if (dropoffAddr) {
+                    fromDisplay.textContent = dropoffAddr;
+                    fromDisplay.style.fontStyle = 'normal';
+                    fromDisplay.style.opacity = '1';
+                } else {
+                    fromDisplay.textContent = 'Return from';
+                    fromDisplay.style.fontStyle = 'italic';
+                    fromDisplay.style.opacity = '0.5';
+                }
             }
 
-            // Return to: auto-fill with outbound pickup unless user already changed it
+            // Return to: auto-fill with outbound pickup unless user already overrode
             var input = document.getElementById('tb-return-to-input');
             var clearBtn = document.getElementById('tb-return-to-clear');
             if (!input) return;
             var existingAddr = TB.State.get('returnDropoffAddress') || '';
             var prevAutoFill = TB.State.get('_rtAutoFilledFrom') || '';
             var userOverrode = existingAddr && existingAddr !== prevAutoFill;
-            if (!userOverrode && leg0.pickupAddress) {
-                input.value = leg0.pickupAddress;
+            if (!userOverrode && pickupAddr) {
+                input.value = pickupAddr;
                 if (clearBtn) clearBtn.style.display = 'flex';
-                TB.State.set('returnDropoffAddress', leg0.pickupAddress);
+                TB.State.set('returnDropoffAddress', pickupAddr);
                 TB.State.set('returnDropoffLat', leg0.pickupLat || null);
                 TB.State.set('returnDropoffLng', leg0.pickupLng || null);
-                TB.State.set('_rtAutoFilledFrom', leg0.pickupAddress);
+                TB.State.set('_rtAutoFilledFrom', pickupAddr);
             }
         },
 
@@ -881,7 +900,8 @@
 
             var mode = TB.State.get('mode');
             var legs = TB.State.get('legs') || [];
-            var btn = document.getElementById(mode === 'multi-city' ? 'tb-btn-search-multi' : 'tb-btn-search');
+            var btnId = mode === 'multi-city' ? 'tb-btn-search-multi' : (mode === 'round-trip' ? 'tb-btn-search-rt' : 'tb-btn-search');
+            var btn = document.getElementById(btnId);
             var container = document.getElementById('tb-no-route-container');
             TB.Utils.setButtonLoading(btn, true);
             if (container) container.style.display = 'none';
