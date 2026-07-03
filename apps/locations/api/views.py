@@ -520,19 +520,18 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
             outer_boundary = float(zone.radius_km) + float(zone.max_extension_km)
             if dropoff_dist <= outer_boundary:
                 km_beyond = max(0.0, dropoff_dist - float(zone.radius_km))
-                distance_km = float(haversine_distance(origin_lat, origin_lng, dest_lat, dest_lng))
+                haversine_km = float(haversine_distance(origin_lat, origin_lng, dest_lat, dest_lng))
                 duration_minutes = None
                 try:
                     dist_result = calculate_distance(float(origin_lat), float(origin_lng), float(dest_lat), float(dest_lng))
-                    if dist_result.get('distance_km'):
-                        distance_km = float(dist_result['distance_km'])
-                        duration_minutes = dist_result.get('duration_minutes')
+                    duration_minutes = dist_result.get('duration_minutes')
                 except Exception:
                     pass
                 if duration_minutes is None:
-                    duration_minutes = int(distance_km * 1.5)
+                    duration_minutes = int(haversine_km * 1.5)
 
-                distance_range = zone.get_range_for_distance(distance_km)
+                # Extension ring is defined in haversine km; use haversine for range lookup too
+                distance_range = zone.get_range_for_distance(haversine_km)
                 if distance_range:
                     from apps.vehicles.models import VehicleZonePricing
                     zone_vehicle_pricing = VehicleZonePricing.objects.filter(
@@ -558,7 +557,7 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                             'deposit_percentage': float(zone.deposit_percentage),
                             'origin_name': request.query_params.get('origin_name', 'Pickup'),
                             'destination_name': request.query_params.get('destination_name', 'Dropoff'),
-                            'distance_km': round(distance_km, 1),
+                            'distance_km': round(haversine_km, 1),
                             'estimated_duration_minutes': duration_minutes,
                             'duration_display': f"{duration_minutes // 60}h {duration_minutes % 60}min",
                             'client_notice': zone.client_notice,

@@ -119,49 +119,18 @@ def calculate_distance_haversine(lat1, lng1, lat2, lng2):
     return Decimal(str(distance)).quantize(Decimal('0.01'))
 
 
-def calculate_distance(origin_lat, origin_lng, dest_lat, dest_lng, use_google=True):
+def calculate_distance(origin_lat, origin_lng, dest_lat, dest_lng):
     """
-    Calculate distance between two points.
+    Calculate driving distance and duration using Google Distance Matrix API.
 
-    Tries Google Distance Matrix API first, falls back to Haversine formula.
-
-    Args:
-        origin_lat, origin_lng: Origin coordinates
-        dest_lat, dest_lng: Destination coordinates
-        use_google: Whether to try Google API first (default: True)
+    Raises DistanceCalculationError if the API call fails — callers should
+    catch this and fall back to haversine_distance() for straight-line estimates.
 
     Returns:
-        dict: {
-            'distance_km': Decimal,
-            'distance_text': str (optional),
-            'duration_minutes': int (optional),
-            'duration_text': str (optional),
-            'source': 'google' or 'haversine'
-        }
+        dict with keys: distance_km, distance_text, duration_minutes, duration_text, source
     """
-    if use_google:
-        try:
-            result = calculate_distance_google(origin_lat, origin_lng, dest_lat, dest_lng)
-            result['source'] = 'google'
-            return result
-        except DistanceCalculationError as e:
-            logger.warning(f"Google API failed, falling back to Haversine: {e}")
-
-    # Fallback to Haversine
-    distance_km = calculate_distance_haversine(origin_lat, origin_lng, dest_lat, dest_lng)
-
-    # Estimate driving distance (typically 1.3x straight-line distance)
-    estimated_driving_km = (distance_km * Decimal('1.3')).quantize(Decimal('0.01'))
-
-    # Estimate duration (average 50 km/h in Morocco with traffic)
-    estimated_minutes = int(float(estimated_driving_km) / 50 * 60)
-
-    return {
-        'distance_km': estimated_driving_km,
-        'distance_text': f"{estimated_driving_km} km (estimated)",
-        'duration_minutes': estimated_minutes,
-        'duration_text': f"{estimated_minutes} mins (estimated)",
-        'source': 'haversine'
-    }
+    result = calculate_distance_google(origin_lat, origin_lng, dest_lat, dest_lng)
+    result['source'] = 'google'
+    return result
 
 

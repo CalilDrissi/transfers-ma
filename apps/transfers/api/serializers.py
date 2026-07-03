@@ -53,7 +53,8 @@ def _lookup_base_price(pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, vehicle
         outer_boundary = float(zone.radius_km) + float(zone.max_extension_km)
         if dropoff_dist <= outer_boundary:
             km_beyond = max(0.0, dropoff_dist - float(zone.radius_km))
-            zone_distance = distance_km or float(haversine_distance(p_lat, p_lng, d_lat, d_lng))
+            # Extension ring is defined in haversine km; use haversine for range lookup too
+            zone_distance = float(haversine_distance(p_lat, p_lng, d_lat, d_lng))
             distance_range = zone.get_range_for_distance(zone_distance)
             if distance_range:
                 zp = VehicleZonePricing.objects.filter(
