@@ -1279,6 +1279,19 @@ def route_create(request):
         distance_km = request.POST.get('distance_km') or 0
 
         if all([name, origin_name, destination_name]):
+            # Block if origin/destination falls in a zone's extension ring
+            from apps.locations.api.views import _check_route_zone_conflicts
+            o_lat = request.POST.get('origin_latitude') or None
+            o_lng = request.POST.get('origin_longitude') or None
+            d_lat = request.POST.get('destination_latitude') or None
+            d_lng = request.POST.get('destination_longitude') or None
+            ext_conflicts = _check_route_zone_conflicts(o_lat, o_lng, d_lat, d_lng)
+            if ext_conflicts:
+                names = ', '.join(f'"{c["zone_name"]}" ({c["point"]}, {c["distance_km"]} km)' for c in ext_conflicts)
+                messages.error(request, f'Cannot create route: origin or destination falls inside the extension ring of zone {names}. Adjust coordinates or disable the zone extension first.')
+                site_settings = SiteSettings.get_settings()
+                return render(request, 'dashboard/routes/create.html', {'GOOGLE_MAPS_API_KEY': site_settings.google_maps_api_key})
+
             slug = slugify(name)
             # Ensure unique slug
             base_slug = slug
@@ -1407,6 +1420,12 @@ def route_detail(request, pk):
             route.is_popular = request.POST.get('is_popular') == 'on'
             route.is_active = request.POST.get('is_active') == 'on'
             route.order = request.POST.get('order', 0)
+            from apps.locations.api.views import _check_route_zone_conflicts
+            ext_conflicts = _check_route_zone_conflicts(route.origin_latitude, route.origin_longitude, route.destination_latitude, route.destination_longitude)
+            if ext_conflicts:
+                names = ', '.join(f'"{c["zone_name"]}" ({c["point"]}, {c["distance_km"]} km)' for c in ext_conflicts)
+                messages.error(request, f'Cannot save route: origin or destination falls inside the extension ring of zone {names}. Adjust coordinates or disable the zone extension first.')
+                return redirect('dashboard:route_detail', pk=pk)
             route.save()
             messages.success(request, 'Route updated successfully.')
 

@@ -650,6 +650,19 @@ def route_create(request):
         destination_name = request.POST.get('destination_name', '').strip()
 
         if all([name, origin_name, destination_name]):
+            # Block if origin/destination falls in a zone's extension ring
+            from apps.locations.api.views import _check_route_zone_conflicts
+            o_lat = request.POST.get('origin_latitude') or None
+            o_lng = request.POST.get('origin_longitude') or None
+            d_lat = request.POST.get('destination_latitude') or None
+            d_lng = request.POST.get('destination_longitude') or None
+            ext_conflicts = _check_route_zone_conflicts(o_lat, o_lng, d_lat, d_lng)
+            if ext_conflicts:
+                names = ', '.join(f'"{c["zone_name"]}" ({c["point"]}, {c["distance_km"]} km)' for c in ext_conflicts)
+                messages.error(request, f'Cannot create route: origin or destination falls inside the extension ring of zone {names}. Adjust coordinates or disable the zone extension first.')
+                site_settings = SiteSettings.get_settings()
+                return render(request, 'supplier/routes/create.html', {'GOOGLE_MAPS_API_KEY': site_settings.google_maps_api_key})
+
             slug = slugify(name)
             base_slug = slug
             counter = 1
@@ -762,6 +775,12 @@ def route_detail(request, pk):
                 pass
             route.is_bidirectional = request.POST.get('is_bidirectional') == 'on'
             route.is_active = request.POST.get('is_active') == 'on'
+            from apps.locations.api.views import _check_route_zone_conflicts
+            ext_conflicts = _check_route_zone_conflicts(route.origin_latitude, route.origin_longitude, route.destination_latitude, route.destination_longitude)
+            if ext_conflicts:
+                names = ', '.join(f'"{c["zone_name"]}" ({c["point"]}, {c["distance_km"]} km)' for c in ext_conflicts)
+                messages.error(request, f'Cannot save route: origin or destination falls inside the extension ring of zone {names}. Adjust coordinates or disable the zone extension first.')
+                return redirect('supplier:route_detail', pk=pk)
             route.save()
             messages.success(request, 'Route updated.')
 

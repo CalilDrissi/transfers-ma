@@ -60,6 +60,32 @@ def _check_zone_extension_conflicts(zone, max_extension_km):
     return conflicts
 
 
+def _check_route_zone_conflicts(origin_lat, origin_lng, dest_lat, dest_lng):
+    """
+    Inverse of _check_zone_extension_conflicts.
+    For a route being created/updated, check whether its origin or destination
+    falls inside any active zone's extension ring (radius_km < d < radius_km + max_extension_km).
+    Returns a list of conflict dicts, empty if safe.
+    """
+    conflicts = []
+    for zone in Zone.objects.filter(is_active=True, max_extension_km__gt=0, extra_km_price__gt=0):
+        if not zone.has_coordinates:
+            continue
+        radius = float(zone.radius_km or 0)
+        outer = radius + float(zone.max_extension_km)
+        z_lat = float(zone.center_latitude)
+        z_lng = float(zone.center_longitude)
+        if origin_lat and origin_lng:
+            d = haversine_distance(z_lat, z_lng, float(origin_lat), float(origin_lng))
+            if radius < d < outer:
+                conflicts.append({'zone_name': zone.name, 'point': 'origin', 'distance_km': round(d, 2)})
+        if dest_lat and dest_lng:
+            d = haversine_distance(z_lat, z_lng, float(dest_lat), float(dest_lng))
+            if radius < d < outer:
+                conflicts.append({'zone_name': zone.name, 'point': 'destination', 'distance_km': round(d, 2)})
+    return conflicts
+
+
 class ZoneViewSet(viewsets.ModelViewSet):
     """ViewSet for managing zones."""
     queryset = Zone.objects.all()
