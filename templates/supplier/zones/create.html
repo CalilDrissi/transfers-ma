@@ -38,6 +38,14 @@
                             <label class="form-label">{% trans "Display Order" %}</label>
                             <input type="number" name="display_order" class="form-control" value="0" min="0">
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Max Extension km" %} <small class="text-muted">({% trans "optional" %})</small></label>
+                            <input type="number" step="0.01" min="0" name="max_extension_km" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Extra km Price" %} <small class="text-muted">({% trans "optional" %})</small></label>
+                            <input type="number" step="0.01" min="0" name="extra_km_price" class="form-control" value="0">
+                        </div>
                         <div class="col-12">
                             <label class="form-label">{% trans "Client Notice" %}</label>
                             <textarea name="client_notice" class="form-control" rows="2" placeholder="{% trans 'Optional notice shown to customers for this zone' %}"></textarea>

@@ -78,6 +78,15 @@ class Zone(models.Model):
         verbose_name=_('owner supplier'),
         help_text=_('If set, this zone was created by and belongs to this supplier.')
     )
+    # Extension pricing: surcharge per km when dropoff exceeds the zone radius
+    extra_km_price = models.DecimalField(
+        _('extra km price'), max_digits=8, decimal_places=2, default=0,
+        help_text=_('Surcharge per km when dropoff exceeds the zone radius (0 = disabled)')
+    )
+    max_extension_km = models.DecimalField(
+        _('max extension km'), max_digits=8, decimal_places=2, default=0,
+        help_text=_('Maximum km beyond zone radius still served (0 = hard cutoff, no extension)')
+    )
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
 

@@ -34,6 +34,32 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return request.user and request.user.is_staff
 
 
+def _check_zone_extension_conflicts(zone, max_extension_km):
+    """Return list of conflicting routes if max_extension_km would overlap any route endpoint."""
+    from apps.locations.models import Route
+    if not zone.has_coordinates or not max_extension_km or float(max_extension_km) <= 0:
+        return []
+    radius = float(zone.radius_km or 0)
+    outer = radius + float(max_extension_km)
+    conflicts = []
+    for route in Route.objects.filter(is_active=True):
+        if route.origin_latitude and route.origin_longitude:
+            d = haversine_distance(
+                float(zone.center_latitude), float(zone.center_longitude),
+                float(route.origin_latitude), float(route.origin_longitude),
+            )
+            if radius < d < outer:
+                conflicts.append({'route_name': route.name, 'point': 'origin', 'distance_km': round(d, 2)})
+        if route.destination_latitude and route.destination_longitude:
+            d = haversine_distance(
+                float(zone.center_latitude), float(zone.center_longitude),
+                float(route.destination_latitude), float(route.destination_longitude),
+            )
+            if radius < d < outer:
+                conflicts.append({'route_name': route.name, 'point': 'destination', 'distance_km': round(d, 2)})
+    return conflicts
+
+
 class ZoneViewSet(viewsets.ModelViewSet):
     """ViewSet for managing zones."""
     queryset = Zone.objects.all()
@@ -50,6 +76,18 @@ class ZoneViewSet(viewsets.ModelViewSet):
         if not self.request.user.is_staff:
             queryset = queryset.filter(is_active=True)
         return queryset
+
+    @action(detail=True, methods=['get'])
+    def check_extension_conflict(self, request, slug=None):
+        zone = self.get_object()
+        try:
+            max_extension_km = float(request.query_params.get('max_extension_km', 0) or 0)
+        except (ValueError, TypeError):
+            max_extension_km = 0
+        conflicts = _check_zone_extension_conflicts(zone, max_extension_km)
+        if conflicts:
+            return Response({'valid': False, 'conflicts': conflicts})
+        return Response({'valid': True, 'conflicts': []})
 
 
 class ZonePricingViewSet(viewsets.ModelViewSet):
@@ -472,6 +510,66 @@ class RouteViewSet(viewsets.ReadOnlyModelViewSet):
                         'currency': SiteSettings.get_settings().default_currency,
                     })
         # If no zone match or no pricing → fall through to Route check
+
+        # Step 1b: Extended zone — pickup inside zone radius, dropoff just outside in extension ring
+        if pickup_zone and dropoff_zone is None \
+                and float(pickup_zone.max_extension_km or 0) > 0 \
+                and float(pickup_zone.extra_km_price or 0) > 0:
+            zone = pickup_zone
+            dropoff_dist = haversine_distance(dest_lat, dest_lng, float(zone.center_latitude), float(zone.center_longitude))
+            outer_boundary = float(zone.radius_km) + float(zone.max_extension_km)
+            if dropoff_dist <= outer_boundary:
+                km_beyond = max(0.0, dropoff_dist - float(zone.radius_km))
+                distance_km = float(haversine_distance(origin_lat, origin_lng, dest_lat, dest_lng))
+                duration_minutes = None
+                try:
+                    dist_result = calculate_distance(float(origin_lat), float(origin_lng), float(dest_lat), float(dest_lng))
+                    if dist_result.get('distance_km'):
+                        distance_km = float(dist_result['distance_km'])
+                        duration_minutes = dist_result.get('duration_minutes')
+                except Exception:
+                    pass
+                if duration_minutes is None:
+                    duration_minutes = int(distance_km * 1.5)
+
+                distance_range = zone.get_range_for_distance(distance_km)
+                if distance_range:
+                    from apps.vehicles.models import VehicleZonePricing
+                    zone_vehicle_pricing = VehicleZonePricing.objects.filter(
+                        zone_distance_range=distance_range,
+                        is_active=True,
+                    ).select_related('vehicle', 'vehicle__category')
+
+                    if zone_vehicle_pricing.exists():
+                        surcharge = round(float(zone.extra_km_price) * km_beyond, 2)
+                        vehicle_options = []
+                        for zp in zone_vehicle_pricing:
+                            opt = _build_zone_vehicle_option(zp)
+                            opt['price'] = round(opt['price'] + surcharge, 2)
+                            opt['extension_surcharge'] = surcharge
+                            opt['km_beyond'] = round(km_beyond, 2)
+                            vehicle_options.append(opt)
+
+                        min_hours_values = [zp.min_booking_hours for zp in zone_vehicle_pricing if zp.min_booking_hours]
+                        return Response({
+                            'id': None,
+                            'name': zone.name,
+                            'pricing_type': 'zone',
+                            'deposit_percentage': float(zone.deposit_percentage),
+                            'origin_name': request.query_params.get('origin_name', 'Pickup'),
+                            'destination_name': request.query_params.get('destination_name', 'Dropoff'),
+                            'distance_km': round(distance_km, 1),
+                            'estimated_duration_minutes': duration_minutes,
+                            'duration_display': f"{duration_minutes // 60}h {duration_minutes % 60}min",
+                            'client_notice': zone.client_notice,
+                            'client_notice_type': zone.client_notice_type,
+                            'pickup_instructions': zone.pickup_instructions,
+                            'area_description': zone.area_description,
+                            'custom_info': zone.custom_info,
+                            'min_booking_hours': min(min_hours_values) if min_hours_values else None,
+                            'vehicle_options': sorted(vehicle_options, key=lambda x: x['price']),
+                            'currency': SiteSettings.get_settings().default_currency,
+                        })
 
         # Step 2: Try to find a matching route
         matching_route = None

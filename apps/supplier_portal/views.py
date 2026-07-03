@@ -510,6 +510,8 @@ def zone_create(request):
                 custom_info=custom_info,
                 owner_supplier=supplier,
                 is_active=True,
+                extra_km_price=request.POST.get('extra_km_price', 0) or 0,
+                max_extension_km=request.POST.get('max_extension_km', 0) or 0,
             )
             messages.success(request, f'Zone "{name}" created.')
             return redirect('supplier:zone_detail', pk=zone.pk)
@@ -532,6 +534,17 @@ def zone_detail(request, pk):
         action = request.POST.get('action')
 
         if action == 'update_zone':
+            new_max_extension_km = request.POST.get('max_extension_km', 0) or 0
+            new_extra_km_price = request.POST.get('extra_km_price', 0) or 0
+            # Hard block: reject save if the extension would conflict with a route endpoint
+            if float(new_max_extension_km) > 0 and float(new_extra_km_price) > 0:
+                from apps.locations.api.views import _check_zone_extension_conflicts
+                conflicts = _check_zone_extension_conflicts(zone, new_max_extension_km)
+                if conflicts:
+                    names = ', '.join(f'"{c["route_name"]}" ({c["point"]}, {c["distance_km"]} km)' for c in conflicts)
+                    messages.error(request, f'Cannot save: max extension km conflicts with route endpoint(s): {names}. Reduce the extension or contact support.')
+                    return redirect('supplier:zone_detail', pk=pk)
+
             zone.name = request.POST.get('name', zone.name).strip() or zone.name
             zone.description = request.POST.get('description', '')
             zone.color = request.POST.get('color', zone.color)
@@ -541,6 +554,8 @@ def zone_detail(request, pk):
             zone.pickup_instructions = request.POST.get('pickup_instructions', '')
             zone.area_description = request.POST.get('area_description', '')
             zone.is_active = request.POST.get('is_active') == 'on'
+            zone.extra_km_price = new_extra_km_price
+            zone.max_extension_km = new_max_extension_km
             try:
                 zone.custom_info = json_mod.loads(request.POST.get('custom_info', '{}') or '{}')
             except (json_mod.JSONDecodeError, ValueError):

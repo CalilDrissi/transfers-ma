@@ -57,6 +57,23 @@
                                 <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
                             </div>
                         </div>
+                        <!-- Extension pricing -->
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Max Extension km" %} <small class="text-muted">({% trans "optional" %})</small></label>
+                            <input type="number" step="0.01" min="0" name="max_extension_km" id="max_extension_km" class="form-control" value="{{ zone.max_extension_km|default:0 }}">
+                            <small class="text-muted">{% trans "How many km beyond the radius this zone still serves (0 = hard cutoff)" %}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Extra km Price" %} <small class="text-muted">({% trans "optional" %})</small></label>
+                            <input type="number" step="0.01" min="0" name="extra_km_price" id="extra_km_price" class="form-control" value="{{ zone.extra_km_price|default:0 }}">
+                            <small class="text-muted">{% trans "Surcharge per km beyond the radius" %}</small>
+                        </div>
+                        <div class="col-12">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-conflict-check">
+                                <i class="bi bi-shield-check me-1"></i>{% trans "Check for Conflicts" %}
+                            </button>
+                            <div id="conflict-result" class="mt-2"></div>
+                        </div>
                         <div class="col-12">
                             <label class="form-label">{% trans "Client Notice" %}</label>
                             <textarea name="client_notice" class="form-control" rows="2">{{ zone.client_notice }}</textarea>
@@ -172,6 +189,37 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+document.getElementById('btn-conflict-check').addEventListener('click', function () {
+    var maxExt = document.getElementById('max_extension_km').value;
+    var btn = this;
+    var resultDiv = document.getElementById('conflict-result');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Checking...';
+    resultDiv.innerHTML = '';
+    fetch('/api/v1/locations/zones/{{ zone.slug }}/check_extension_conflict/?max_extension_km=' + encodeURIComponent(maxExt), {
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-shield-check me-1"></i>Check for Conflicts';
+        if (data.valid) {
+            resultDiv.innerHTML = '<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-1"></i>No conflicts. Safe to save.</div>';
+        } else {
+            var rows = data.conflicts.map(function (c) {
+                return '<li>' + c.route_name + ' &mdash; ' + c.point + ' (' + c.distance_km + ' km from zone centre)</li>';
+            }).join('');
+            resultDiv.innerHTML = '<div class="alert alert-danger py-2 mb-0"><strong><i class="bi bi-x-circle me-1"></i>Conflict detected.</strong> The following route endpoints fall inside the extension ring &mdash; saving with this value is blocked:<ul class="mb-0 mt-1">' + rows + '</ul></div>';
+        }
+    })
+    .catch(function () {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-shield-check me-1"></i>Check for Conflicts';
+        resultDiv.innerHTML = '<div class="alert alert-warning py-2 mb-0">Could not reach the conflict-check API. Check your network.</div>';
+    });
+});
+</script>
 {% if google_maps_api_key %}
 <script>
 function initMap() {

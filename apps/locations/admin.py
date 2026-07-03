@@ -15,11 +15,26 @@ class VehicleRoutePricingInline(admin.TabularInline):
 
 @admin.register(Zone)
 class ZoneAdmin(admin.ModelAdmin):
-    list_display = ('name', 'center_latitude', 'center_longitude', 'radius_km', 'is_active', 'created_at')
+    list_display = ('name', 'center_latitude', 'center_longitude', 'radius_km', 'max_extension_km', 'extra_km_price', 'is_active', 'created_at')
     list_filter = ('is_active',)
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
     inlines = [ZoneDistanceRangeInline]
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'description', 'color', 'display_order', 'is_active', 'owner_supplier'),
+        }),
+        ('Geography', {
+            'fields': ('center_latitude', 'center_longitude', 'radius_km', 'polygon_coordinates'),
+        }),
+        ('Extension Pricing', {
+            'fields': ('max_extension_km', 'extra_km_price'),
+            'description': 'Charge per km when dropoff is outside the zone radius. Both fields must be > 0 to activate. Run a conflict check before saving.',
+        }),
+        ('Customer Info', {
+            'fields': ('deposit_percentage', 'client_notice', 'client_notice_type', 'pickup_instructions', 'area_description', 'custom_info'),
+        }),
+    )
 
 
 @admin.register(ZoneDistanceRange)
