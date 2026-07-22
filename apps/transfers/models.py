@@ -213,6 +213,9 @@ class Transfer(models.Model):
         verbose_name=_('return transfer')
     )
 
+    # Review email
+    review_email_sent = models.BooleanField(_('review email sent'), default=False)
+
     # Timestamps
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
