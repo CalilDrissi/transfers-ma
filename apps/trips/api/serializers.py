@@ -129,11 +129,12 @@ class TripBookingSerializer(serializers.ModelSerializer):
 class TripBookingCreateSerializer(serializers.ModelSerializer):
     trip_id = serializers.IntegerField()
     schedule_id = serializers.IntegerField(required=False, allow_null=True)
+    booking_ref = serializers.CharField(read_only=True)
 
     class Meta:
         model = TripBooking
         fields = [
-            'trip_id', 'schedule_id', 'trip_date',
+            'trip_id', 'schedule_id', 'booking_ref', 'trip_date',
             'customer_name', 'customer_email', 'customer_phone',
             'adults', 'children', 'is_private',
             'pickup_address', 'special_requests', 'custom_field_values'

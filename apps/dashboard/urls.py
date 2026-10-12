@@ -74,6 +74,8 @@ urlpatterns = [
     path('suppliers/create/', views.supplier_create, name='supplier_create'),
     path('suppliers/<int:pk>/', views.supplier_detail, name='supplier_detail'),
     path('suppliers/<int:pk>/delete/', views.supplier_delete, name='supplier_delete'),
+    path('suppliers/<int:pk>/impersonate/', views.impersonate_supplier, name='impersonate_supplier'),
+    path('impersonate/exit/', views.impersonate_exit, name='impersonate_exit'),
 
     # Settings
     path('settings/', views.settings_view, name='settings'),

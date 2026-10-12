@@ -185,10 +185,22 @@ def send_supplier_new_booking_alert(booking_ref, supplier_email, supplier_name, 
         return
 
     try:
+        from .models import SupplierConfirmation
+        from django.conf import settings
+
         pricing_method = booking_details.get('pricing_method', '')
         tpl = _resolve_email_template('supplier', pricing_method)
         if tpl and not tpl.is_active:
             return
+
+        # Create a confirmation token for this booking
+        confirmation = SupplierConfirmation.objects.create(
+            booking_ref=booking_ref,
+            supplier_email=supplier_email,
+            supplier_name=supplier_name,
+        )
+        base_url = getattr(settings, 'SITE_URL', 'https://api.transfers.ma')
+        confirm_url = f"{base_url}/confirm/{confirmation.token}/"
 
         subject = tpl.get_subject(booking_ref=booking_ref) if tpl else f"New Transfer Booking - {booking_ref}"
         context = {
@@ -197,6 +209,7 @@ def send_supplier_new_booking_alert(booking_ref, supplier_email, supplier_name, 
             'customer_name': customer_name,
             'customer_phone': customer_phone,
             'details': booking_details,
+            'confirm_url': confirm_url,
         }
         if tpl:
             context.update(tpl.template_context())

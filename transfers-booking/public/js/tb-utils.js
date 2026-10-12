@@ -9,6 +9,9 @@
     TB.Utils = {
 
         formatPrice: function (amount, currency, position) {
+            if (tbConfig && tbConfig.isMorocco) {
+                return TB.Utils._formatMAD(amount);
+            }
             currency = currency || (TB.State && TB.State.get('currency')) || tbConfig.currencySymbol;
             position = position || tbConfig.currencyPosition;
             var num = Math.round(parseFloat(amount));
@@ -17,6 +20,17 @@
                 return currency + ' ' + num;
             }
             return num + ' ' + currency;
+        },
+
+        _formatMAD: function (eurAmount) {
+            var rate = (tbConfig && tbConfig.eurToMad) || 10.5;
+            var mad = parseFloat(eurAmount) * rate;
+            if (isNaN(mad)) return '--';
+            var fixed = mad.toFixed(2);
+            var parts = fixed.split('.');
+            // Non-breaking space as thousands separator
+            var intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return intPart + ',' + parts[1] + ' DH';
         },
 
         formatDate: function (dateStr) {

@@ -3,6 +3,8 @@ from decouple import config
 
 DEBUG = False
 
+SITE_URL = 'https://api.transfers.ma'
+
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
     default='transfers.ma,www.transfers.ma',

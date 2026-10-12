@@ -91,7 +91,7 @@ def home(request):
     today = timezone.now().date()
     month_start = today.replace(day=1)
 
-    qs = Transfer.objects.filter(supplier=supplier)
+    qs = Transfer.objects.filter(supplier=supplier).exclude(status=Transfer.Status.PENDING)
     qs_month = qs.filter(pickup_datetime__date__gte=month_start)
 
     total_bookings = qs.count()
@@ -104,6 +104,8 @@ def home(request):
 
     status_counts = {}
     for s_val, s_label in Transfer.Status.choices:
+        if s_val == Transfer.Status.PENDING:
+            continue
         status_counts[s_label] = qs.filter(status=s_val).count()
 
     recent_bookings = qs.select_related('vehicle_category').order_by('-pickup_datetime')[:10]
@@ -950,7 +952,9 @@ def route_detail(request, pk):
 @supplier_required
 def booking_list(request):
     supplier = _get_supplier(request)
-    qs = Transfer.objects.filter(supplier=supplier).select_related(
+    qs = Transfer.objects.filter(supplier=supplier).exclude(
+        status=Transfer.Status.PENDING
+    ).select_related(
         'vehicle_category', 'vehicle'
     ).order_by('-pickup_datetime')
 
@@ -959,8 +963,11 @@ def booking_list(request):
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
 
-    if status:
+    # Never allow filtering by PENDING even via a crafted URL
+    if status and status != Transfer.Status.PENDING:
         qs = qs.filter(status=status)
+    else:
+        status = ''
     if date_from:
         qs = qs.filter(pickup_datetime__date__gte=date_from)
     if date_to:
@@ -969,11 +976,16 @@ def booking_list(request):
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get('page'))
 
+    visible_statuses = [
+        (val, label) for val, label in Transfer.Status.choices
+        if val != Transfer.Status.PENDING
+    ]
+
     context = {
         'page_obj': page,
         'transfers': page.object_list,
         'total_count': qs.count(),
-        'statuses': Transfer.Status.choices,
+        'statuses': visible_statuses,
         'status': status,
         'date_from': date_from,
         'date_to': date_to,
@@ -991,30 +1003,6 @@ def booking_detail(request, pk):
     )
 
     if request.method == 'POST':
-        action = request.POST.get('action')
-
-        if action == 'confirm' and transfer.status == Transfer.Status.PENDING:
-            transfer.status = Transfer.Status.CONFIRMED
-            transfer.save(update_fields=['status'])
-            messages.success(request, 'Booking confirmed.')
-
-        elif action == 'complete' and transfer.status in [
-            Transfer.Status.CONFIRMED, Transfer.Status.PENDING
-        ]:
-            transfer.status = Transfer.Status.COMPLETED
-            transfer.save(update_fields=['status'])
-            messages.success(request, 'Booking marked as completed.')
-
-        elif action == 'cancel' and transfer.status in [
-            Transfer.Status.PENDING, Transfer.Status.CONFIRMED
-        ]:
-            transfer.status = Transfer.Status.CANCELLED
-            transfer.save(update_fields=['status'])
-            messages.success(request, 'Booking cancelled.')
-
-        else:
-            messages.error(request, 'Action not allowed for the current booking status.')
-
         return redirect('supplier:booking_detail', pk=pk)
 
     context = {

@@ -67,9 +67,7 @@ class TripBookingViewSet(viewsets.ModelViewSet):
     ordering_fields = ['trip_date', 'created_at', 'total_price']
 
     def get_permissions(self):
-        if self.action == 'create':
-            return [HasAPIKeyOrIsAuthenticated()]
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['create', 'list', 'retrieve', 'by_ref']:
             return [HasAPIKeyOrIsAuthenticated()]
         return [permissions.IsAdminUser()]
 
@@ -95,6 +93,15 @@ class TripBookingViewSet(viewsets.ModelViewSet):
             serializer.save(customer=self.request.user)
         else:
             serializer.save()
+
+    @action(detail=False, methods=['get'], url_path='by-ref/(?P<ref>[^/.]+)')
+    def by_ref(self, request, ref=None):
+        """Retrieve a trip booking by booking reference (API-key accessible)."""
+        try:
+            booking = TripBooking.objects.select_related('trip').get(booking_ref=ref)
+        except TripBooking.DoesNotExist:
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(TripBookingSerializer(booking).data)
 
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):

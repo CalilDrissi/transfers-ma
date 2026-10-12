@@ -39,19 +39,58 @@
             container.innerHTML = '<div class="tb-loading"><span class="tb-spinner"></span> ' + tbConfig.i18n.loading + '</div>';
 
             var state = TB.State.getAll();
+            var isRound = state.isRoundTrip || state.mode === 'round-trip';
 
-            TB.API.getPricing(
-                state.pickupLat,
-                state.pickupLng,
-                state.dropoffLat,
-                state.dropoffLng,
+            var outboundPromise = TB.API.getPricing(
+                state.pickupLat, state.pickupLng,
+                state.dropoffLat, state.dropoffLng,
                 state.passengers
-            ).then(function (data) {
+            );
+
+            var combinedPromise;
+            if (isRound) {
+                // Return leg: from outbound dropoff back to return destination (or original pickup)
+                var retFromLat = state.dropoffLat;
+                var retFromLng = state.dropoffLng;
+                var retToLat = state.returnDropoffLat || state.pickupLat;
+                var retToLng = state.returnDropoffLng || state.pickupLng;
+                var returnPromise = TB.API.getPricing(retFromLat, retFromLng, retToLat, retToLng, state.passengers);
+                combinedPromise = Promise.all([outboundPromise, returnPromise]).then(function (results) {
+                    return { outbound: results[0], returnLeg: results[1] };
+                });
+            } else {
+                combinedPromise = outboundPromise.then(function (data) {
+                    return { outbound: data, returnLeg: null };
+                });
+            }
+
+            combinedPromise.then(function (combined) {
+                var data = combined.outbound;
+                var returnData = combined.returnLeg;
+
                 // No-route handling: show contact message when no pricing configured
                 if ((!data.vehicle_options || data.vehicle_options.length === 0) && tbConfig.showNoRouteMessage) {
                     TB.Step2.renderNoRouteMessage();
                     return;
                 }
+
+                // Build return price map and annotate options with per-leg prices
+                if (isRound && returnData && returnData.vehicle_options) {
+                    var returnPriceMap = {};
+                    for (var i = 0; i < returnData.vehicle_options.length; i++) {
+                        var rv = returnData.vehicle_options[i];
+                        returnPriceMap[rv.category_id] = rv.price;
+                    }
+                    data.vehicle_options = (data.vehicle_options || []).map(function (v) {
+                        var retPrice = returnPriceMap[v.category_id] != null ? returnPriceMap[v.category_id] : v.price;
+                        var combined = {};
+                        for (var k in v) { if (Object.prototype.hasOwnProperty.call(v, k)) combined[k] = v[k]; }
+                        combined.returnPrice = retPrice;
+                        combined.combinedPrice = v.price + retPrice;
+                        return combined;
+                    });
+                }
+
                 TB.State.set('pricingData', data);
                 TB.State.set('vehicleOptions', data.vehicle_options || []);
                 if (data.currency) TB.State.set('currency', data.currency);
@@ -129,6 +168,25 @@
             if (distance) distance.textContent = (data.distance_km || '--') + ' km';
             if (duration) duration.textContent = TB.Utils.formatDuration(data.estimated_duration_minutes);
             if (dateEl) dateEl.textContent = TB.Utils.formatDateTime(TB.State.get('pickupDatetime'));
+
+            // Return leg bar
+            var s = TB.State.getAll();
+            var isRound = s.isRoundTrip || s.mode === 'round-trip';
+            var returnBar = document.getElementById('tb-return-leg-bar');
+            if (returnBar) {
+                if (isRound) {
+                    var leg0 = (s.legs && s.legs[0]) ? s.legs[0] : {};
+                    var retFrom = document.getElementById('tb-result-return-from');
+                    var retTo   = document.getElementById('tb-result-return-to');
+                    var retDate = document.getElementById('tb-result-return-date');
+                    if (retFrom) retFrom.textContent = TB.Utils.shortName(leg0.dropoffAddress || s.dropoffAddress || '--');
+                    if (retTo)   retTo.textContent   = TB.Utils.shortName(s.returnDropoffAddress || '--');
+                    if (retDate) retDate.textContent  = s.returnDatetime ? TB.Utils.formatDateTime(s.returnDatetime) : '--';
+                    returnBar.style.display = '';
+                } else {
+                    returnBar.style.display = 'none';
+                }
+            }
 
             // Route/Zone notice
             var noticeEl = document.getElementById('tb-route-notice');
@@ -332,10 +390,24 @@
                 // RIGHT: Price + Select button + Payment icons
                 html += '<div class="tb-vehicle-card__pricing">';
                 html += '<div class="tb-vehicle-card__price">';
-                html += '<span class="tb-vehicle-card__price-amount">' + price + '</span>';
-                html += ' <span class="tb-vehicle-card__price-currency">' + TB.Utils.escapeHtml(currency) + '</span>';
-                if (isRound) {
-                    html += '<div class="tb-vehicle-card__price-note">' + (tbConfig.i18n.perWay || 'per way') + '</div>';
+                if (tbConfig.isMorocco) {
+                    if (isRound && v.combinedPrice != null) {
+                        html += '<span class="tb-vehicle-card__price-amount">' + TB.Utils._formatMAD(v.combinedPrice) + '</span>';
+                        html += '<div class="tb-vehicle-card__price-note">' + TB.Utils._formatMAD(v.price) + ' + ' + TB.Utils._formatMAD(v.returnPrice || v.price) + '</div>';
+                    } else {
+                        html += '<span class="tb-vehicle-card__price-amount">' + TB.Utils._formatMAD(v.price) + '</span>';
+                    }
+                } else {
+                    if (isRound && v.combinedPrice != null) {
+                        var combinedDisplay = Math.round(v.combinedPrice);
+                        var retDisplay = Math.round(v.returnPrice || price);
+                        html += '<span class="tb-vehicle-card__price-amount">' + combinedDisplay + '</span>';
+                        html += ' <span class="tb-vehicle-card__price-currency">' + TB.Utils.escapeHtml(currency) + '</span>';
+                        html += '<div class="tb-vehicle-card__price-note">' + price + ' + ' + retDisplay + ' ' + TB.Utils.escapeHtml(currency) + '</div>';
+                    } else {
+                        html += '<span class="tb-vehicle-card__price-amount">' + price + '</span>';
+                        html += ' <span class="tb-vehicle-card__price-currency">' + TB.Utils.escapeHtml(currency) + '</span>';
+                    }
                 }
                 html += '</div>';
                 // Payment icons (Visa + Mastercard)
@@ -397,6 +469,7 @@
                 }
             }
             TB.State.set('selectedVehicle', vehicle);
+            TB.State.set('returnLegBasePrice', (vehicle && vehicle.returnPrice != null) ? vehicle.returnPrice : null);
             TB.State.set('selectedExtras', []);
             TB.State.save();
 
@@ -583,6 +656,14 @@
                 is_round_trip: state.isRoundTrip,
                 extras: extrasPayload
             }).then(function (quote) {
+                var s = TB.State.getAll();
+                var isRound = s.isRoundTrip || s.mode === 'round-trip';
+                if (isRound && s.selectedVehicle && s.selectedVehicle.combinedPrice != null) {
+                    var extrasTotal = (s.selectedExtras || []).reduce(function (sum, e) {
+                        return sum + e.price * (e.is_per_item ? e.quantity : 1);
+                    }, 0);
+                    quote.total_price = s.selectedVehicle.combinedPrice + extrasTotal * 2;
+                }
                 TB.State.set('quoteData', quote);
                 TB.State.set('totalPrice', quote.total_price);
                 TB.State.set('currency', quote.currency || 'MAD');
@@ -626,14 +707,18 @@
             var total = document.getElementById('tb-sidebar-total');
             if (total) {
                 var vehicle = state.selectedVehicle;
-                var basePrice = vehicle ? vehicle.price : 0;
                 var extrasTotal = 0;
                 var se = state.selectedExtras || [];
                 for (var j = 0; j < se.length; j++) {
                     extrasTotal += se[j].price * (se[j].is_per_item ? se[j].quantity : 1);
                 }
-                var t = basePrice + extrasTotal;
-                if (state.isRoundTrip) t *= 2;
+                var t;
+                if (state.isRoundTrip) {
+                    var combinedBase = vehicle ? (vehicle.combinedPrice != null ? vehicle.combinedPrice : vehicle.price * 2) : 0;
+                    t = combinedBase + extrasTotal * 2;
+                } else {
+                    t = (vehicle ? vehicle.price : 0) + extrasTotal;
+                }
                 total.textContent = TB.Utils.formatPrice(t);
             }
         },

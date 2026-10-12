@@ -46,8 +46,6 @@
                         <th>{% trans "Route" %}</th>
                         <th>{% trans "Vehicle" %}</th>
                         <th>{% trans "Status" %}</th>
-                        <th>{% trans "Cost (MAD)" %}</th>
-                        <th>{% trans "Price (EUR)" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,8 +65,6 @@
                             {% elif t.status == 'cancelled' %}<span class="badge bg-danger">{% trans "Cancelled" %}</span>
                             {% else %}<span class="badge bg-secondary">{{ t.get_status_display }}</span>{% endif %}
                         </td>
-                        <td>{% if t.cost %}{{ t.cost|floatformat:0 }}{% else %}—{% endif %}</td>
-                        <td>{% if t.total_price and t.currency == 'EUR' %}{{ t.total_price|floatformat:0 }} €{% else %}—{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

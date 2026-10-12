@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from apps.vehicles.models import Vehicle, VehicleCategory, VehicleFeature, VehicleImage
 from apps.rentals.models import Rental
-from .models import RentalCompany, CompanyDocument, CompanyReview, CompanyPayout, VehicleAvailability
+from .models import RentalCompany, CompanyDocument, CompanyPayout, VehicleAvailability
 from .decorators import rental_company_required
 
 
@@ -499,19 +499,7 @@ def reviews(request):
     """List company reviews and allow responding."""
     company = request.company
 
-    if request.method == 'POST':
-        action = request.POST.get('action')
-
-        if action == 'respond_to_review':
-            review_id = request.POST.get('review_id')
-            review = get_object_or_404(CompanyReview, pk=review_id, company=company)
-            review.company_response = request.POST.get('company_response', '')
-            review.company_responded_at = timezone.now()
-            review.save()
-            messages.success(request, 'Response saved.')
-            return redirect('portal:reviews')
-
-    review_list = CompanyReview.objects.filter(company=company).order_by('-created_at')
+    review_list = []
 
     context = {
         'active_nav': 'reviews',

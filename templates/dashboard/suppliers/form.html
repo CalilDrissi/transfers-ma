@@ -109,6 +109,11 @@
                         <i class="bi bi-trash me-1"></i>{% trans "Remove Login" %}
                     </button>
                 </form>
+                <a href="{% url 'dashboard:impersonate_supplier' supplier.pk %}"
+                   target="_blank"
+                   class="btn btn-sm btn-warning w-100 mt-2">
+                    <i class="bi bi-eye me-1"></i>{% trans "View as Supplier" %}
+                </a>
                 {% else %}
                 <p class="small text-muted mb-2">{% trans "Create a login so this supplier can access the self-service portal." %}</p>
                 <form method="post">

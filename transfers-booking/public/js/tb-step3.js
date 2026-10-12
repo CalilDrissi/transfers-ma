@@ -376,14 +376,13 @@
 
             // Calculate totals
             var vehicle = state.selectedVehicle;
-            var basePrice = vehicle ? vehicle.price : 0;
+            var basePrice = vehicle ? (state.isRoundTrip && vehicle.combinedPrice != null ? vehicle.combinedPrice : vehicle.price) : 0;
             var extrasTotal = 0;
             var se = state.selectedExtras || [];
             for (var i = 0; i < se.length; i++) {
                 extrasTotal += se[i].price * (se[i].is_per_item ? se[i].quantity : 1);
             }
-            var totalPrice = basePrice + extrasTotal;
-            if (state.isRoundTrip) totalPrice *= 2;
+            var totalPrice = basePrice + extrasTotal * (state.isRoundTrip ? 2 : 1);
 
             // Recalculate deposit from percentage if available
             if (depositPct > 0) {
@@ -486,14 +485,13 @@
             var choice = TB.State.get('paymentChoice') || 'full';
             var state = TB.State.getAll();
             var vehicle = state.selectedVehicle;
-            var basePrice = vehicle ? vehicle.price : 0;
+            var basePrice = vehicle ? (state.isRoundTrip && vehicle.combinedPrice != null ? vehicle.combinedPrice : vehicle.price) : 0;
             var extrasTotal = 0;
             var se = state.selectedExtras || [];
             for (var i = 0; i < se.length; i++) {
                 extrasTotal += se[i].price * (se[i].is_per_item ? se[i].quantity : 1);
             }
-            var totalPrice = basePrice + extrasTotal;
-            if (state.isRoundTrip) totalPrice *= 2;
+            var totalPrice = basePrice + extrasTotal * (state.isRoundTrip ? 2 : 1);
 
             if (gateway === 'cash') {
                 payBtn.textContent = (tbConfig.i18n.payCash || 'Pay Cash to Driver') + ' ' + TB.Utils.formatPrice(totalPrice);
@@ -591,7 +589,10 @@
             if (passengers) passengers.textContent = state.passengers + ' ' + (tbConfig.i18n.passengersLabel || 'passengers');
             if (routeFrom) routeFrom.textContent = TB.Utils.shortName(state.pickupAddress);
             if (routeTo) routeTo.textContent = TB.Utils.shortName(state.dropoffAddress);
-            if (basePrice && state.selectedVehicle) basePrice.textContent = TB.Utils.formatPrice(state.selectedVehicle.price);
+            if (basePrice && state.selectedVehicle) {
+                var obPrice = state.selectedVehicle.price;
+                basePrice.textContent = TB.Utils.formatPrice(obPrice);
+            }
 
             // Round trip: show return leg in sidebar
             var returnLeg = document.getElementById('tb-order-return-leg');
@@ -602,8 +603,11 @@
                     var returnTo = document.getElementById('tb-order-return-to');
                     var returnPrice = document.getElementById('tb-order-return-price');
                     if (returnFrom) returnFrom.textContent = TB.Utils.shortName(state.dropoffAddress);
-                    if (returnTo) returnTo.textContent = TB.Utils.shortName(state.pickupAddress);
-                    if (returnPrice && state.selectedVehicle) returnPrice.textContent = TB.Utils.formatPrice(state.selectedVehicle.price);
+                    if (returnTo) returnTo.textContent = TB.Utils.shortName(state.returnDropoffAddress || state.pickupAddress);
+                    if (returnPrice && state.selectedVehicle) {
+                        var retLegPrice = state.returnLegBasePrice != null ? state.returnLegBasePrice : state.selectedVehicle.price;
+                        returnPrice.textContent = TB.Utils.formatPrice(retLegPrice);
+                    }
                 } else {
                     returnLeg.style.display = 'none';
                 }
@@ -680,17 +684,17 @@
             if (total) {
                 var quoteData = state.quoteData;
                 if (quoteData && quoteData.total_price) {
-                    total.textContent = TB.Utils.formatPrice(quoteData.total_price, quoteData.currency);
+                    var qt = quoteData.total_price;
+                    total.textContent = TB.Utils.formatPrice(qt, quoteData.currency);
                 } else {
                     var v = state.selectedVehicle;
-                    var bp = v ? v.price : 0;
+                    var bp = v ? (state.isRoundTrip && v.combinedPrice != null ? v.combinedPrice : v.price) : 0;
                     var extrasTotal = 0;
                     var se = state.selectedExtras || [];
                     for (var j = 0; j < se.length; j++) {
                         extrasTotal += se[j].price * (se[j].is_per_item ? se[j].quantity : 1);
                     }
-                    var t = bp + extrasTotal;
-                    if (state.isRoundTrip) t *= 2;
+                    var t = bp + extrasTotal * (state.isRoundTrip ? 2 : 1);
                     total.textContent = TB.Utils.formatPrice(t);
                 }
             }
@@ -974,9 +978,12 @@
                 rtRow.style.display = (quote.is_round_trip || state.isRoundTrip) ? '' : 'none';
             }
 
-            // Total — for round trips, display combined price (both legs)
+            // Total — combine outbound total with independently priced return leg
             var displayTotal = state.totalPrice;
-            if (state.isRoundTrip) displayTotal = displayTotal * 2;
+            if (state.isRoundTrip) {
+                var retBase = state.returnLegBasePrice != null ? state.returnLegBasePrice : state.totalPrice;
+                displayTotal = state.totalPrice + retBase + (state.bookingExtrasPrice || 0);
+            }
             setEl('tb-receipt-total', TB.Utils.formatPrice(displayTotal, currency));
 
             // Download receipt handler
@@ -1045,10 +1052,16 @@
             }
 
             if (isRoundTrip) {
-                html += '<tr><td>Round trip</td><td>&times; 2</td></tr>';
+                var pdfRetBase = state.returnLegBasePrice != null ? state.returnLegBasePrice : state.totalPrice;
+                html += '<tr><td>Return leg</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(pdfRetBase, currency)) + '</td></tr>';
             }
 
-            html += '<tr class="total"><td>Total</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(state.totalPrice, currency)) + '</td></tr>'
+            var pdfTotal = state.totalPrice;
+            if (isRoundTrip) {
+                var pdfRetBase2 = state.returnLegBasePrice != null ? state.returnLegBasePrice : state.totalPrice;
+                pdfTotal = state.totalPrice + pdfRetBase2 + (state.bookingExtrasPrice || 0);
+            }
+            html += '<tr class="total"><td>Total</td><td>' + TB.Utils.escapeHtml(TB.Utils.formatPrice(pdfTotal, currency)) + '</td></tr>'
                 + '<tr><td>Payment</td><td>' + TB.Utils.escapeHtml(gatewayLabel) + '</td></tr>'
                 + '</table>'
                 + '<div class="footer">Thank you for booking with Transfers.ma<br>support@transfers.ma</div>'

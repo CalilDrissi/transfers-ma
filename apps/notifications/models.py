@@ -1,4 +1,6 @@
+import uuid
 from django.db import models
+from django.utils import timezone
 
 
 class EmailTemplate(models.Model):
@@ -153,3 +155,23 @@ class EmailTemplate(models.Model):
         elif pricing_method == 'route':
             return f'route_{role}'
         return f'booking_{role}'
+
+
+class SupplierConfirmation(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
+    booking_ref = models.CharField(max_length=50)
+    supplier_email = models.EmailField()
+    supplier_name = models.CharField(max_length=200, blank=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Supplier Confirmation'
+        verbose_name_plural = 'Supplier Confirmations'
+
+    def __str__(self):
+        return f'{self.booking_ref} — {self.supplier_email}'
+
+    @property
+    def is_confirmed(self):
+        return self.confirmed_at is not None

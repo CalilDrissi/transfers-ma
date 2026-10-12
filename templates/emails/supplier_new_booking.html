@@ -91,14 +91,19 @@
 </div>
 {% endif %}
 
-{% if show_price|default:True and details.total_price %}
-<div style="background: #e8f5e9; border-radius: 8px; padding: 16px; margin: 16px 0;">
-    <div class="detail-row" style="border-bottom: none;">
-        <span class="detail-label">Total Price:</span>
-        <strong style="font-size: 18px;">{{ details.total_price }} {{ details.currency|default:"MAD" }}</strong>
-    </div>
-</div>
-{% endif %}
 
 {{ closing_text|default:"<p>Please ensure the vehicle is ready for this transfer.</p>"|safe }}
+
+{% if confirm_url %}
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ confirm_url }}"
+       style="display: inline-block; background: #f4a020; color: #ffffff; font-weight: 700;
+              font-size: 16px; padding: 14px 32px; border-radius: 6px; text-decoration: none;">
+        Confirm Reception
+    </a>
+    <p style="font-size: 12px; color: #888; margin-top: 8px;">
+        Click to confirm you have received this booking.
+    </p>
+</div>
+{% endif %}
 {% endblock %}

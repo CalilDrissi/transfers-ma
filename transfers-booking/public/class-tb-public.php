@@ -343,6 +343,46 @@ class TB_Public {
         return $instance->get_js_config();
     }
 
+    private function is_moroccan_visitor() {
+        // CloudFlare sets this header for free — no API call needed when behind CF
+        if (!empty($_SERVER['HTTP_CF_IPCOUNTRY'])) {
+            return $_SERVER['HTTP_CF_IPCOUNTRY'] === 'MA';
+        }
+
+        // Get the real visitor IP (handle proxies)
+        $ip = '';
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $ip = trim($parts[0]);
+        } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+
+        if (empty($ip) || $ip === '127.0.0.1' || $ip === '::1') {
+            return false;
+        }
+
+        $cache_key = 'tb_geo_' . md5($ip);
+        $cached    = get_transient($cache_key);
+        if ($cached !== false) {
+            return $cached === 'MA';
+        }
+
+        $response = wp_remote_get(
+            'http://ip-api.com/json/' . rawurlencode($ip) . '?fields=countryCode',
+            ['timeout' => 2]
+        );
+
+        $country = '';
+        if (!is_wp_error($response)) {
+            $body    = json_decode(wp_remote_retrieve_body($response), true);
+            $country = isset($body['countryCode']) ? (string) $body['countryCode'] : '';
+        }
+
+        set_transient($cache_key, $country ?: 'XX', DAY_IN_SECONDS);
+        return $country === 'MA';
+    }
+
     private function get_js_config() {
         return [
             'ajaxUrl'              => admin_url('admin-ajax.php'),
@@ -362,6 +402,8 @@ class TB_Public {
             'rentalConfirmationPageUrl'   => TB_Settings::get('tb_rental_confirmation_page_url'),
             'tourCheckoutPageUrl'         => TB_Settings::get('tb_tour_checkout_page_url'),
             'tourConfirmationPageUrl'     => TB_Settings::get('tb_tour_confirmation_page_url'),
+            'isMorocco'            => $this->is_moroccan_visitor(),
+            'eurToMad'             => 10.5,
             'showNoRouteMessage'   => true,
             'noRouteMessage'       => TB_Settings::get_translated('tb_no_route_message'),
             'contact'              => [
@@ -446,7 +488,7 @@ class TB_Public {
                 'depositOnly'        => __('deposit', 'transfers-booking'),
                 'remainingToDriver'  => __('Remaining', 'transfers-booking'),
                 'toDriver'           => __('to driver', 'transfers-booking'),
-                'payCash'            => __('Pay Cash to Driver', 'transfers-booking'),
+                'payCash'            => __('Pay', 'transfers-booking'),
                 'cashDescription'    => __('Pay the full amount to your driver in cash', 'transfers-booking'),
                 'payWithPaypal'      => __('Pay with PayPal', 'transfers-booking'),
                 'paypalInfo'         => __('Click below to pay with PayPal.', 'transfers-booking'),

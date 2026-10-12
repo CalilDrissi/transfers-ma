@@ -5,7 +5,7 @@
     &larr; <?php esc_html_e('Back to search', 'transfers-booking'); ?>
 </button>
 
-<!-- Route Summary Bar (compact, like SinaiTaxi) -->
+<!-- Route Summary Bar (compact) -->
 <div class="tb-route-bar">
     <div class="tb-route-bar__point">
         <span class="tb-route-bar__icon tb-route-bar__icon--pickup">
@@ -30,6 +30,36 @@
         <span class="tb-route-bar__date" id="tb-result-date">--</span>
         <span class="tb-route-bar__distance" id="tb-result-distance">--</span>
         <span class="tb-route-bar__duration" id="tb-result-duration">--</span>
+    </div>
+</div>
+
+<!-- Return leg bar (shown only for round trips) -->
+<div id="tb-return-leg-bar" class="tb-route-bar tb-route-bar--return" style="display:none; margin-top:6px; border-top: 2px dashed #e94560;">
+    <span class="tb-route-bar__return-badge">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="vertical-align:middle;margin-right:4px;"><path d="M14 5H4a3 3 0 000 6h1M2 11l2 2-2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 5l2-2-2-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <?php esc_html_e('Return', 'transfers-booking'); ?>
+    </span>
+    <div class="tb-route-bar__point">
+        <span class="tb-route-bar__icon tb-route-bar__icon--pickup">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>
+        </span>
+        <div class="tb-route-bar__info">
+            <span class="tb-route-bar__label"><?php esc_html_e('Return from', 'transfers-booking'); ?></span>
+            <span class="tb-route-bar__address" id="tb-result-return-from">--</span>
+        </div>
+    </div>
+    <div class="tb-route-bar__swap-icon">&rarr;</div>
+    <div class="tb-route-bar__point">
+        <span class="tb-route-bar__icon tb-route-bar__icon--dropoff">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1C5.5 1 3.5 3 3.5 5.5C3.5 9 8 14 8 14s4.5-5 4.5-8.5C12.5 3 10.5 1 8 1z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="5.5" r="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+        </span>
+        <div class="tb-route-bar__info">
+            <span class="tb-route-bar__label"><?php esc_html_e('Return to', 'transfers-booking'); ?></span>
+            <span class="tb-route-bar__address" id="tb-result-return-to">--</span>
+        </div>
+    </div>
+    <div class="tb-route-bar__meta">
+        <span class="tb-route-bar__date" id="tb-result-return-date">--</span>
     </div>
 </div>
 

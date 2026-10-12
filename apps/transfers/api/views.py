@@ -374,6 +374,16 @@ class TransferViewSet(viewsets.ModelViewSet):
 
         return Response(TransferSerializer(transfer).data)
 
+    @action(detail=False, methods=['get'], url_path='by-ref/(?P<ref>[^/.]+)',
+            permission_classes=[HasAPIKeyOrIsAuthenticated])
+    def by_ref(self, request, ref=None):
+        """Retrieve a transfer booking by booking reference."""
+        try:
+            transfer = Transfer.objects.select_related('vehicle_category').get(booking_ref=ref)
+        except Transfer.DoesNotExist:
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(TransferSerializer(transfer).data)
+
 
 @extend_schema_view(
     list=extend_schema(

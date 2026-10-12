@@ -2014,6 +2014,37 @@ def supplier_detail(request, pk):
 
 @login_required
 @user_passes_test(is_admin)
+def impersonate_supplier(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    if not supplier.user:
+        messages.error(request, 'This supplier has no portal login.')
+        return redirect('dashboard:supplier_detail', pk=pk)
+    original_pk = request.user.pk
+    from django.contrib.auth import login as auth_login
+    auth_login(request, supplier.user, backend='django.contrib.auth.backends.ModelBackend')
+    request.session['impersonate_from'] = original_pk
+    return redirect('/supplier/')
+
+
+@login_required
+def impersonate_exit(request):
+    original_pk = request.session.get('impersonate_from')
+    if not original_pk:
+        return redirect('/supplier/')
+    from apps.accounts.models import User as UserModel
+    try:
+        admin_user = UserModel.objects.get(pk=original_pk)
+    except UserModel.DoesNotExist:
+        return redirect('dashboard:home')
+    from django.contrib.auth import login as auth_login
+    auth_login(request, admin_user, backend='django.contrib.auth.backends.ModelBackend')
+    # auth_login flushes the session when switching users, so pop is safe even if already gone
+    request.session.pop('impersonate_from', None)
+    return redirect('dashboard:supplier_list')
+
+
+@login_required
+@user_passes_test(is_admin)
 def supplier_delete(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)
     if request.method == 'POST':

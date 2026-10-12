@@ -164,33 +164,6 @@ class CompanyDocument(models.Model):
         return f"{self.get_document_type_display()} — {self.company.company_name}"
 
 
-class CompanyReview(models.Model):
-    """Customer reviews for rental companies."""
-
-    company = models.ForeignKey(RentalCompany, on_delete=models.CASCADE, related_name='reviews')
-    rental = models.OneToOneField('rentals.Rental', on_delete=models.CASCADE, related_name='review')
-    customer_name = models.CharField(_('customer name'), max_length=200)
-    customer_email = models.EmailField(_('customer email'))
-    rating = models.PositiveSmallIntegerField(_('rating'), choices=[(i, i) for i in range(1, 6)])
-    title = models.CharField(_('title'), max_length=200, blank=True)
-    comment = models.TextField(_('comment'), blank=True)
-    vehicle_condition_rating = models.PositiveSmallIntegerField(_('vehicle condition'), null=True, blank=True)
-    service_rating = models.PositiveSmallIntegerField(_('service rating'), null=True, blank=True)
-    value_rating = models.PositiveSmallIntegerField(_('value rating'), null=True, blank=True)
-    company_response = models.TextField(_('company response'), blank=True)
-    company_responded_at = models.DateTimeField(_('responded at'), null=True, blank=True)
-    is_published = models.BooleanField(_('published'), default=True)
-    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
-
-    class Meta:
-        verbose_name = _('company review')
-        verbose_name_plural = _('company reviews')
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.rating}★ — {self.company.company_name}"
-
-
 class CompanyPayout(models.Model):
     """Track payouts to rental companies."""
 

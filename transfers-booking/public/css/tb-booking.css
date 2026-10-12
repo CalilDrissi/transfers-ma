@@ -1321,6 +1321,7 @@
     font-weight: 500;
 }
 
+
 .tb-vehicle-card__payment-icons {
     display: flex;
     gap: 4px;
@@ -3062,11 +3063,40 @@ input[type="date"], input[type="time"], select, textarea {
 
 
 /* ── Round-trip return leg row ── */
-/* Hidden by default (ID specificity beats .tb-pill-bar__row class) */
-#tb-return-leg-row { display: none !important; }
-#tb-btn-search-rt { display: none !important; }
+/* Use html+body+#tb-booking-widget prefix (specificity 0,2,0,2) to beat the inline
+   style block's .tb-pill-bar__row rule (specificity 0,1,1,2) which also has !important */
+html body #tb-booking-widget #tb-return-leg-row { display: none !important; }
+html body #tb-booking-widget #tb-btn-search-rt { display: none !important; }
 
-/* Shown only when #tb-single-bar has the tb-rt-active class */
-#tb-single-bar.tb-rt-active #tb-return-leg-row { display: flex !important; }
-#tb-single-bar.tb-rt-active #tb-btn-search { display: none !important; }
-#tb-single-bar.tb-rt-active #tb-btn-search-rt { display: flex !important; }
+/* Shown only when #tb-single-bar has the tb-rt-active class (specificity 0,3,1,2) */
+html body #tb-booking-widget #tb-single-bar.tb-rt-active #tb-return-leg-row { display: flex !important; }
+html body #tb-booking-widget #tb-single-bar.tb-rt-active #tb-btn-search { display: none !important; }
+html body #tb-booking-widget #tb-single-bar.tb-rt-active #tb-btn-search-rt { display: flex !important; }
+
+/* ── Step 2: return leg bar ── */
+.tb-route-bar--return {
+    border-radius: 8px;
+    padding: 10px 16px;
+    gap: 12px;
+    align-items: center;
+}
+.tb-route-bar__return-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e94560;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 3px 8px;
+    background: rgba(233,69,96,0.08);
+    border-radius: 4px;
+}
+.tb-vehicle-card__price-note {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 2px;
+}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import RentalCompany, CompanyDocument, CompanyReview, CompanyPayout, VehicleAvailability
+from .models import RentalCompany, CompanyDocument, CompanyPayout, VehicleAvailability
 
 
 class CompanyDocumentInline(admin.TabularInline):
@@ -20,12 +20,6 @@ class RentalCompanyAdmin(admin.ModelAdmin):
 class CompanyDocumentAdmin(admin.ModelAdmin):
     list_display = ['company', 'document_type', 'verification_status', 'uploaded_at']
     list_filter = ['document_type', 'verification_status']
-
-
-@admin.register(CompanyReview)
-class CompanyReviewAdmin(admin.ModelAdmin):
-    list_display = ['company', 'customer_name', 'rating', 'is_published', 'created_at']
-    list_filter = ['rating', 'is_published']
 
 
 @admin.register(CompanyPayout)

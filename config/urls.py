@@ -42,6 +42,9 @@ urlpatterns = [
     # Supplier self-service portal
     path('supplier/', include('apps.supplier_portal.urls')),
 
+    # Supplier booking confirmation (public, token-based)
+    path('confirm/', include('apps.notifications.urls')),
+
     # Language switching
     path('i18n/', include('django.conf.urls.i18n')),
 ]
